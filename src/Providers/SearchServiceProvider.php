@@ -42,6 +42,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
 
     public static string $packageName = 'capell-app/search';
 
+    #[Override]
     public function configurePackage(Package $package): void
     {
         $package
@@ -66,6 +67,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
                 '2026_05_10_190868_01_create_search_logs_table',
                 '2026_07_12_000001_encrypt_search_log_pii',
                 '2026_05_21_000002_add_fulltext_index_to_search_database_table',
+                '2026_09_29_120000_remove_implicit_timestamp_updates_from_search',
             ]);
         }
 
@@ -82,6 +84,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         $this->app->register(AdminServiceProvider::class);
     }
 
+    #[Override]
     public function packageRegistered(): void
     {
         $this->app->singleton(SearchableSourceRegistry::class, function (): SearchableSourceRegistry {
@@ -95,6 +98,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         $this->registerSearchBinding();
     }
 
+    #[Override]
     public function packageBooted(): void
     {
         $this->registerPublicRateLimiters();

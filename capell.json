@@ -121,6 +121,16 @@
             "type": "health-check",
             "class": "Capell\\Search\\Manifest\\SearchHealthContribution",
             "checkClass": "Capell\\Search\\Health\\SearchHealthCheck"
+        },
+        {
+            "type": "migration",
+            "class": "Capell\\Search\\Manifest\\SearchMigrationsContribution",
+            "migrationFiles": [
+                "2026_05_10_190868_01_create_search_logs_table",
+                "2026_05_21_000002_add_fulltext_index_to_search_database_table",
+                "2026_07_12_000001_encrypt_search_log_pii",
+                "2026_09_29_120000_remove_implicit_timestamp_updates_from_search"
+            ]
         }
     ],
     "database": {

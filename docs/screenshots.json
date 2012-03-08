@@ -74,6 +74,7 @@
         },
         {
             "id": "search-settings-screen",
+            "url": "/extensions/search/settings",
             "title": "Site search settings screen.",
             "package": "search",
             "surface": "admin",

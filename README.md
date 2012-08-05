@@ -47,25 +47,180 @@ Screenshot contract: `docs/screenshots.json`.
 
 ## Technical Shape
 
-- Service providers: `Capell\Search\Providers\SearchServiceProvider`, `Capell\Search\Providers\AdminServiceProvider`.
-- Config files: `packages/search/config/capell-search.php`.
-- Migrations: `packages/search/database/migrations/2026_05_10_190868_01_create_search_logs_table.php`, `packages/search/database/migrations/2026_05_21_000002_add_fulltext_index_to_search_database_table.php`, `packages/search/database/migrations/2026_07_12_000001_encrypt_search_log_pii.php`.
-- Settings migrations: `packages/search/database/settings/2026_05_10_190869_01_add_search_settings.php`.
-- Settings classes: `SearchSettings`.
-- Models: `SearchLog`.
-- Filament classes: `SearchSettingsPage`, `SearchDashboardSettingsContributor`, `SearchSettingsSchema`, `BuildsSearchInsightsWindow`, `SearchOverviewStatsFilamentWidget`, `TopSearchesFilamentWidget`, `TrendingSearchesFilamentWidget`, `ZeroResultSearchesFilamentWidget`.
-- Route files: `packages/search/routes/web.php`.
-- Extension contracts: `Search`.
-- Actions: `ApplySearchResultEnhancementsAction`, `BuildAutocompleteQuerySuggestionsAction`, `BuildSearchFacetGroupsAction`, `BuildSearchPageViewDataAction`, `BuildTopClickedResultsQueryAction`, `BuildTopSearchesQueryAction`, `BuildTrendingSearchesQueryAction`, `BuildZeroResultSearchesQueryAction`, `CanCollectSearchAnalyticsAction`, `CreatePromotedResultFromZeroResultSearchAction`, `CreateSearchVisitorIdentityAction`, `CreateSynonymFromZeroResultSearchAction`, `and 21 more`.
-- Data objects: `AutocompleteQuerySuggestionData`, `AutocompleteSearchResponseData`, `AutocompleteSearchResultData`, `DatabaseFullTextSearch`, `DatabaseSearchExpression`, `PromotedSearchResultData`, `SearchFacetGroupData`, `SearchFacetOptionData`, `SearchFilterData`, `SearchInsightsWindowData`, `SearchPageViewData`, `SearchQueryMetadataData`, `and 5 more`.
-- Command signatures: `search:flush`, `search:index`, `search:purge`.
-- Manifest action API: `applySearchResultEnhancements: Capell\Search\Actions\ApplySearchResultEnhancementsAction`, `buildTopClickedResultsQuery: Capell\Search\Actions\BuildTopClickedResultsQueryAction`, `buildTopSearchesQuery: Capell\Search\Actions\BuildTopSearchesQueryAction`, `buildTrendingSearchesQuery: Capell\Search\Actions\BuildTrendingSearchesQueryAction`, `buildZeroResultSearchesQuery: Capell\Search\Actions\BuildZeroResultSearchesQueryAction`, `createPromotedResultFromZeroResultSearch: Capell\Search\Actions\CreatePromotedResultFromZeroResultSearchAction`, `createSynonymFromZeroResultSearch: Capell\Search\Actions\CreateSynonymFromZeroResultSearchAction`, `flushScoutSearchSources: Capell\Search\Actions\FlushScoutSearchSourcesAction`, `indexScoutSearchSources: Capell\Search\Actions\IndexScoutSearchSourcesAction`, `install: Capell\Search\Actions\InstallSearchPackageAction`, `normalizeSearchQuery: Capell\Search\Actions\NormalizeSearchQueryAction`, `purgeSearchLogs: Capell\Search\Actions\PurgeSearchLogsAction`, `and 5 more`.
-- Scheduled commands: `search:purge (monthly; package registered)`.
-- Console command classes: `FlushSearchCommand`, `IndexSearchCommand`, `PurgeSearchLogsCommand`.
-- Manifest contributions: `admin-page: Capell\Search\Manifest\SearchSettingsPageContribution`, `console-command: Capell\Search\Manifest\SearchConsoleCommandsContribution`, `dashboard-widget: Capell\Search\Manifest\TopSearchesWidgetContribution`, `dashboard-widget: Capell\Search\Manifest\TrendingSearchesWidgetContribution`, `dashboard-widget: Capell\Search\Manifest\ZeroResultSearchesWidgetContribution`, `health-check: Capell\Search\Manifest\SearchHealthContribution`, `model: Capell\Search\Manifest\SearchLogModelContribution`, `overview-stat: Capell\Search\Manifest\SearchOverviewStatsContribution`, `route: Capell\Search\Manifest\SearchFrontendRouteContribution`, `scheduled-job: Capell\Search\Manifest\SearchLogPurgeScheduleContribution`, `setting: Capell\Search\Manifest\SearchSettingsContribution`.
-- Health checks: `Capell\Search\Health\SearchHealthCheck`.
-- Blade views: `packages/search/resources/views/components/facets.blade.php`, `packages/search/resources/views/components/form.blade.php`, `packages/search/resources/views/components/header/autocomplete-results.blade.php`, `packages/search/resources/views/components/header/search-dialog.blade.php`, `packages/search/resources/views/components/header/search-modal.blade.php`, `packages/search/resources/views/components/header/search-trigger.blade.php`, `packages/search/resources/views/components/results.blade.php`, `packages/search/resources/views/filament/widgets/search-overview-stats.blade.php`, `packages/search/resources/views/layouts/frontend.blade.php`, `packages/search/resources/views/pages/search.blade.php`.
-- Cache tags: `search`.
+### Service providers
+
+- `Capell\Search\Providers\SearchServiceProvider`
+- `Capell\Search\Providers\AdminServiceProvider`
+
+### Config files
+
+- `packages/search/config/capell-search.php`
+
+### Migrations
+
+- `packages/search/database/migrations/2026_05_10_190868_01_create_search_logs_table.php`
+- `packages/search/database/migrations/2026_05_21_000002_add_fulltext_index_to_search_database_table.php`
+- `packages/search/database/migrations/2026_07_12_000001_encrypt_search_log_pii.php`
+
+### Settings migrations
+
+- `packages/search/database/settings/2026_05_10_190869_01_add_search_settings.php`
+
+### Settings classes
+
+- `SearchSettings`
+
+### Models
+
+- `SearchLog`
+
+### Filament classes
+
+- `SearchSettingsPage`
+- `SearchDashboardSettingsContributor`
+- `SearchSettingsSchema`
+- `BuildsSearchInsightsWindow`
+- `SearchOverviewStatsFilamentWidget`
+- `TopSearchesFilamentWidget`
+- `TrendingSearchesFilamentWidget`
+- `ZeroResultSearchesFilamentWidget`
+
+### Route files
+
+- `packages/search/routes/web.php`
+
+### Extension contracts
+
+- `Search`
+
+### Actions
+
+- `ApplySearchResultEnhancementsAction`
+- `BuildAutocompleteQuerySuggestionsAction`
+- `BuildSearchFacetGroupsAction`
+- `BuildSearchPageViewDataAction`
+- `BuildTopClickedResultsQueryAction`
+- `BuildTopSearchesQueryAction`
+- `BuildTrendingSearchesQueryAction`
+- `BuildZeroResultSearchesQueryAction`
+- `CanCollectSearchAnalyticsAction`
+- `CreatePromotedResultFromZeroResultSearchAction`
+- `CreateSearchVisitorIdentityAction`
+- `CreateSynonymFromZeroResultSearchAction`
+- `FlushScoutSearchSourcesAction`
+- `GenerateSearchClickTokenAction`
+- `HashSearchRetentionValueAction`
+- `IndexScoutSearchSourcesAction`
+- `InstallSearchPackageAction`
+- `NormalizeSearchFiltersAction`
+- `NormalizeSearchQueryAction`
+- `ProbeScoutIndexHealthAction`
+- `PublishSearchAssetsAction`
+- `PurgeSearchLogsAction`
+- `RecordSearchAction`
+- `RecordSearchResultClickAction`
+- `RegisterConfiguredSearchableSourcesAction`
+- `ResolveCorrectedSearchQueryAction`
+- `ResolveExpandedSearchQueriesAction`
+- `ResolvePromotedSearchResultsAction`
+- `ResolveSearchResultTypeLabelAction`
+- `ResolveSearchSettingAction`
+- `RunAutocompleteSearchAction`
+- `RunSearchAction`
+- `SanitizeSearchResultAction`
+
+### Data objects
+
+- `AutocompleteQuerySuggestionData`
+- `AutocompleteSearchResponseData`
+- `AutocompleteSearchResultData`
+- `DatabaseFullTextSearch`
+- `DatabaseSearchExpression`
+- `PromotedSearchResultData`
+- `SearchFacetGroupData`
+- `SearchFacetOptionData`
+- `SearchFilterData`
+- `SearchInsightsWindowData`
+- `SearchPageViewData`
+- `SearchQueryMetadataData`
+- `SearchRequestData`
+- `SearchResultData`
+- `SearchTermSummaryData`
+- `SearchVisitorIdentityData`
+- `SearchableSourceData`
+
+### Command signatures
+
+- `search:flush`
+- `search:index`
+- `search:purge`
+
+### Manifest action API
+
+- `applySearchResultEnhancements: Capell\Search\Actions\ApplySearchResultEnhancementsAction`
+- `buildTopClickedResultsQuery: Capell\Search\Actions\BuildTopClickedResultsQueryAction`
+- `buildTopSearchesQuery: Capell\Search\Actions\BuildTopSearchesQueryAction`
+- `buildTrendingSearchesQuery: Capell\Search\Actions\BuildTrendingSearchesQueryAction`
+- `buildZeroResultSearchesQuery: Capell\Search\Actions\BuildZeroResultSearchesQueryAction`
+- `createPromotedResultFromZeroResultSearch: Capell\Search\Actions\CreatePromotedResultFromZeroResultSearchAction`
+- `createSynonymFromZeroResultSearch: Capell\Search\Actions\CreateSynonymFromZeroResultSearchAction`
+- `flushScoutSearchSources: Capell\Search\Actions\FlushScoutSearchSourcesAction`
+- `indexScoutSearchSources: Capell\Search\Actions\IndexScoutSearchSourcesAction`
+- `install: Capell\Search\Actions\InstallSearchPackageAction`
+- `normalizeSearchQuery: Capell\Search\Actions\NormalizeSearchQueryAction`
+- `purgeSearchLogs: Capell\Search\Actions\PurgeSearchLogsAction`
+- `recordSearch: Capell\Search\Actions\RecordSearchAction`
+- `recordSearchResultClick: Capell\Search\Actions\RecordSearchResultClickAction`
+- `resolveExpandedSearchQueries: Capell\Search\Actions\ResolveExpandedSearchQueriesAction`
+- `resolvePromotedSearchResults: Capell\Search\Actions\ResolvePromotedSearchResultsAction`
+- `runSearch: Capell\Search\Actions\RunSearchAction`
+
+### Scheduled commands
+
+- `search:purge (monthly; package registered)`
+
+### Console command classes
+
+- `FlushSearchCommand`
+- `IndexSearchCommand`
+- `PurgeSearchLogsCommand`
+
+### Manifest contributions
+
+- `admin-page: Capell\Search\Manifest\SearchSettingsPageContribution`
+- `agent-capability: Capell\Search\Manifest\SearchAgentToolContribution`
+- `console-command: Capell\Search\Manifest\SearchConsoleCommandsContribution`
+- `dashboard-widget: Capell\Search\Manifest\TopSearchesWidgetContribution`
+- `dashboard-widget: Capell\Search\Manifest\TrendingSearchesWidgetContribution`
+- `dashboard-widget: Capell\Search\Manifest\ZeroResultSearchesWidgetContribution`
+- `health-check: Capell\Search\Manifest\SearchHealthContribution`
+- `model: Capell\Search\Manifest\SearchLogModelContribution`
+- `overview-stat: Capell\Search\Manifest\SearchOverviewStatsContribution`
+- `route: Capell\Search\Manifest\SearchFrontendRouteContribution`
+- `scheduled-job: Capell\Search\Manifest\SearchLogPurgeScheduleContribution`
+- `setting: Capell\Search\Manifest\SearchSettingsContribution`
+
+### Health checks
+
+- `Capell\Search\Health\SearchHealthCheck`
+
+### Blade views
+
+- `packages/search/resources/views/components/facets.blade.php`
+- `packages/search/resources/views/components/form.blade.php`
+- `packages/search/resources/views/components/header/autocomplete-results.blade.php`
+- `packages/search/resources/views/components/header/search-dialog.blade.php`
+- `packages/search/resources/views/components/header/search-modal.blade.php`
+- `packages/search/resources/views/components/header/search-trigger.blade.php`
+- `packages/search/resources/views/components/results.blade.php`
+- `packages/search/resources/views/filament/widgets/search-overview-stats.blade.php`
+- `packages/search/resources/views/layouts/frontend.blade.php`
+- `packages/search/resources/views/pages/search.blade.php`
+
+### Cache tags
+
+- `search`
+
 
 ## Data Model
 
@@ -81,7 +236,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Required packages: `capell-app/admin`, `capell-app/core`, `capell-app/discovery-foundation`, `capell-app/frontend`.
 - Admin navigation: declares `admin-page: SearchSettingsPageContribution`; each Filament page or resource controls its own navigation visibility.
 - Admin/editor extensions: `dashboard-widget: TopSearchesWidgetContribution`, `dashboard-widget: TrendingSearchesWidgetContribution`, `dashboard-widget: ZeroResultSearchesWidgetContribution`, `overview-stat: SearchOverviewStatsContribution`.
-- Permissions: none declared in `capell.json`.
+- Permissions: Shield-generated page permissions for `Capell\Search\Filament\Pages\SearchSettingsPage` (names and grants depend on host Shield configuration).
 - Public routes: loads `routes/web.php`; registers `SearchFrontendRouteContribution`.
 - Database changes: package migrations are declared.
 - Config: `config/capell-search.php`.
@@ -113,8 +268,7 @@ Screenshot contract: `docs/screenshots.json`.
 ## Quick Start
 
 1. Install the package: `composer require capell-app/search`.
-2. Run the required setup: `php artisan migrate`.
-3. Open `/search?q=capell` and confirm the public output renders without admin state.
+2. Open `/search?q=capell` and confirm the public output renders without admin state.
 
 ## Next Steps
 

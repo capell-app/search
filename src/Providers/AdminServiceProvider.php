@@ -14,6 +14,7 @@ use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
 use Capell\Search\Console\Commands\FlushSearchCommand;
 use Capell\Search\Console\Commands\IndexSearchCommand;
 use Capell\Search\Console\Commands\PurgeSearchLogsCommand;
+use Capell\Search\Console\Commands\SeedSearchScreenshotFixtureCommand;
 use Capell\Search\Data\SearchInsightsWindowData;
 use Capell\Search\Data\SearchTermSummaryData;
 use Capell\Search\Filament\Settings\Contributors\SearchDashboardSettingsContributor;
@@ -90,6 +91,7 @@ final class AdminServiceProvider extends ServiceProvider
         }
 
         $commands = [
+            SeedSearchScreenshotFixtureCommand::class,
             PurgeSearchLogsCommand::class,
         ];
 

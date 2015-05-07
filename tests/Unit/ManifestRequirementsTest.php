@@ -24,6 +24,7 @@ use Capell\Search\Actions\RunSearchAction;
 use Capell\Search\Console\Commands\FlushSearchCommand;
 use Capell\Search\Console\Commands\IndexSearchCommand;
 use Capell\Search\Console\Commands\PurgeSearchLogsCommand;
+use Capell\Search\Console\Commands\SeedSearchScreenshotFixtureCommand;
 use Capell\Search\Filament\Pages\SearchSettingsPage;
 use Capell\Search\Filament\Widgets\TopSearchesFilamentWidget;
 use Capell\Search\Filament\Widgets\TrendingSearchesFilamentWidget;
@@ -141,11 +142,12 @@ it('declares implemented search gap features contributions and actions', functio
         ->and($manifest['contributes'])->toContain([
             'type' => 'console-command',
             'class' => SearchConsoleCommandsContribution::class,
-            'commands' => ['search:index', 'search:flush', 'search:purge'],
+            'commands' => ['search:index', 'search:flush', 'search:purge', 'capell:search:screenshot-fixture'],
             'commandClasses' => [
                 IndexSearchCommand::class,
                 FlushSearchCommand::class,
                 PurgeSearchLogsCommand::class,
+                SeedSearchScreenshotFixtureCommand::class,
             ],
         ])
         ->and($manifest['contributes'])->toContain([

@@ -3,14 +3,18 @@
 declare(strict_types=1);
 
 use Capell\Admin\Facades\CapellAdmin;
+use Capell\Search\Actions\SeedSearchScreenshotWidgetAction;
 use Capell\Search\Filament\Settings\Contributors\SearchDashboardSettingsContributor;
 use Capell\Search\Filament\Widgets\TopSearchesFilamentWidget;
 use Capell\Search\Filament\Widgets\TrendingSearchesFilamentWidget;
 use Capell\Search\Filament\Widgets\ZeroResultSearchesFilamentWidget;
 use Capell\Search\Models\SearchLog;
+use Capell\Tests\Fixtures\Models\User;
+use Filament\Panel;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
 use Livewire\Livewire;
 
 beforeEach(function (): void {
@@ -69,6 +73,40 @@ test('site search dashboard widgets render', function (string $widgetClass): voi
     TrendingSearchesFilamentWidget::class,
     ZeroResultSearchesFilamentWidget::class,
 ]);
+
+test('search evidence renders different real widget states from the same query logs', function (): void {
+    putenv('CAPELL_SCREENSHOT_FIXTURE=record-state');
+    try {
+        (new SeedSearchScreenshotWidgetAction)->handle();
+    } finally {
+        putenv('CAPELL_SCREENSHOT_FIXTURE');
+    }
+    $top = Livewire::test(TopSearchesFilamentWidget::class)
+        ->assertSee('Top searches')->assertSee('Screenshot publishing guide')->assertSee('Screenshot missing guide')->html();
+    $trending = Livewire::test(TrendingSearchesFilamentWidget::class)
+        ->assertSee('Trending searches')->assertSee('Trend')->html();
+    $zero = Livewire::test(ZeroResultSearchesFilamentWidget::class)
+        ->assertSee('Zero result searches')->assertSee('Screenshot missing guide')->assertDontSee('Screenshot publishing guide')->html();
+
+    expect($top)->not->toBe($trending)
+        ->and($zero)->not->toBe($top)->not->toBe($trending);
+});
+
+test('widget fixture routes render their own populated component instead of the dashboard', function (): void {
+    $this->actingAs(User::factory()->create());
+    filament()->registerPanel(Panel::make()->id('admin')->path('admin')->default());
+    View::addNamespace('workbench', dirname(__DIR__, 5) . '/workbench/resources/views');
+    require dirname(__DIR__, 3) . '/workbench/routes/screenshot-fixtures.php';
+    putenv('CAPELL_SCREENSHOT_FIXTURE=record-state');
+
+    try {
+        $this->get('/screenshot-fixtures/search/widgets/top')->assertOk()->assertSee('Top searches')->assertSee('Screenshot publishing guide')->assertDontSee('Trending searches');
+        $this->get('/screenshot-fixtures/search/widgets/trending')->assertOk()->assertSee('Trending searches')->assertSee('Screenshot publishing guide')->assertDontSee('Zero result searches');
+        $this->get('/screenshot-fixtures/search/widgets/zero-results')->assertOk()->assertSee('Zero result searches')->assertSee('Screenshot missing guide')->assertDontSee('Screenshot publishing guide');
+    } finally {
+        putenv('CAPELL_SCREENSHOT_FIXTURE');
+    }
+});
 
 test('site search contributes overview stats instead of an overview widget', function (): void {
     $stats = collect(CapellAdmin::getOverviewStats(false));

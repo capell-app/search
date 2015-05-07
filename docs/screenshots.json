@@ -25,13 +25,20 @@
             "package": "search",
             "surface": "frontend",
             "targetType": "frontend-url",
-            "target": null,
-            "url": "/search?q=capell",
+            "target": "/screenshot-fixtures/search/header",
+            "url": "/screenshot-fixtures/search/header",
             "required": false,
-            "notes": "Optional Beta evidence target. The current file is a generic Settings capture rather than proof of the header field; replace it with an independently captured compatible theme header before using it as release or Marketplace evidence.",
+            "notes": "Public workbench host mounts the real Search header dialog and real search results for a seeded discoverable page. Open the header control and require its search input plus populated results.",
             "useCase": "A visitor uses the header search control supplied by the package frontend surface.",
             "screenshotPath": "packages/search/docs/screenshots/header-search-field.png",
-            "darkScreenshotPath": "packages/search/docs/screenshots/header-search-field-dark.png"
+            "darkScreenshotPath": "packages/search/docs/screenshots/header-search-field-dark.png",
+            "waitFor": "body:has(a:has-text(\"publishing guide\")) [data-site-search-dialog][aria-hidden=\"false\"] [data-site-search-input]",
+            "beforeWait": [
+                {
+                    "type": "click",
+                    "selector": "[data-site-search-trigger]"
+                }
+            ]
         },
         {
             "id": "top-searches-widget",
@@ -39,12 +46,15 @@
             "package": "search",
             "surface": "admin",
             "targetType": "admin-surface",
-            "target": null,
+            "target": "TopSearchesFilamentWidget",
             "required": true,
-            "notes": "Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.",
+            "notes": "Authenticated widget-only fixture renders the actual Search Livewire table with deterministic query logs. Require its own populated table, not the Insights dashboard.",
             "useCase": "An administrator reviews top searched terms from seeded query logs.",
             "screenshotPath": "packages/search/docs/screenshots/top-searches-widget.png",
-            "darkScreenshotPath": "packages/search/docs/screenshots/top-searches-widget-dark.png"
+            "darkScreenshotPath": "packages/search/docs/screenshots/top-searches-widget-dark.png",
+            "url": "/screenshot-fixtures/search/widgets/top",
+            "scenario": "frontend-page",
+            "waitFor": ".fi-ta:has-text(\"Top searches\") tbody tr"
         },
         {
             "id": "trending-searches-widget",
@@ -52,12 +62,15 @@
             "package": "search",
             "surface": "admin",
             "targetType": "admin-surface",
-            "target": null,
+            "target": "TrendingSearchesFilamentWidget",
             "required": false,
-            "notes": "Optional Beta evidence target. The current file duplicates the top-searches widget; replace it with an independently captured trending-searches state before using it as release or Marketplace evidence.",
+            "notes": "Authenticated widget-only fixture renders the actual Search Livewire table with deterministic query logs. Require its own populated table, not the Insights dashboard.",
             "useCase": "An administrator reviews trending searches over the configured window.",
             "screenshotPath": "packages/search/docs/screenshots/trending-searches-widget.png",
-            "darkScreenshotPath": "packages/search/docs/screenshots/trending-searches-widget-dark.png"
+            "darkScreenshotPath": "packages/search/docs/screenshots/trending-searches-widget-dark.png",
+            "url": "/screenshot-fixtures/search/widgets/trending",
+            "scenario": "frontend-page",
+            "waitFor": ".fi-ta:has-text(\"Trending searches\") tbody tr"
         },
         {
             "id": "zero-result-searches-widget",
@@ -65,26 +78,30 @@
             "package": "search",
             "surface": "admin",
             "targetType": "admin-surface",
-            "target": null,
+            "target": "ZeroResultSearchesFilamentWidget",
             "required": false,
-            "notes": "Optional Beta evidence target. The current file duplicates the top-searches widget; replace it with an independently captured zero-result state before using it as release or Marketplace evidence.",
+            "notes": "Authenticated widget-only fixture renders the actual Search Livewire table with deterministic query logs. Require its own populated table, not the Insights dashboard.",
             "useCase": "An administrator identifies search terms with no matching content.",
             "screenshotPath": "packages/search/docs/screenshots/zero-result-searches-widget.png",
-            "darkScreenshotPath": "packages/search/docs/screenshots/zero-result-searches-widget-dark.png"
+            "darkScreenshotPath": "packages/search/docs/screenshots/zero-result-searches-widget-dark.png",
+            "url": "/screenshot-fixtures/search/widgets/zero-results",
+            "scenario": "frontend-page",
+            "waitFor": ".fi-ta:has-text(\"Zero result searches\") tbody tr"
         },
         {
             "id": "search-settings-screen",
-            "url": "/extensions/search/settings",
+            "url": "/extensions?manage=capell-app%2Fsearch&surface=search",
             "title": "Site search settings screen.",
             "package": "search",
             "surface": "admin",
-            "targetType": "admin-surface",
-            "target": null,
+            "targetType": "admin-action-modal",
+            "target": "/extensions?manage=capell-app%2Fsearch&surface=search",
             "required": false,
-            "notes": "Optional Beta evidence target. The current file is a generic Settings capture rather than proof of Search settings; replace it with an independently captured package-specific settings state before using it as release or Marketplace evidence.",
+            "notes": "Search settings are a package management slide-over on Extensions. The retired standalone settings path is not registered.",
             "useCase": "A site owner configures search settings, logging, retention, and result behavior.",
             "screenshotPath": "packages/search/docs/screenshots/search-settings-screen.png",
-            "darkScreenshotPath": "packages/search/docs/screenshots/search-settings-screen-dark.png"
+            "darkScreenshotPath": "packages/search/docs/screenshots/search-settings-screen-dark.png",
+            "waitFor": "[role=\"dialog\"] [id$=\"results_per_page\"]"
         },
         {
             "id": "search-curation-annotated",
@@ -108,5 +125,6 @@
             "surface": "admin",
             "reason": "Not captured: the real in-repo runner was blocked before navigation on 2026-08-16 when the all-package workbench install failed with missing Capell\\ThemeBistro\\ThemeBistroServiceProvider autoloading. This non-required light/dark pair was removed rather than fabricated."
         }
-    ]
+    ],
+    "fixtureCommands": ["capell:search:screenshot-fixture"]
 }

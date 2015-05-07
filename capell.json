@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^1.0",
     "version": "1.0.0",
-    "description": "Search gives every Capell site a fast, themeable search experience: a results page, header search field, and type-ahead autocomplete, backed by a pluggable driver contract (database, Site Discovery URL registry, or Laravel Scout/Meilisearch/Typesense). Curate results with synonyms, typo corrections, and promoted \"best bet\" answers, and tune ranking with source weighting plus exact-match, recency, and click-through boosts. The admin dashboard surfaces top searches, trending terms, and — critically — zero-result queries, so editors see exactly where content is missing. Privacy-first by default: visitor identifiers are hashed and query logs auto-purge on a configurable retention window.",
+    "description": "Search gives every Capell site a fast, themeable search experience: a results page, header search field, and type-ahead autocomplete, backed by a pluggable driver contract (database, Site Discovery URL registry, or Laravel Scout/Meilisearch/Typesense). Curate results with synonyms, typo corrections, and promoted \"best bet\" answers, and tune ranking with source weighting plus exact-match, recency, and click-through boosts. The admin dashboard surfaces top searches, trending terms, and \u2014 critically \u2014 zero-result queries, so editors see exactly where content is missing. Privacy-first by default: visitor identifiers are hashed and query logs auto-purge on a configurable retention window.",
     "product": {
         "group": "Capell Search & SEO",
         "tier": "premium",
@@ -98,11 +98,17 @@
         {
             "type": "console-command",
             "class": "Capell\\Search\\Manifest\\SearchConsoleCommandsContribution",
-            "commands": ["search:index", "search:flush", "search:purge"],
+            "commands": [
+                "search:index",
+                "search:flush",
+                "search:purge",
+                "capell:search:screenshot-fixture"
+            ],
             "commandClasses": [
                 "Capell\\Search\\Console\\Commands\\IndexSearchCommand",
                 "Capell\\Search\\Console\\Commands\\FlushSearchCommand",
-                "Capell\\Search\\Console\\Commands\\PurgeSearchLogsCommand"
+                "Capell\\Search\\Console\\Commands\\PurgeSearchLogsCommand",
+                "Capell\\Search\\Console\\Commands\\SeedSearchScreenshotFixtureCommand"
             ]
         },
         {
@@ -129,7 +135,8 @@
         "doctor": null,
         "index": "search:index",
         "flush": "search:flush",
-        "purge": "search:purge"
+        "purge": "search:purge",
+        "screenshotFixture": "capell:search:screenshot-fixture"
     },
     "actions": {
         "install": "Capell\\Search\\Actions\\InstallSearchPackageAction",
@@ -253,8 +260,8 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "Production-grade site search for Capell — relevance-tuned results with synonyms, typo tolerance, and curated promotions, plus admin insights into what visitors search for and where you have no answers.",
-        "description": "Search gives every Capell site a fast, themeable search experience: a results page, header search field, and type-ahead autocomplete, backed by a pluggable driver contract (database, Site Discovery URL registry, or Laravel Scout/Meilisearch/Typesense). Curate results with synonyms, typo corrections, and promoted \"best bet\" answers, and tune ranking with source weighting plus exact-match, recency, and click-through boosts. The admin dashboard surfaces top searches, trending terms, and — critically — zero-result queries, so editors see exactly where content is missing. Privacy-first by default: visitor identifiers are hashed and query logs auto-purge on a configurable retention window.",
+        "summary": "Production-grade site search for Capell \u2014 relevance-tuned results with synonyms, typo tolerance, and curated promotions, plus admin insights into what visitors search for and where you have no answers.",
+        "description": "Search gives every Capell site a fast, themeable search experience: a results page, header search field, and type-ahead autocomplete, backed by a pluggable driver contract (database, Site Discovery URL registry, or Laravel Scout/Meilisearch/Typesense). Curate results with synonyms, typo corrections, and promoted \"best bet\" answers, and tune ranking with source weighting plus exact-match, recency, and click-through boosts. The admin dashboard surfaces top searches, trending terms, and \u2014 critically \u2014 zero-result queries, so editors see exactly where content is missing. Privacy-first by default: visitor identifiers are hashed and query logs auto-purge on a configurable retention window.",
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",

@@ -51,26 +51,42 @@ final class SiteSearchServiceProvider extends AbstractPackageServiceProvider
     public function registeringPackage(): void
     {
         $this->app->register(AdminServiceProvider::class);
-
-        $this->registerSiteSearchBinding();
     }
 
     public function packageRegistered(): void
     {
         $this
-            ->registerPackageMetadata()
-            ->registerModels()
-            ->registerSettings()
-            ->registerProtectedTables();
+            ->registerPackageMetadata();
+
+        $this->app->booted(function (): void {
+            if (! $this->isPackageInstalled()) {
+                return;
+            }
+
+            $this
+                ->registerSiteSearchBinding()
+                ->registerModels()
+                ->registerSettings()
+                ->registerProtectedTables();
+        });
     }
 
     public function packageBooted(): void
     {
+        if (! $this->isPackageInstalled()) {
+            return;
+        }
+
         if (! class_exists(RegisterHeaderSearchHook::class)) {
             return;
         }
 
         $this->app->make(RegisterHeaderSearchHook::class)->register();
+    }
+
+    private function isPackageInstalled(): bool
+    {
+        return CapellCore::isPackageInstalled(self::$packageName);
     }
 
     private function registerSiteSearchBinding(): self

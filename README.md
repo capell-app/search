@@ -1,46 +1,86 @@
-# Capell Site Search
+# Site Search
 
-**Product group:** Capell Search & SEO
-**Tier:** Premium
+Status: **Available, schema-owning** · Kind: **package** · Tier: **premium** · Bundle: **search-seo** · Contexts: **admin, frontend, console** · Product group: **Capell Search & SEO**
 
-Site Search provides a small search contract plus database and Scout-backed drivers for public Capell search experiences.
+## What This Plugin Adds
 
-It gives projects a default LIKE-query implementation for simple installs, while keeping the backend swappable for Scout, Meilisearch, Algolia, Typesense, or a custom service.
+Site Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search analytics.
 
-## When to install it
+- Frontend search controller route.
+- Database and Scout search drivers.
+- Header search render hook.
+- Search analytics widgets.
+- Settings schema and dashboard contributor.
+- Actions for search, normalization, logging, click tracking, and purging logs.
 
-Install Site Search when a public site needs keyword search but the project should not hard-code a search engine into Core or Frontend.
+## Why It Matters
 
-## Quick install
+**For developers:** Uses a SiteSearch contract and driver classes so search can start with database queries and move to Scout without changing the frontend surface.
 
-```bash
-composer require capell-app/site-search
-php artisan optimize:clear
-```
+**For teams:** Lets visitors search site content and lets operators review what people searched for, including zero-result terms.
 
-If the project uses Scout, configure the driver to `scout` and point it at the searchable model.
+## Screens And Workflow
 
-## What developers get
+Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) during package deployment.
 
-| Area            | Capability                                                        |
-| --------------- | ----------------------------------------------------------------- |
-| Contract        | `SiteSearch::search()` and `SiteSearch::highlight()`              |
-| Database driver | LIKE-query search against configured table/columns                |
-| Scout driver    | Adapter for models using Laravel Scout                            |
-| Results         | `SearchResultData` DTOs with title, URL, excerpt, type, and score |
+- Frontend search results page.
+- Header search field.
+- Top searches widget.
+- Trending searches widget.
+- Zero-result searches widget.
+- Site search settings screen.
 
-## Configuration
+## Technical Shape
 
-The provider reads `capell-site-search` config values. The important keys are:
+- SiteSearchServiceProvider and AdminServiceProvider register the package.
+- Config file: capell-site-search.php.
+- Route: GET search by default, named capell-frontend.search.
+- Model: SiteSearchLog.
+- Drivers: DatabaseSiteSearch and ScoutSiteSearch.
+- Command: PurgeSiteSearchLogsCommand.
 
-| Key                | Default                        | Purpose                                        |
-| ------------------ | ------------------------------ | ---------------------------------------------- |
-| `driver`           | `database`                     | Search backend: `database` or `scout`          |
-| `database.table`   | `pages`                        | Table queried by `DatabaseSiteSearch`          |
-| `database.columns` | `['title', 'excerpt', 'body']` | Columns searched with escaped LIKE expressions |
-| `scout.model`      | project-defined                | Searchable model class for `ScoutSiteSearch`   |
-| `excerpt_length`   | `200`                          | Maximum generated excerpt length               |
+## Data Model
 
-## Reference
+- site_search_logs stores site, language, query, normalized query, result count, clicked URL, and searched_at.
+- Logs connect to sites and languages.
+- Retention defaults to 180 days in config.
 
-See [Site Search reference](docs/site-search.md) for driver behaviour, binding examples, and extension notes.
+## Install Impact
+
+- Adds site_search_logs table and settings migration.
+- Adds frontend search route.
+- Adds optional header search render hook.
+- Adds dashboard analytics widgets.
+- Adds config keys for driver, route, result count, excerpts, logging, hashing, and retention.
+
+## Commands
+
+- `site-search:purge {--days= : Override retention days}` (packages/site-search/src/Console/Commands/PurgeSiteSearchLogsCommand.php)
+
+## Admin And Access
+
+- None proven in this package directory.
+
+- Gate: SearchOverviewStatsWidget: `admin`, `super_admin`
+- Gate: TopSearchesWidget: `admin`, `super_admin`
+- Gate: TrendingSearchesWidget: `admin`, `super_admin`
+- Gate: ZeroResultSearchesWidget: `admin`, `super_admin`
+
+## Common Pitfalls
+
+- Database driver config must point at searchable columns that exist.
+- Minimum query length defaults to 2 characters.
+- Disable logging or hashing according to privacy requirements.
+- Run log purge if retention needs enforcement.
+
+## Quick Start
+
+1. Install the package with `composer require capell-app/site-search`.
+2. Run the package migrations or the Capell package installer required by the host app.
+3. Open the new admin or frontend surface and verify the result.
+
+## Next Steps
+
+- [docs/overview.md](docs/overview.md)
+- [../analytics/README.md](../analytics/README.md)
+- [../seo-tools/README.md](../seo-tools/README.md)

@@ -7,6 +7,7 @@ namespace Capell\SiteSearch\Providers;
 use Capell\Admin\Contracts\DashboardSettingsContributor;
 use Capell\Admin\Enums\DashboardEnum;
 use Capell\Admin\Facades\CapellAdmin;
+use Capell\Core\Facades\CapellCore;
 use Capell\SiteSearch\Console\Commands\PurgeSiteSearchLogsCommand;
 use Capell\SiteSearch\Filament\Settings\Contributors\SiteSearchDashboardSettingsContributor;
 use Capell\SiteSearch\Filament\Widgets\SearchOverviewStatsWidget;
@@ -20,18 +21,35 @@ final class AdminServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        if (! class_exists(SiteSearchDashboardSettingsContributor::class)) {
-            return;
-        }
-
-        $this->app->tag([SiteSearchDashboardSettingsContributor::class], DashboardSettingsContributor::TAG);
+        //
     }
 
     public function boot(): void
     {
-        $this->registerCommands()
+        if (! $this->isPackageInstalled()) {
+            return;
+        }
+
+        $this->registerDashboardSettingsContributor()
+            ->registerCommands()
             ->registerDashboardWidgets()
             ->registerSchedule();
+    }
+
+    private function isPackageInstalled(): bool
+    {
+        return CapellCore::isPackageInstalled(SiteSearchServiceProvider::$packageName);
+    }
+
+    private function registerDashboardSettingsContributor(): self
+    {
+        if (! class_exists(SiteSearchDashboardSettingsContributor::class)) {
+            return $this;
+        }
+
+        $this->app->tag([SiteSearchDashboardSettingsContributor::class], DashboardSettingsContributor::TAG);
+
+        return $this;
     }
 
     private function registerCommands(): self

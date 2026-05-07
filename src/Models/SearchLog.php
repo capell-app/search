@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $ip_hash
  * @property string|null $user_agent_hash
  * @property CarbonImmutable $searched_at
+ * @property int $searches
  */
 final class SearchLog extends Model
 {

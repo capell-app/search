@@ -47,27 +47,30 @@ test('search returns matching results from the database', function (): void {
     $search = new DatabaseSearch(Capsule::connection());
 
     $results = $search->search('Laravel');
+    $firstResult = $results->items()[0] ?? null;
 
     expect($results->total())->toBe(1);
-    expect($results->first())->toBeInstanceOf(SearchResultData::class);
-    expect($results->first()->title)->toBe('Laravel Tutorial');
+    expect($firstResult)->toBeInstanceOf(SearchResultData::class);
+    expect($firstResult?->title)->toBe('Laravel Tutorial');
 });
 
 test('search result url is prefixed with a leading slash', function (): void {
     $search = new DatabaseSearch(Capsule::connection());
 
     $results = $search->search('Laravel');
+    $firstResult = $results->items()[0] ?? null;
 
-    expect($results->first()->url)->toBe('/laravel-tutorial');
+    expect($firstResult?->url)->toBe('/laravel-tutorial');
 });
 
 test('search falls back to body when excerpt is null', function (): void {
     $search = new DatabaseSearch(Capsule::connection());
 
     $results = $search->search('anytime');
+    $firstResult = $results->items()[0] ?? null;
 
     expect($results->total())->toBe(1);
-    expect($results->first()->excerpt)->toContain('anytime');
+    expect($firstResult?->excerpt)->toContain('anytime');
 });
 
 test('search returns all matches when multiple rows satisfy query', function (): void {
@@ -84,9 +87,9 @@ test('search paginates correctly', function (): void {
     $firstPage = $search->search('ar', perPage: 1, page: 1);
     $secondPage = $search->search('ar', perPage: 1, page: 2);
 
-    expect($firstPage->count())->toBe(1);
-    expect($secondPage->count())->toBe(1);
-    expect($firstPage->first()->url)->not->toBe($secondPage->first()->url);
+    expect($firstPage->items())->toHaveCount(1);
+    expect($secondPage->items())->toHaveCount(1);
+    expect(($firstPage->items()[0] ?? null)?->url)->not->toBe(($secondPage->items()[0] ?? null)?->url);
 });
 
 test('search requires a meaningful minimum query length', function (): void {
@@ -102,9 +105,10 @@ test('search escapes like wildcards', function (): void {
     $search = new DatabaseSearch(Capsule::connection());
 
     $results = $search->search('50%');
+    $firstResult = $results->items()[0] ?? null;
 
     expect($results->total())->toBe(1);
-    expect($results->first()->title)->toBe('50% Discount');
+    expect($firstResult?->title)->toBe('50% Discount');
 });
 
 test('search clamps pagination arguments', function (): void {
@@ -120,8 +124,9 @@ test('search score is a float', function (): void {
     $search = new DatabaseSearch(Capsule::connection());
 
     $results = $search->search('Laravel');
+    $firstResult = $results->items()[0] ?? null;
 
-    expect($results->first()->score)->toBeFloat();
+    expect($firstResult?->score)->toBeFloat();
 });
 
 test('wraps matches in <mark> tags with escaping', function (): void {

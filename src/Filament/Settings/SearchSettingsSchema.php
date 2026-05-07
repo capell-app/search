@@ -10,7 +10,7 @@ use Capell\Search\Enums\SearchDriver;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 
 final class SearchSettingsSchema implements HasSchema
@@ -18,7 +18,7 @@ final class SearchSettingsSchema implements HasSchema
     public static function make(Schema $configurator): array
     {
         return [
-            Fieldset::make(__('capell-search::settings.fieldset'))
+            Grid::make(2)
                 ->columnSpanFull()
                 ->schema([
                     HelperText::apply(

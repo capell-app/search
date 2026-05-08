@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use Capell\Admin\Facades\CapellAdmin;
 use Capell\Search\Filament\Settings\Contributors\SearchDashboardSettingsContributor;
-use Capell\Search\Filament\Widgets\SearchOverviewStatsWidget;
 use Capell\Search\Filament\Widgets\TopSearchesWidget;
 use Capell\Search\Filament\Widgets\TrendingSearchesWidget;
 use Capell\Search\Filament\Widgets\ZeroResultSearchesWidget;
@@ -62,8 +62,17 @@ test('dashboard settings contributor exposes site search widget keys', function 
 test('site search dashboard widgets render', function (string $widgetClass): void {
     Livewire::test($widgetClass)->assertOk();
 })->with([
-    SearchOverviewStatsWidget::class,
     TopSearchesWidget::class,
     TrendingSearchesWidget::class,
     ZeroResultSearchesWidget::class,
 ]);
+
+test('site search contributes overview stats instead of an overview widget', function (): void {
+    $stats = collect(CapellAdmin::getOverviewStats(false));
+
+    expect($stats->pluck('key')->all())->toContain(
+        'search_overview',
+        'search_overview.unique_queries',
+        'search_overview.zero_result_rate',
+    );
+});

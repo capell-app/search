@@ -1,4 +1,5 @@
 {
+    "manifest-version": 2,
     "name": "capell-app/search",
     "kind": "package",
     "capell-version": "^4.0",
@@ -6,10 +7,52 @@
     "tier": "premium",
     "bundle": "search-seo",
     "description": "Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search insights.",
-    "contexts": ["admin", "frontend", "console"],
-    "requires": ["capell-app/core", "capell-app/admin", "capell-app/frontend"],
+    "surfaces": [
+        "admin",
+        "frontend",
+        "console"
+    ],
+    "dependencies": {
+        "requires": [
+            "capell-app/core",
+            "capell-app/admin",
+            "capell-app/frontend"
+        ],
+        "optional": [],
+        "conflicts": []
+    },
+    "lifecycle": {
+        "activation": "manual",
+        "defaultStatus": "available",
+        "requiresInstallCommand": false
+    },
     "providers": {
-        "shared": ["Capell\\Search\\Providers\\SearchServiceProvider"],
-        "admin": ["Capell\\Search\\Providers\\AdminServiceProvider"]
-    }
+        "metadata": [],
+        "install": [],
+        "runtime": [
+            "Capell\\Search\\Providers\\SearchServiceProvider"
+        ],
+        "admin": [
+            "Capell\\Search\\Providers\\AdminServiceProvider"
+        ],
+        "frontend": []
+    },
+    "database": {
+        "migrations": true,
+        "settings": true,
+        "requiredTables": []
+    },
+    "commands": {
+        "install": null,
+        "setup": null,
+        "setupParams": [],
+        "demo": null,
+        "demoParams": [],
+        "health": null
+    },
+    "settings": [],
+    "permissions": [],
+    "capabilities": [],
+    "assets": [],
+    "healthChecks": []
 }

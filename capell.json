@@ -7,11 +7,7 @@
     "tier": "premium",
     "bundle": "search-seo",
     "description": "Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search insights.",
-    "surfaces": [
-        "admin",
-        "frontend",
-        "console"
-    ],
+    "surfaces": ["admin", "frontend", "console"],
     "dependencies": {
         "requires": [
             "capell-app/core",
@@ -29,12 +25,8 @@
     "providers": {
         "metadata": [],
         "install": [],
-        "runtime": [
-            "Capell\\Search\\Providers\\SearchServiceProvider"
-        ],
-        "admin": [
-            "Capell\\Search\\Providers\\AdminServiceProvider"
-        ],
+        "runtime": ["Capell\\Search\\Providers\\SearchServiceProvider"],
+        "admin": ["Capell\\Search\\Providers\\AdminServiceProvider"],
         "frontend": []
     },
     "database": {

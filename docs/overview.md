@@ -97,7 +97,7 @@ Lets visitors search site content and lets operators review what people searched
 
 ## Migrations
 
-- Migration: create_search_logs_table.php
+- Migration: 2026_05_10_190868_01_create_search_logs_table.php
 - Settings migration: add_search_settings.php
 
 ## ERD Excerpt

@@ -37,9 +37,9 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             $package->hasViews();
         }
 
-        if (file_exists(__DIR__ . '/../../database/migrations/create_search_logs_table.php')) {
+        if (file_exists(__DIR__ . '/../../database/migrations/2026_05_10_190868_01_create_search_logs_table.php')) {
             $package->hasMigrations([
-                'create_search_logs_table',
+                '2026_05_10_190868_01_create_search_logs_table',
             ]);
         }
 

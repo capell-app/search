@@ -55,8 +55,6 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
 
     public function packageRegistered(): void
     {
-        $this
-            ->registerPackageMetadata();
 
         $this->app->booted(function (): void {
             if (! $this->isPackageInstalled()) {
@@ -143,20 +141,6 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         }
 
         return SearchDriver::Database->value;
-    }
-
-    private function registerPackageMetadata(): self
-    {
-        CapellCore::registerPackage(
-            self::$packageName,
-            type: self::getType(),
-            serviceProviderClass: self::class,
-            path: realpath(__DIR__ . '/../..'),
-            version: CapellCore::getInstalledPrettyVersion(self::$packageName),
-            description: fn (): string => __('capell-search::package.description'),
-        );
-
-        return $this;
     }
 
     private function registerModels(): self

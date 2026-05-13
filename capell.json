@@ -13,11 +13,7 @@
         "bundle": "search-seo"
     },
     "namespace": "Capell\\Search",
-    "surfaces": [
-        "admin",
-        "frontend",
-        "console"
-    ],
+    "surfaces": ["admin", "frontend", "console"],
     "dependencies": {
         "requires": [
             "capell-app/admin",
@@ -30,12 +26,8 @@
     "providers": {
         "metadata": [],
         "install": [],
-        "runtime": [
-            "Capell\\Search\\Providers\\SearchServiceProvider"
-        ],
-        "admin": [
-            "Capell\\Search\\Providers\\AdminServiceProvider"
-        ],
+        "runtime": ["Capell\\Search\\Providers\\SearchServiceProvider"],
+        "admin": ["Capell\\Search\\Providers\\AdminServiceProvider"],
         "frontend": []
     },
     "contributes": [],
@@ -61,15 +53,10 @@
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
-        "cacheTags": [
-            "search"
-        ],
+        "cacheTags": ["search"],
         "cacheSafety": {
             "cacheable": false,
-            "variesBy": [
-                "site",
-                "locale"
-            ],
+            "variesBy": ["site", "locale"],
             "sensitiveOutput": false,
             "invalidationSources": [],
             "queueInvalidation": true
@@ -85,12 +72,7 @@
     "marketplace": {
         "summary": "Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search insights.",
         "screenshots": [],
-        "categories": [
-            "admin",
-            "console",
-            "frontend",
-            "search-seo"
-        ]
+        "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {
         "deferredContributions": [

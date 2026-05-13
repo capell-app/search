@@ -51,6 +51,12 @@ Lets visitors search site content and lets operators review what people searched
 - Zero-result searches widget.
 - Site search settings screen.
 
+## Screenshots
+
+![Search settings screen](../../../public/docs/screenshots/packages/search/search-settings-screen.png)
+
+The analytics and frontend search screenshots need seeded search events and searchable content before they are useful. Keep them out of the rendered docs until they show real results or a deliberate empty-results state.
+
 ## Pitfalls
 
 - Database driver config must point at searchable columns that exist.

@@ -55,6 +55,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
 
     public function packageRegistered(): void
     {
+        $this->registerSearchBinding();
 
         $this->app->booted(function (): void {
             if (! $this->isPackageInstalled()) {
@@ -62,7 +63,6 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             }
 
             $this
-                ->registerSearchBinding()
                 ->registerModels()
                 ->registerSettings()
                 ->registerProtectedTables();

@@ -7,6 +7,7 @@ namespace Capell\Search\Drivers;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchResultData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Connection;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
@@ -48,10 +49,20 @@ class DatabaseSearch implements Search
             return new Paginator([], 0, $perPage, $page);
         }
 
+        if (! $this->db instanceof Connection) {
+            return new Paginator([], 0, $perPage, $page);
+        }
+
+        $columns = array_values(array_intersect($this->columns, $this->db->getSchemaBuilder()->getColumnListing($this->table)));
+
+        if ($columns === []) {
+            return new Paginator([], 0, $perPage, $page);
+        }
+
         $likeQuery = '%' . $this->escapeLike($query) . '%';
         $builder = $this->db->table($this->table);
-        $builder->where(function (Builder $queryBuilder) use ($likeQuery): void {
-            foreach ($this->columns as $column) {
+        $builder->where(function (Builder $queryBuilder) use ($columns, $likeQuery): void {
+            foreach ($columns as $column) {
                 $queryBuilder->orWhereRaw(
                     $queryBuilder->getGrammar()->wrap($column) . " LIKE ? ESCAPE '!'",
                     [$likeQuery],

@@ -24,8 +24,8 @@ final class TrendingSearchesWidget extends BaseWidget implements CapellWidgetCon
 
     protected static string $settingsKey = 'trending_searches';
 
-    /** @var int|string|array<string, int|string|null> */
-    protected int|string|array $columnSpan = ['default' => 'full', 'md' => 1];
+    /** @var int|string|array<string, int|null> */
+    protected int|string|array $columnSpan = ['md' => 1];
 
     protected static ?int $sort = 3;
 

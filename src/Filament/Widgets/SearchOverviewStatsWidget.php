@@ -23,8 +23,8 @@ final class SearchOverviewStatsWidget extends Widget implements CapellWidgetCont
 
     protected string $view = 'capell-search::filament.widgets.search-overview-stats';
 
-    /** @var int|string|array<string, int|string|null> */
-    protected int|string|array $columnSpan = ['default' => 'full'];
+    /** @var int|string|array<string, int|null> */
+    protected int|string|array $columnSpan = 'full';
 
     protected static ?int $sort = 1;
 

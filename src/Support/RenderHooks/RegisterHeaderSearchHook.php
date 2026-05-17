@@ -10,6 +10,10 @@ use Capell\Search\Actions\ResolveSearchSettingAction;
 
 final class RegisterHeaderSearchHook
 {
+    private const FoundationHeaderActionsScenario = 'foundation-theme-header-actions';
+
+    private const FoundationNavigationTarget = 'capell-navigation::components.header.navigation';
+
     public function __construct(private readonly RenderHookRegistry $registry) {}
 
     public function register(): void
@@ -32,7 +36,9 @@ final class RegisterHeaderSearchHook
 
         $this->registry->register(
             RenderHookLocation::HeaderAfter,
-            static fn (): string => view('capell-search::components.form')->render(),
+            static fn (): string => view('capell-search::components.header.search-modal')->render(),
+            scenario: self::FoundationHeaderActionsScenario,
+            target: self::FoundationNavigationTarget,
         );
     }
 }

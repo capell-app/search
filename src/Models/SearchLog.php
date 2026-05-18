@@ -8,6 +8,7 @@ use Capell\Search\Database\Factories\SearchLogFactory;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Override;
 
 /**
  * @property int $id
@@ -31,6 +32,7 @@ final class SearchLog extends Model
 
     protected $guarded = [];
 
+    #[Override]
     public function getTable(): string
     {
         return config('capell-search.logs.table_name', 'search_logs');
@@ -39,6 +41,7 @@ final class SearchLog extends Model
     /**
      * @return array<string, string>
      */
+    #[Override]
     protected function casts(): array
     {
         return [

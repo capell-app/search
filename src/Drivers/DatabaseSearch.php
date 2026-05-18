@@ -19,11 +19,11 @@ use Illuminate\Support\Collection;
  */
 class DatabaseSearch implements Search
 {
-    private const MINIMUM_QUERY_LENGTH = 2;
+    private const int MINIMUM_QUERY_LENGTH = 2;
 
-    private const MINIMUM_PER_PAGE = 1;
+    private const int MINIMUM_PER_PAGE = 1;
 
-    private const MAXIMUM_PER_PAGE = 100;
+    private const int MAXIMUM_PER_PAGE = 100;
 
     /**
      * @param  list<string>  $columns  Columns to search against.

@@ -44,9 +44,9 @@ test('controller passes normalized valid searches to the site search service', f
     $recordedSearch = new stdClass;
     $recordedSearch->queries = [];
 
-    app()->instance(Search::class, new class($recordedSearch) implements Search
+    app()->instance(Search::class, new readonly class($recordedSearch) implements Search
     {
-        public function __construct(private readonly stdClass $recordedSearch) {}
+        public function __construct(private stdClass $recordedSearch) {}
 
         public function search(string $query, int $perPage = 10, int $page = 1): LengthAwarePaginator
         {

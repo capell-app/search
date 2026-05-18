@@ -13,6 +13,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Support\Collection;
+use Override;
 
 final class TopSearchesWidget extends BaseWidget implements CapellWidgetContract
 {
@@ -29,6 +30,7 @@ final class TopSearchesWidget extends BaseWidget implements CapellWidgetContract
 
     protected static ?int $sort = 2;
 
+    #[Override]
     public function table(Table $table): Table
     {
         return $table

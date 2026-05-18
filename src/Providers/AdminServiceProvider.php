@@ -19,9 +19,11 @@ use Capell\Search\Filament\Widgets\ZeroResultSearchesWidget;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
+use Override;
 
 final class AdminServiceProvider extends ServiceProvider
 {
+    #[Override]
     public function register(): void
     {
         //

@@ -10,6 +10,7 @@ use Capell\Search\Actions\BuildTopSearchesQueryAction;
 use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
 use Capell\Search\Filament\Widgets\Concerns\BuildsSearchInsightsWindow;
 use Filament\Widgets\Widget;
+use Override;
 
 final class SearchOverviewStatsWidget extends Widget implements CapellWidgetContract
 {
@@ -31,6 +32,7 @@ final class SearchOverviewStatsWidget extends Widget implements CapellWidgetCont
     /**
      * @return array<string, mixed>
      */
+    #[Override]
     protected function getViewData(): array
     {
         $window = $this->getInsightsWindow();

@@ -9,7 +9,7 @@
     <div
         x-data="{ isSearchOpen: false }"
         x-on:keydown.escape.window="isSearchOpen = false"
-        class="capell-header-search relative flex items-center"
+        class="capell-header-search-modal capell-header-search relative flex items-center"
     >
         <button
             type="button"

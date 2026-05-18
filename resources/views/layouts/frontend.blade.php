@@ -6,7 +6,9 @@
     $containerWidth = GetLayoutContainerWidthAction::run();
 @endphp
 
-<div class="flex min-h-screen flex-col bg-white dark:bg-gray-900">
+<div
+    class="capell-layouts-frontend flex min-h-screen flex-col bg-white dark:bg-gray-900"
+>
     <a class="sr-only" href="#main">
         {{ __('capell-frontend::generic.skip_link') }}
     </a>

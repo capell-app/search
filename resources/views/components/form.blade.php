@@ -6,7 +6,7 @@
     method="GET"
     action="{{ route('capell-frontend.search') }}"
     role="search"
-    class="capell-search-form flex items-center gap-2"
+    class="capell-search-form capell-search-form flex items-center gap-2"
 >
     <label class="sr-only" for="capell-search-query">
         {{ __('capell-search::generic.search_label') }}

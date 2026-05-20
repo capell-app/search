@@ -19,6 +19,8 @@ Search exposes a public frontend route and records first-party search behavior w
 | `capell-search.scout.*`              | Scout model and column mapping.                                   |
 | `capell-search.logs.retention_days`  | Retention window for purge behavior.                              |
 
+The database driver expects a flat searchable source. Do not point it at a table whose title, body, URL, or type values live only in nested JSON unless the configured columns can be queried directly. For standard Capell pages, use a flattened index table/view, bind a custom `Search` implementation, or switch to Scout.
+
 ## Swap the Search Driver
 
 Bind the contract when a package needs a custom backend.

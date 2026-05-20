@@ -53,13 +53,24 @@ Lets visitors search site content and lets operators review what people searched
 
 ## Screenshots
 
+![Frontend search results page](../../../public/docs/screenshots/packages/search/frontend-search-results-page.png)
+
+![Header search field](../../../public/docs/screenshots/packages/search/header-search-field.png)
+
+![Top searches widget](../../../public/docs/screenshots/packages/search/top-searches-widget.png)
+
+![Trending searches widget](../../../public/docs/screenshots/packages/search/trending-searches-widget.png)
+
+![Zero-result searches widget](../../../public/docs/screenshots/packages/search/zero-result-searches-widget.png)
+
 ![Search settings screen](../../../public/docs/screenshots/packages/search/search-settings-screen.png)
 
-The analytics and frontend search screenshots need seeded search events and searchable content before they are useful. Keep them out of the rendered docs until they show real results or a deliberate empty-results state.
+The header search render hook needs a compatible theme header slot. A core-only demo harness can still screenshot the package search form in a header slot, but a theme pass should also capture the Alpine modal state.
 
 ## Pitfalls
 
 - Database driver config must point at searchable columns that exist.
+- The default core `pages` table is not a flat search index. Point the database driver at a flattened table/view, bind a custom `Search` implementation, or use Scout.
 - Minimum query length defaults to 2 characters.
 - Disable logging or hashing according to privacy requirements.
 - Run log purge if retention needs enforcement.

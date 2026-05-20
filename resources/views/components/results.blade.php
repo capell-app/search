@@ -11,7 +11,7 @@
 @endphp
 
 <section
-    class="capell-results capell-search-results"
+    class="site-search-results"
     aria-label="{{ __('capell-search::generic.results_label') }}"
 >
     @if ($query === '')

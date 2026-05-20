@@ -6,13 +6,13 @@
     method="GET"
     action="{{ route('capell-frontend.search') }}"
     role="search"
-    class="capell-search-form capell-search-form flex items-center gap-2"
+    class="site-search-form flex items-center gap-2"
 >
-    <label class="sr-only" for="capell-search-query">
+    <label class="sr-only" for="site-search-query">
         {{ __('capell-search::generic.search_label') }}
     </label>
     <input
-        id="capell-search-query"
+        id="site-search-query"
         type="search"
         name="q"
         value="{{ $query }}"

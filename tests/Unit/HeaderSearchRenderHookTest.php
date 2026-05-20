@@ -26,9 +26,10 @@ it('registers an icon-triggered header search modal', function (): void {
     );
 
     expect($html)
-        ->toContain('aria-controls="capell-header-search-modal"')
+        ->toContain('aria-controls="site-header-search-dialog"')
         ->toContain('role="dialog"')
-        ->toContain('id="capell-header-search-modal"')
+        ->toContain('id="site-header-search-dialog"')
         ->toContain('x-ref="searchInput"')
-        ->not()->toContain('id="capell-search-query"');
+        ->not()->toContain('id="site-search-query"')
+        ->not()->toContain('capell-search');
 });

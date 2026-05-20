@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
+use Capell\Admin\Support\Extensions\ExtensionPageRegistry;
+use Capell\Core\Support\Settings\SettingsSchemaRegistry;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Drivers\DatabaseSearch;
 use Capell\Search\Enums\SearchDriver;
+use Capell\Search\Filament\Pages\SearchSettingsPage;
+use Capell\Search\Filament\Settings\SearchSettingsSchema;
 use Capell\Search\Providers\SearchServiceProvider;
 use Capell\Search\Settings\SearchSettings;
 
@@ -37,4 +41,25 @@ test('site search settings expose defaults', function (): void {
         ->log_retention_days->toBe(180)
         ->hash_visitor_data->toBeTrue()
         ->minimum_query_length->toBe(2);
+});
+
+test('search driver options expose translated filament labels', function (): void {
+    expect(SearchDriver::Database->getLabel())->toBe('Database')
+        ->and(SearchDriver::Scout->getLabel())->toBe('Scout');
+});
+
+test('provider registers search settings metadata and schema', function (): void {
+    $registry = resolve(SettingsSchemaRegistry::class);
+
+    expect($registry->getSettingsClass('search'))->toBe(SearchSettings::class)
+        ->and($registry->getSchema('search', 'SearchSettingsSchema'))->toBe(SearchSettingsSchema::class)
+        ->and($registry->getMetadata('search')?->getLabel())->toBe('Search settings')
+        ->and($registry->getMetadata('search')?->packageName)->toBe(SearchServiceProvider::$packageName);
+});
+
+test('provider registers search settings as an extension page', function (): void {
+    $extensionPage = collect(resolve(ExtensionPageRegistry::class)->entries())
+        ->first(fn (array $extensionPage): bool => $extensionPage['page'] === SearchSettingsPage::class);
+
+    expect($extensionPage['page'] ?? null)->toBe(SearchSettingsPage::class);
 });

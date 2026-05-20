@@ -12,6 +12,7 @@ use Capell\Search\Actions\BuildTopSearchesQueryAction;
 use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
 use Capell\Search\Console\Commands\PurgeSearchLogsCommand;
 use Capell\Search\Data\SearchInsightsWindowData;
+use Capell\Search\Filament\Pages\SearchSettingsPage;
 use Capell\Search\Filament\Settings\Contributors\SearchDashboardSettingsContributor;
 use Capell\Search\Filament\Widgets\TopSearchesWidget;
 use Capell\Search\Filament\Widgets\TrendingSearchesWidget;
@@ -37,6 +38,7 @@ final class AdminServiceProvider extends ServiceProvider
 
         $this->registerDashboardSettingsContributor()
             ->registerCommands()
+            ->registerExtensionPages()
             ->registerOverviewStats()
             ->registerDashboardWidgets()
             ->registerSchedule();
@@ -54,6 +56,15 @@ final class AdminServiceProvider extends ServiceProvider
         }
 
         $this->app->tag([SearchDashboardSettingsContributor::class], DashboardSettingsContributor::TAG);
+
+        return $this;
+    }
+
+    private function registerExtensionPages(): self
+    {
+        if (class_exists(SearchSettingsPage::class)) {
+            CapellAdmin::registerExtensionPage(SearchServiceProvider::$packageName, SearchSettingsPage::class);
+        }
 
         return $this;
     }

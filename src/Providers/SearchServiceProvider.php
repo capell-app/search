@@ -6,6 +6,7 @@ namespace Capell\Search\Providers;
 
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
+use Capell\Core\Support\Settings\SettingsGroupMetadata;
 use Capell\Core\Support\Settings\SettingsSchemaRegistry;
 use Capell\Search\Actions\ResolveSearchSettingAction;
 use Capell\Search\Contracts\Search;
@@ -16,6 +17,7 @@ use Capell\Search\Filament\Settings\SearchSettingsSchema;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Settings\SearchSettings;
 use Capell\Search\Support\RenderHooks\RegisterHeaderSearchHook;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\ConnectionResolverInterface;
 use Spatie\LaravelPackageTools\Package;
@@ -168,6 +170,14 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         $registry = $this->app->make(SettingsSchemaRegistry::class);
 
         $registry->registerSettingsClass('search', SearchSettings::class);
+        $registry->registerMetadata(new SettingsGroupMetadata(
+            group: 'search',
+            label: 'capell-search::settings.title',
+            icon: Heroicon::OutlinedMagnifyingGlass,
+            navigationGroup: 'capell-admin::navigation.group_system',
+            navigationSort: 95,
+            packageName: self::$packageName,
+        ));
         $registry->register('search', SearchSettingsSchema::class);
 
         return $this;

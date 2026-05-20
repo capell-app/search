@@ -56,7 +56,7 @@ test('controller passes normalized valid searches to the site search service', f
                 new SearchResultData(
                     title: 'Laravel Search',
                     url: '/laravel-search',
-                    excerpt: 'Search package result',
+                    excerpt: 'Search result content',
                 ),
             ]);
 
@@ -76,4 +76,34 @@ test('controller passes normalized valid searches to the site search service', f
     expect($view->getData()['results']->total())->toBe(1);
     expect($view->getData()['results']->currentPage())->toBe(2);
     expect($view->getData()['results']->perPage())->toBe(5);
+});
+
+test('public search markup does not expose package identifiers', function (): void {
+    app()->instance(Search::class, new class implements Search
+    {
+        public function search(string $query, int $perPage = 10, int $page = 1): LengthAwarePaginator
+        {
+            return new Paginator(new Collection([
+                new SearchResultData(
+                    title: 'Laravel Search',
+                    url: '/laravel-search',
+                    excerpt: 'Search result content',
+                ),
+            ]), 1, $perPage, $page);
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return e($text);
+        }
+    });
+
+    $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Laravel']);
+    $html = (new SearchController)($request)->render();
+
+    expect($html)
+        ->not()->toContain('capell-search')
+        ->not()->toContain('capell-header-search')
+        ->not()->toContain('package')
+        ->not()->toContain('editor');
 });

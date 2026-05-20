@@ -9,7 +9,7 @@
     <div
         x-data="{ isSearchOpen: false }"
         x-on:keydown.escape.window="isSearchOpen = false"
-        class="capell-header-search-modal capell-header-search relative flex items-center"
+        class="site-header-search relative flex items-center"
     >
         <button
             type="button"
@@ -19,7 +19,7 @@
                 $nextTick(() => $refs.searchInput?.focus())
             "
             x-bind:aria-expanded="isSearchOpen.toString()"
-            aria-controls="capell-header-search-modal"
+            aria-controls="site-header-search-dialog"
         >
             <span class="sr-only">
                 {{ __('capell-search::generic.search_label') }}
@@ -31,7 +31,7 @@
             x-cloak
             x-show="isSearchOpen"
             x-transition.opacity
-            id="capell-header-search-modal"
+            id="site-header-search-dialog"
             class="fixed inset-0 z-[70] flex items-start justify-center bg-black/60 px-4 py-24 backdrop-blur-sm sm:py-32"
             role="dialog"
             aria-modal="true"
@@ -48,12 +48,12 @@
                     role="search"
                     class="flex items-center gap-2"
                 >
-                    <label class="sr-only" for="capell-header-search-query">
+                    <label class="sr-only" for="site-header-search-query">
                         {{ __('capell-search::generic.search_label') }}
                     </label>
                     <input
                         x-ref="searchInput"
-                        id="capell-header-search-query"
+                        id="site-header-search-query"
                         type="search"
                         name="q"
                         placeholder="{{ __('capell-search::generic.search_placeholder') }}"

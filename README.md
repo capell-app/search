@@ -145,6 +145,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 ## Common Pitfalls
 
 - Database driver config must point at searchable columns that exist.
+- The default core `pages` table is not a flat search index. Use a flattened table/view, a custom `Search` binding, or Scout for real page content.
 - Minimum query length defaults to 2 characters.
 - Disable logging or hashing according to privacy requirements.
 - Run log purge if retention needs enforcement.

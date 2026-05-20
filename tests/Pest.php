@@ -2,6 +2,6 @@
 
 declare(strict_types=1);
 
-use Capell\SiteSearch\Tests\SiteSearchTestCase;
+use Capell\Search\Tests\SearchTestCase;
 
-pest()->extend(SiteSearchTestCase::class)->group('site-search')->in(__DIR__);
+pest()->extend(SearchTestCase::class)->group('search')->in(__DIR__);

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Capell\SiteSearch\Actions;
+namespace Capell\Search\Actions;
 
-use Capell\SiteSearch\Data\SearchAnalyticsWindowData;
-use Capell\SiteSearch\Data\SearchTermSummaryData;
-use Capell\SiteSearch\Models\SiteSearchLog;
+use Capell\Search\Data\SearchInsightsWindowData;
+use Capell\Search\Data\SearchTermSummaryData;
+use Capell\Search\Models\SearchLog;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -18,9 +18,9 @@ final class BuildZeroResultSearchesQueryAction
     /**
      * @return Collection<int, SearchTermSummaryData>
      */
-    public function handle(SearchAnalyticsWindowData $window, ?int $limit = 10): Collection
+    public function handle(SearchInsightsWindowData $window, ?int $limit = 10): Collection
     {
-        $query = SiteSearchLog::query()
+        $query = SearchLog::query()
             ->select([
                 'normalized_query',
                 DB::raw('MIN(query) as query'),
@@ -38,7 +38,7 @@ final class BuildZeroResultSearchesQueryAction
 
         return $query
             ->get()
-            ->map(fn (SiteSearchLog $log): SearchTermSummaryData => new SearchTermSummaryData(
+            ->map(fn (SearchLog $log): SearchTermSummaryData => new SearchTermSummaryData(
                 query: $log->query,
                 normalizedQuery: $log->normalized_query,
                 searches: $log->searches,

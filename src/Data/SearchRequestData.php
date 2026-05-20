@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Capell\SiteSearch\Data;
+namespace Capell\Search\Data;
 
 use Spatie\LaravelData\Data;
 

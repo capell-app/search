@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Capell\SiteSearch\Actions;
+namespace Capell\Search\Actions;
 
-use Capell\SiteSearch\Data\SearchAnalyticsWindowData;
-use Capell\SiteSearch\Data\SearchTermSummaryData;
-use Capell\SiteSearch\Models\SiteSearchLog;
+use Capell\Search\Data\SearchInsightsWindowData;
+use Capell\Search\Data\SearchTermSummaryData;
+use Capell\Search\Models\SearchLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +19,7 @@ final class BuildTrendingSearchesQueryAction
     /**
      * @return Collection<int, SearchTermSummaryData>
      */
-    public function handle(SearchAnalyticsWindowData $window, ?int $limit = 10): Collection
+    public function handle(SearchInsightsWindowData $window, ?int $limit = 10): Collection
     {
         $currentSummaries = BuildTopSearchesQueryAction::run($window, null);
         $previousSearchCounts = $this->previousSearchCounts($window);
@@ -54,11 +54,11 @@ final class BuildTrendingSearchesQueryAction
     /**
      * @return array<string, int>
      */
-    private function previousSearchCounts(SearchAnalyticsWindowData $window): array
+    private function previousSearchCounts(SearchInsightsWindowData $window): array
     {
         $previousStart = $this->previousWindowStart($window);
 
-        return SiteSearchLog::query()
+        return SearchLog::query()
             ->select([
                 'normalized_query',
                 DB::raw('COUNT(*) as searches'),
@@ -73,7 +73,7 @@ final class BuildTrendingSearchesQueryAction
             ->all();
     }
 
-    private function previousWindowStart(SearchAnalyticsWindowData $window): CarbonImmutable
+    private function previousWindowStart(SearchInsightsWindowData $window): CarbonImmutable
     {
         $seconds = max(1, (int) $window->start->diffInSeconds($window->end));
 

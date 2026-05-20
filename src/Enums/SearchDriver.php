@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Capell\SiteSearch\Enums;
+namespace Capell\Search\Enums;
 
 use Filament\Support\Contracts\HasLabel;
 
@@ -13,6 +13,6 @@ enum SearchDriver: string implements HasLabel
 
     public function getLabel(): string
     {
-        return __('capell-site-search::settings.driver_options.' . $this->value);
+        return __('capell-search::settings.driver_options.' . $this->value);
     }
 }

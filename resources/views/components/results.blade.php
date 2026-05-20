@@ -4,28 +4,28 @@
 ])
 
 @php
-    use Capell\SiteSearch\Contracts\SiteSearch;
+    use Capell\Search\Contracts\Search;
 
-    /** @var SiteSearch $search */
-    $search = app(SiteSearch::class);
+    /** @var Search $search */
+    $search = app(Search::class);
 @endphp
 
 <section
-    class="capell-search-results"
-    aria-label="{{ __('capell-site-search::generic.results_label') }}"
+    class="site-search-results"
+    aria-label="{{ __('capell-search::generic.results_label') }}"
 >
     @if ($query === '')
         <p class="text-gray-600">
-            {{ __('capell-site-search::generic.empty_query') }}
+            {{ __('capell-search::generic.empty_query') }}
         </p>
     @elseif ($results->isEmpty())
         <p class="text-gray-600">
-            {{ __('capell-site-search::generic.no_results', ['query' => $query]) }}
+            {{ __('capell-search::generic.no_results', ['query' => $query]) }}
         </p>
     @else
         <p class="mb-4 text-sm text-gray-500">
             {{
-                trans_choice('capell-site-search::generic.results_count', $results->total(), [
+                trans_choice('capell-search::generic.results_count', $results->total(), [
                     'count' => $results->total(),
                     'query' => $query,
                 ])

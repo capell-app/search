@@ -1,69 +1,81 @@
 {
-    "package": "site-search",
-    "composerName": "capell-app/site-search",
+    "package": "search",
+    "composerName": "capell-app/search",
     "generatedFor": "deployment-screenshot-runner",
     "requiresInstalledPackage": true,
-    "outputDirectory": "public/docs/screenshots/packages/site-search",
+    "outputDirectory": "public/docs/screenshots/packages/search",
     "entries": [
         {
             "id": "frontend-search-results-page",
             "title": "Frontend search results page.",
-            "package": "site-search",
+            "package": "search",
             "surface": "frontend",
             "targetType": "frontend-url",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "A visitor searches seeded public content and sees ranked results and pagination.",
+            "screenshotPath": "public/docs/screenshots/packages/search/frontend-search-results-page.png"
         },
         {
             "id": "header-search-field",
             "title": "Header search field.",
-            "package": "site-search",
-            "surface": "admin",
-            "targetType": "admin-surface",
+            "package": "search",
+            "surface": "frontend",
+            "targetType": "frontend-url",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture with a compatible theme header slot. In a core-only harness, render the package form in a header slot without installing another frontend package.",
+            "useCase": "A visitor uses the header search control supplied by the package frontend surface.",
+            "screenshotPath": "public/docs/screenshots/packages/search/header-search-field.png"
         },
         {
             "id": "top-searches-widget",
             "title": "Top searches widget.",
-            "package": "site-search",
+            "package": "search",
             "surface": "admin",
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "An administrator reviews top searched terms from seeded query logs.",
+            "screenshotPath": "public/docs/screenshots/packages/search/top-searches-widget.png"
         },
         {
             "id": "trending-searches-widget",
             "title": "Trending searches widget.",
-            "package": "site-search",
+            "package": "search",
             "surface": "admin",
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "An administrator reviews trending searches over the configured window.",
+            "screenshotPath": "public/docs/screenshots/packages/search/trending-searches-widget.png"
         },
         {
             "id": "zero-result-searches-widget",
             "title": "Zero-result searches widget.",
-            "package": "site-search",
+            "package": "search",
             "surface": "admin",
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "An administrator identifies search terms with no matching content.",
+            "screenshotPath": "public/docs/screenshots/packages/search/zero-result-searches-widget.png"
         },
         {
-            "id": "site-search-settings-screen",
+            "id": "search-settings-screen",
             "title": "Site search settings screen.",
-            "package": "site-search",
+            "package": "search",
             "surface": "admin",
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "A site owner configures search settings, logging, retention, and result behavior.",
+            "screenshotPath": "public/docs/screenshots/packages/search/search-settings-screen.png"
         }
     ]
 }

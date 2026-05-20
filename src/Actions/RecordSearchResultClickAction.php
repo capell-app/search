@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Capell\SiteSearch\Actions;
+namespace Capell\Search\Actions;
 
-use Capell\SiteSearch\Models\SiteSearchLog;
+use Capell\Search\Models\SearchLog;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 final class RecordSearchResultClickAction
 {
     use AsAction;
 
-    public function handle(SiteSearchLog $log, string $url): SiteSearchLog
+    public function handle(SearchLog $log, string $url): SearchLog
     {
         $log->forceFill([
             'clicked_result_url' => $url,

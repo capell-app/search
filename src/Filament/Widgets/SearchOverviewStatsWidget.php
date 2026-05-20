@@ -2,38 +2,40 @@
 
 declare(strict_types=1);
 
-namespace Capell\SiteSearch\Filament\Widgets;
+namespace Capell\Search\Filament\Widgets;
 
 use Capell\Admin\Contracts\CapellWidgetContract;
 use Capell\Admin\Filament\Concerns\GatedByRoleAndSettings;
-use Capell\SiteSearch\Actions\BuildTopSearchesQueryAction;
-use Capell\SiteSearch\Actions\BuildZeroResultSearchesQueryAction;
-use Capell\SiteSearch\Filament\Widgets\Concerns\BuildsSearchAnalyticsWindow;
+use Capell\Search\Actions\BuildTopSearchesQueryAction;
+use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
+use Capell\Search\Filament\Widgets\Concerns\BuildsSearchInsightsWindow;
 use Filament\Widgets\Widget;
+use Override;
 
 final class SearchOverviewStatsWidget extends Widget implements CapellWidgetContract
 {
-    use BuildsSearchAnalyticsWindow;
+    use BuildsSearchInsightsWindow;
     use GatedByRoleAndSettings;
 
     /** @var list<string> */
     protected static array $rolesConfigKeys = ['admin', 'super_admin'];
 
-    protected static string $settingsKey = 'site_search_overview';
+    protected static string $settingsKey = 'search_overview';
 
-    protected string $view = 'capell-site-search::filament.widgets.search-overview-stats';
+    protected string $view = 'capell-search::filament.widgets.search-overview-stats';
 
-    /** @var int|string|array<string, int|string|null> */
-    protected int|string|array $columnSpan = ['default' => 'full'];
+    /** @var int|string|array<string, int|null> */
+    protected int|string|array $columnSpan = 'full';
 
     protected static ?int $sort = 1;
 
     /**
      * @return array<string, mixed>
      */
+    #[Override]
     protected function getViewData(): array
     {
-        $window = $this->getAnalyticsWindow();
+        $window = $this->getInsightsWindow();
         $topSearches = BuildTopSearchesQueryAction::run($window, null);
         $zeroResultSearches = BuildZeroResultSearchesQueryAction::run($window, null);
         $totalSearches = (int) $topSearches->sum('searches');

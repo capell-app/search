@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Capell\SiteSearch\Data\SearchResultData;
+use Capell\Search\Data\SearchResultData;
 
 test('search result data is serialisable to array', function (): void {
     $result = new SearchResultData('Hello', '/hello', 'World', 'post', 0.5);

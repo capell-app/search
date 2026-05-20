@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Capell\SiteSearch\Http\Controllers;
+namespace Capell\Search\Http\Controllers;
 
 use Capell\Core\Contracts\Pageable;
 use Capell\Core\Models\Language;
@@ -10,10 +10,10 @@ use Capell\Core\Models\Layout;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\Theme;
 use Capell\Frontend\Facades\Frontend;
-use Capell\SiteSearch\Actions\RecordSiteSearchAction;
-use Capell\SiteSearch\Actions\ResolveSiteSearchSettingAction;
-use Capell\SiteSearch\Actions\RunSiteSearchAction;
-use Capell\SiteSearch\Data\SearchRequestData;
+use Capell\Search\Actions\RecordSearchAction;
+use Capell\Search\Actions\ResolveSearchSettingAction;
+use Capell\Search\Actions\RunSearchAction;
+use Capell\Search\Data\SearchRequestData;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\HtmlString;
@@ -25,9 +25,9 @@ final class SearchController
     {
         $query = (string) $request->query('q', '');
         $page = max(1, (int) $request->query('page', 1));
-        $perPage = (int) ResolveSiteSearchSettingAction::run(
+        $perPage = (int) ResolveSearchSettingAction::run(
             'results_per_page',
-            'capell-site-search.results_per_page',
+            'capell-search.results_per_page',
             10,
         );
 
@@ -42,11 +42,11 @@ final class SearchController
             languageId: is_object($language) ? (int) data_get($language, 'id') : null,
         );
 
-        $results = RunSiteSearchAction::run($data);
+        $results = RunSearchAction::run($data);
 
-        RecordSiteSearchAction::run($data, $results->total(), $request);
+        RecordSearchAction::run($data, $results->total(), $request);
 
-        $content = view('capell-site-search::pages.search', [
+        $content = view('capell-search::pages.search', [
             'query' => $query,
             'results' => $results,
         ]);
@@ -55,7 +55,7 @@ final class SearchController
             return $content;
         }
 
-        $slot = view('capell-site-search::layouts.frontend', [
+        $slot = view('capell-search::layouts.frontend', [
             'query' => $query,
             'results' => $results,
         ]);

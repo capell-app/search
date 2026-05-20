@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Capell\SiteSearch\Actions;
+namespace Capell\Search\Actions;
 
 use Lorisleiva\Actions\Concerns\AsAction;
 

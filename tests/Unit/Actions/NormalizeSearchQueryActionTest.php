@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Capell\SiteSearch\Actions\NormalizeSearchQueryAction;
+use Capell\Search\Actions\NormalizeSearchQueryAction;
 
 test('normalizes whitespace and lowercases the search query', function (): void {
     $query = NormalizeSearchQueryAction::run("  Laravel\tSearch\nPackage  ");

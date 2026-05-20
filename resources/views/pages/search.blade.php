@@ -1,7 +1,7 @@
-<section class="capell-site-search-page space-y-6">
-    <h1>{{ __('capell-site-search::generic.page_title') }}</h1>
+<section class="search-page space-y-6">
+    <h1>{{ __('capell-search::generic.page_title') }}</h1>
 
-    <x-capell-site-search::form :query="$query" />
+    <x-capell-search::form :query="$query" />
 
-    <x-capell-site-search::results :query="$query" :results="$results" />
+    <x-capell-search::results :query="$query" :results="$results" />
 </section>

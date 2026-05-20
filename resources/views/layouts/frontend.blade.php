@@ -6,7 +6,7 @@
     $containerWidth = GetLayoutContainerWidthAction::run();
 @endphp
 
-<div class="flex min-h-screen flex-col bg-white dark:bg-gray-900">
+<div class="search-layout flex min-h-screen flex-col bg-white dark:bg-gray-900">
     <a class="sr-only" href="#main">
         {{ __('capell-frontend::generic.skip_link') }}
     </a>
@@ -22,12 +22,12 @@
     <main
         id="main"
         @class([
-            'capell-site-search-main relative z-0 flex min-h-full flex-1 flex-col overflow-x-hidden lg:!min-h-0',
+            'search-main relative z-0 flex min-h-full flex-1 flex-col overflow-x-hidden lg:!min-h-0',
             $theme['meta']['main_class'] ?? 'py-6 lg:py-10',
             $containerWidth->getContainerClass(),
         ])
     >
-        @include('capell-site-search::pages.search', ['query' => $query, 'results' => $results])
+        @include('capell-search::pages.search', ['query' => $query, 'results' => $results])
     </main>
 
     @if (! isset($theme['meta']['footer']) || $theme['meta']['footer'] !== false)

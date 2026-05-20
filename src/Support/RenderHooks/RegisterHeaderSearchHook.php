@@ -2,29 +2,33 @@
 
 declare(strict_types=1);
 
-namespace Capell\SiteSearch\Support\RenderHooks;
+namespace Capell\Search\Support\RenderHooks;
 
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
-use Capell\SiteSearch\Actions\ResolveSiteSearchSettingAction;
+use Capell\Search\Actions\ResolveSearchSettingAction;
 
 final class RegisterHeaderSearchHook
 {
+    private const string FoundationHeaderActionsScenario = 'foundation-theme-header-actions';
+
+    private const string FoundationNavigationTarget = 'capell-navigation::components.header.navigation';
+
     public function __construct(private readonly RenderHookRegistry $registry) {}
 
     public function register(): void
     {
-        if (! (bool) ResolveSiteSearchSettingAction::run(
+        if (! (bool) ResolveSearchSettingAction::run(
             'enabled',
-            'capell-site-search.enabled',
+            'capell-search.enabled',
             true,
         )) {
             return;
         }
 
-        if (! (bool) ResolveSiteSearchSettingAction::run(
+        if (! (bool) ResolveSearchSettingAction::run(
             'show_header_search',
-            'capell-site-search.show_header_search',
+            'capell-search.show_header_search',
             true,
         )) {
             return;
@@ -32,7 +36,9 @@ final class RegisterHeaderSearchHook
 
         $this->registry->register(
             RenderHookLocation::HeaderAfter,
-            static fn (): string => view('capell-site-search::components.form')->render(),
+            static fn (): string => view('capell-search::components.header.search-modal')->render(),
+            scenario: self::FoundationHeaderActionsScenario,
+            target: self::FoundationNavigationTarget,
         );
     }
 }

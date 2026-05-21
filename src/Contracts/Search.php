@@ -16,7 +16,13 @@ interface Search
     /**
      * @return LengthAwarePaginator<int, SearchResultData>
      */
-    public function search(string $query, int $perPage = 10, int $page = 1): LengthAwarePaginator;
+    public function search(
+        string $query,
+        int $perPage = 10,
+        int $page = 1,
+        ?int $siteId = null,
+        ?int $languageId = null,
+    ): LengthAwarePaginator;
 
     public function highlight(string $text, string $query): string;
 }

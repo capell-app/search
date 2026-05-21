@@ -35,8 +35,13 @@ class ScoutSearch implements Search
         private readonly int $excerptLength = 200,
     ) {}
 
-    public function search(string $query, int $perPage = 10, int $page = 1): LengthAwarePaginator
-    {
+    public function search(
+        string $query,
+        int $perPage = 10,
+        int $page = 1,
+        ?int $siteId = null,
+        ?int $languageId = null,
+    ): LengthAwarePaginator {
         $query = trim($query);
         if ($query === '') {
             return new Paginator([], 0, $perPage, $page);

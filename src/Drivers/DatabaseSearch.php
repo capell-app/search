@@ -10,8 +10,10 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Connection;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
+use Throwable;
 
 /**
  * Default DB-backed search. Runs a LIKE query against the configured table and
@@ -37,10 +39,19 @@ class DatabaseSearch implements Search
         private readonly string $titleColumn = 'title',
         private readonly string $excerptColumn = 'excerpt',
         private readonly string $bodyColumn = 'body',
+        private readonly string $siteColumn = 'site_id',
+        private readonly string $languageColumn = 'language_id',
+        private readonly string $statusColumn = 'status',
+        private readonly string|int|bool|null $publishedStatus = 'published',
     ) {}
 
-    public function search(string $query, int $perPage = 10, int $page = 1): LengthAwarePaginator
-    {
+    public function search(
+        string $query,
+        int $perPage = 10,
+        int $page = 1,
+        ?int $siteId = null,
+        ?int $languageId = null,
+    ): LengthAwarePaginator {
         $query = trim($query);
         $perPage = max(self::MINIMUM_PER_PAGE, min(self::MAXIMUM_PER_PAGE, $perPage));
         $page = max(1, $page);
@@ -53,7 +64,8 @@ class DatabaseSearch implements Search
             return new Paginator([], 0, $perPage, $page);
         }
 
-        $columns = array_values(array_intersect($this->columns, $this->db->getSchemaBuilder()->getColumnListing($this->table)));
+        $availableColumns = $this->db->getSchemaBuilder()->getColumnListing($this->table);
+        $columns = array_values(array_intersect($this->columns, $availableColumns));
 
         if ($columns === []) {
             return new Paginator([], 0, $perPage, $page);
@@ -61,16 +73,30 @@ class DatabaseSearch implements Search
 
         $likeQuery = '%' . $this->escapeLike($query) . '%';
         $builder = $this->db->table($this->table);
-        $builder->where(function (Builder $queryBuilder) use ($columns, $likeQuery): void {
-            foreach ($columns as $column) {
-                $queryBuilder->orWhereRaw(
-                    $queryBuilder->getGrammar()->wrap($column) . " LIKE ? ESCAPE '!'",
-                    [$likeQuery],
-                );
-            }
-        });
+        $fullTextQuery = $this->fullTextQuery($query);
+        $usesFullText = $fullTextQuery !== '' && $this->canUseFullText($columns);
+
+        if ($usesFullText) {
+            $builder->whereRaw($this->fullTextMatchSql($columns), [$fullTextQuery]);
+        } else {
+            $builder->where(function (Builder $queryBuilder) use ($columns, $likeQuery): void {
+                foreach ($columns as $column) {
+                    $queryBuilder->orWhereRaw(
+                        $queryBuilder->getGrammar()->wrap($column) . " LIKE ? ESCAPE '!'",
+                        [$likeQuery],
+                    );
+                }
+            });
+        }
+
+        $this->applyContextFilters($builder, $availableColumns, $siteId, $languageId);
 
         $total = (clone $builder)->count();
+
+        if ($usesFullText) {
+            $builder->select('*')->selectRaw($this->fullTextScoreSql($columns), [$query]);
+            $builder->orderByDesc(new Expression('search_score'));
+        }
 
         $rows = $builder
             ->forPage($page, $perPage)
@@ -79,13 +105,16 @@ class DatabaseSearch implements Search
         $results = (new Collection($rows))->map(function (object $row) use ($query): SearchResultData {
             $title = (string) ($row->{$this->titleColumn} ?? '');
             $excerptRaw = (string) ($row->{$this->excerptColumn} ?? $row->{$this->bodyColumn} ?? '');
+            $score = isset($row->search_score) && is_numeric($row->search_score)
+                ? (float) $row->search_score
+                : $this->score($title . ' ' . $excerptRaw, $query);
 
             return new SearchResultData(
                 title: $title,
                 url: '/' . ltrim((string) ($row->{$this->urlColumn} ?? ''), '/'),
                 excerpt: $this->truncate($excerptRaw, 200),
                 type: (string) ($row->{$this->typeColumn} ?? 'page'),
-                score: $this->score($title . ' ' . $excerptRaw, $query),
+                score: $score,
             );
         });
 
@@ -124,5 +153,91 @@ class DatabaseSearch implements Search
         $count = substr_count(mb_strtolower($haystack), mb_strtolower($needle));
 
         return (float) $count;
+    }
+
+    /**
+     * @param  list<string>  $availableColumns
+     */
+    private function applyContextFilters(Builder $builder, array $availableColumns, ?int $siteId, ?int $languageId): void
+    {
+        if ($siteId !== null && in_array($this->siteColumn, $availableColumns, true)) {
+            $builder->where($this->siteColumn, $siteId);
+        }
+
+        if ($languageId !== null && in_array($this->languageColumn, $availableColumns, true)) {
+            $builder->where($this->languageColumn, $languageId);
+        }
+
+        if ($this->publishedStatus !== null && in_array($this->statusColumn, $availableColumns, true)) {
+            $builder->where($this->statusColumn, $this->publishedStatus);
+        }
+    }
+
+    /**
+     * @param  list<string>  $columns
+     */
+    private function canUseFullText(array $columns): bool
+    {
+        if (! in_array($this->db->getDriverName(), ['mysql', 'mariadb'], true)) {
+            return false;
+        }
+
+        try {
+            $databaseName = $this->db->getDatabaseName();
+            $indexedColumns = $this->db->table('information_schema.STATISTICS')
+                ->where('TABLE_SCHEMA', $databaseName)
+                ->where('TABLE_NAME', $this->table)
+                ->where('INDEX_TYPE', 'FULLTEXT')
+                ->orderBy('SEQ_IN_INDEX')
+                ->get(['INDEX_NAME', 'COLUMN_NAME'])
+                ->groupBy('INDEX_NAME')
+                ->map(static fn (Collection $indexColumns): array => $indexColumns
+                    ->pluck('COLUMN_NAME')
+                    ->map(static fn (mixed $column): string => (string) $column)
+                    ->all());
+
+            return $indexedColumns->contains(
+                static fn (array $indexColumns): bool => $indexColumns === $columns,
+            );
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * @param  list<string>  $columns
+     */
+    private function fullTextMatchSql(array $columns): string
+    {
+        return sprintf('MATCH (%s) AGAINST (? IN BOOLEAN MODE)', $this->wrappedColumns($columns));
+    }
+
+    /**
+     * @param  list<string>  $columns
+     */
+    private function fullTextScoreSql(array $columns): string
+    {
+        return sprintf('MATCH (%s) AGAINST (?) as search_score', $this->wrappedColumns($columns));
+    }
+
+    /**
+     * @param  list<string>  $columns
+     */
+    private function wrappedColumns(array $columns): string
+    {
+        return collect($columns)
+            ->map(fn (string $column): string => $this->db->getQueryGrammar()->wrap($column))
+            ->implode(', ');
+    }
+
+    private function fullTextQuery(string $query): string
+    {
+        $terms = preg_split('/\s+/', $query) ?: [];
+
+        return collect($terms)
+            ->map(static fn (string $term): string => trim($term, '+-><()~*"@'))
+            ->filter(static fn (string $term): bool => $term !== '')
+            ->map(static fn (string $term): string => '+' . $term . '*')
+            ->implode(' ');
     }
 }

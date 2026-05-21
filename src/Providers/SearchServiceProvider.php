@@ -42,6 +42,8 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         if (file_exists(__DIR__ . '/../../database/migrations/2026_05_10_190868_01_create_search_logs_table.php')) {
             $package->hasMigrations([
                 '2026_05_10_190868_01_create_search_logs_table',
+                '2026_05_21_000001_add_site_foreign_key_to_search_logs_table',
+                '2026_05_21_000002_add_fulltext_index_to_search_database_table',
             ]);
         }
 
@@ -120,6 +122,10 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
                 titleColumn: config('capell-search.database.title_column', 'title'),
                 excerptColumn: config('capell-search.database.excerpt_column', 'excerpt'),
                 bodyColumn: config('capell-search.database.body_column', 'body'),
+                siteColumn: config('capell-search.database.site_column', 'site_id'),
+                languageColumn: config('capell-search.database.language_column', 'language_id'),
+                statusColumn: config('capell-search.database.status_column', 'status'),
+                publishedStatus: config('capell-search.database.published_status', 'published'),
             );
         });
 

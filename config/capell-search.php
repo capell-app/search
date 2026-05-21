@@ -20,6 +20,10 @@ return [
         'excerpt_column' => 'excerpt',
         'body_column' => 'body',
         'type_column' => 'type',
+        'site_column' => 'site_id',
+        'language_column' => 'language_id',
+        'status_column' => 'status',
+        'published_status' => 'published',
     ],
     'scout' => [
         'model' => null,

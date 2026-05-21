@@ -29,6 +29,12 @@ final readonly class RunSearchAction
             return new Paginator([], 0, $data->perPage, $data->page);
         }
 
-        return $this->search->search($normalizedQuery, $data->perPage, $data->page);
+        return $this->search->search(
+            query: $normalizedQuery,
+            perPage: $data->perPage,
+            page: $data->page,
+            siteId: $data->siteId,
+            languageId: $data->languageId,
+        );
     }
 }

@@ -6,6 +6,7 @@ namespace Capell\Search\Filament\Widgets\Concerns;
 
 use Capell\Admin\Filament\Concerns\HasDashboardDateRange;
 use Capell\Search\Data\SearchInsightsWindowData;
+use Spatie\Permission\PermissionRegistrar;
 
 trait BuildsSearchInsightsWindow
 {
@@ -20,6 +21,14 @@ trait BuildsSearchInsightsWindow
         return new SearchInsightsWindowData(
             start: $rangeStart,
             end: $rangeEnd,
+            siteId: $this->currentDashboardSiteId(),
         );
+    }
+
+    private function currentDashboardSiteId(): ?int
+    {
+        $siteId = resolve(PermissionRegistrar::class)->getPermissionsTeamId();
+
+        return is_numeric($siteId) ? (int) $siteId : null;
     }
 }

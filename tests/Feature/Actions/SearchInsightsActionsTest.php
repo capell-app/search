@@ -123,6 +123,40 @@ test('trending searches compares against the previous equivalent window', functi
     expect($summaries[1]->trendPercentage)->toBe(100.0);
 });
 
+test('search insight actions filter by site when the window carries a site id', function (): void {
+    $window = new SearchInsightsWindowData(
+        start: CarbonImmutable::parse('2026-04-01 00:00:00'),
+        end: CarbonImmutable::parse('2026-04-08 00:00:00'),
+        siteId: 10,
+    );
+
+    SearchLog::factory()->create([
+        'site_id' => 10,
+        'query' => 'Scoped',
+        'normalized_query' => 'scoped',
+        'results_count' => 0,
+        'searched_at' => $window->start->addDay(),
+    ]);
+    SearchLog::factory()->create([
+        'site_id' => 20,
+        'query' => 'Other',
+        'normalized_query' => 'other',
+        'results_count' => 0,
+        'searched_at' => $window->start->addDay(),
+    ]);
+    SearchLog::factory()->create([
+        'site_id' => 20,
+        'query' => 'Scoped',
+        'normalized_query' => 'scoped',
+        'results_count' => 0,
+        'searched_at' => $window->start->subDay(),
+    ]);
+
+    expect(BuildTopSearchesQueryAction::run($window)->pluck('normalizedQuery')->all())->toBe(['scoped'])
+        ->and(BuildZeroResultSearchesQueryAction::run($window)->pluck('normalizedQuery')->all())->toBe(['scoped'])
+        ->and(BuildTrendingSearchesQueryAction::run($window)->pluck('normalizedQuery')->all())->toBe(['scoped']);
+});
+
 function siteSearchInsightsWindow(): SearchInsightsWindowData
 {
     return new SearchInsightsWindowData(

@@ -21,6 +21,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 use Override;
+use Spatie\Permission\PermissionRegistrar;
 
 final class AdminServiceProvider extends ServiceProvider
 {
@@ -143,10 +144,13 @@ final class AdminServiceProvider extends ServiceProvider
      */
     private function searchOverview(): array
     {
-        static $overview = null;
+        static $overview = [];
 
-        if (is_array($overview)) {
-            return $overview;
+        $siteId = $this->currentDashboardSiteId();
+        $cacheKey = $siteId === null ? 'global' : 'site-' . $siteId;
+
+        if (isset($overview[$cacheKey])) {
+            return $overview[$cacheKey];
         }
 
         $days = config('capell-search.dashboard.default_days', 30);
@@ -154,19 +158,27 @@ final class AdminServiceProvider extends ServiceProvider
         $window = new SearchInsightsWindowData(
             start: CarbonImmutable::now()->subDays($fallbackDays)->startOfDay(),
             end: CarbonImmutable::now()->endOfDay(),
+            siteId: $siteId,
         );
         $topSearches = BuildTopSearchesQueryAction::run($window, null);
         $zeroResultSearches = BuildZeroResultSearchesQueryAction::run($window, null);
         $totalSearches = (int) $topSearches->sum('searches');
         $zeroResultTotal = (int) $zeroResultSearches->sum('searches');
 
-        $overview = [
+        $overview[$cacheKey] = [
             'totalSearches' => $totalSearches,
             'uniqueQueries' => $topSearches->count(),
             'zeroResultRate' => $totalSearches === 0 ? 0.0 : round(($zeroResultTotal / $totalSearches) * 100, 1),
         ];
 
-        return $overview;
+        return $overview[$cacheKey];
+    }
+
+    private function currentDashboardSiteId(): ?int
+    {
+        $siteId = resolve(PermissionRegistrar::class)->getPermissionsTeamId();
+
+        return is_numeric($siteId) ? (int) $siteId : null;
     }
 
     private function registerSchedule(): self

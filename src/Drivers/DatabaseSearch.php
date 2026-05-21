@@ -178,13 +178,15 @@ class DatabaseSearch implements Search
      */
     private function canUseFullText(array $columns): bool
     {
-        if (! in_array($this->db->getDriverName(), ['mysql', 'mariadb'], true)) {
+        $connection = $this->db;
+
+        if (! $connection instanceof Connection || ! in_array($connection->getDriverName(), ['mysql', 'mariadb'], true)) {
             return false;
         }
 
         try {
-            $databaseName = $this->db->getDatabaseName();
-            $indexedColumns = $this->db->table('information_schema.STATISTICS')
+            $databaseName = $connection->getDatabaseName();
+            $indexedColumns = $connection->table('information_schema.STATISTICS')
                 ->where('TABLE_SCHEMA', $databaseName)
                 ->where('TABLE_NAME', $this->table)
                 ->where('INDEX_TYPE', 'FULLTEXT')
@@ -225,8 +227,14 @@ class DatabaseSearch implements Search
      */
     private function wrappedColumns(array $columns): string
     {
+        $connection = $this->db;
+
+        if (! $connection instanceof Connection) {
+            return collect($columns)->implode(', ');
+        }
+
         return collect($columns)
-            ->map(fn (string $column): string => $this->db->getQueryGrammar()->wrap($column))
+            ->map(fn (string $column): string => $connection->getQueryGrammar()->wrap($column))
             ->implode(', ');
     }
 

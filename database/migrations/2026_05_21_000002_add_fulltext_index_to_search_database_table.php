@@ -71,6 +71,7 @@ return new class extends Migration
     {
         $configuredColumns = config('capell-search.database.columns', ['title', 'excerpt', 'body']);
         $configuredColumns = is_array($configuredColumns) ? $configuredColumns : [];
+
         $availableColumns = Schema::getColumnListing($tableName);
 
         return array_values(array_filter(

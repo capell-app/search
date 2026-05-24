@@ -39,6 +39,9 @@ final class SearchAdditionalCoverageScoutBuilder
 {
     public function __construct(private readonly string $query) {}
 
+    /**
+     * @return LengthAwarePaginator<array-key, mixed>
+     */
     public function paginate(int $perPage, int $page): LengthAwarePaginator
     {
         expect($this->query)->toBe('capell');

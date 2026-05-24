@@ -16,6 +16,9 @@ final readonly class RunSearchAction
 
     public function __construct(private Search $search) {}
 
+    /**
+     * @return Paginator<array-key, mixed>
+     */
     public function handle(SearchRequestData $data): LengthAwarePaginator
     {
         $normalizedQuery = NormalizeSearchQueryAction::run($data->query);

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Models\Page;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Drivers\ScoutSearch;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -11,7 +12,7 @@ test('ScoutSearch implements Search', function (): void {
 });
 
 test('search returns empty paginator for blank query', function (): void {
-    $search = new ScoutSearch('App\\Models\\Page', 'slug');
+    $search = new ScoutSearch(Page::class, 'slug');
     $results = $search->search('   ');
 
     expect($results)->toBeInstanceOf(LengthAwarePaginator::class);
@@ -20,7 +21,7 @@ test('search returns empty paginator for blank query', function (): void {
 });
 
 test('highlight wraps keyword in mark tags', function (): void {
-    $search = new ScoutSearch('App\\Models\\Page', 'slug');
+    $search = new ScoutSearch(Page::class, 'slug');
     $html = $search->highlight('<b>Meilisearch</b> is fast', 'Meilisearch');
 
     expect($html)->toContain('<mark>Meilisearch</mark>');
@@ -28,7 +29,7 @@ test('highlight wraps keyword in mark tags', function (): void {
 });
 
 test('highlight returns escaped text when query is empty', function (): void {
-    $search = new ScoutSearch('App\\Models\\Page', 'slug');
+    $search = new ScoutSearch(Page::class, 'slug');
     $html = $search->highlight('<script>alert(1)</script>', '');
 
     expect($html)->toContain('&lt;script&gt;');

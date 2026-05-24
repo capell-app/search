@@ -86,7 +86,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         $this->app->make(RegisterHeaderSearchHook::class)->register();
     }
 
-    private function isPackageInstalled(): bool
+    protected function isPackageInstalled(): bool
     {
         return CapellCore::isPackageInstalled(self::$packageName);
     }

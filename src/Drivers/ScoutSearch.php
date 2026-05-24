@@ -47,7 +47,7 @@ class ScoutSearch implements Search
             return new Paginator([], 0, $perPage, $page);
         }
 
-        /** @var LengthAwarePaginator $paginator */
+        /** @var LengthAwarePaginator<int, object> $paginator */
         $paginator = ($this->modelClass)::search($query)->paginate(perPage: $perPage, page: $page);
 
         $results = (new Collection($paginator->items()))->map(function (object $model) use ($query): SearchResultData {

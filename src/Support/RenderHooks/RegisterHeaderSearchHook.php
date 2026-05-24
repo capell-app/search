@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Search\Support\RenderHooks;
 
+use Capell\Frontend\Data\RenderHookContext;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
 use Capell\Search\Actions\ResolveSearchSettingAction;
@@ -14,6 +15,7 @@ final class RegisterHeaderSearchHook
 
     private const string FoundationNavigationTarget = 'capell-navigation::components.header.navigation';
 
+    /** @param RenderHookRegistry<RenderHookContext> $registry */
     public function __construct(private readonly RenderHookRegistry $registry) {}
 
     public function register(): void

@@ -45,7 +45,7 @@ final class AdminServiceProvider extends ServiceProvider
             ->registerSchedule();
     }
 
-    protected function isPackageInstalled(): bool
+    private function isPackageInstalled(): bool
     {
         return CapellCore::isPackageInstalled(SearchServiceProvider::$packageName);
     }

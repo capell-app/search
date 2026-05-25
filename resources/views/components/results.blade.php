@@ -42,7 +42,7 @@
                     <p class="mt-1 text-sm text-gray-600">
                         {!! $search->highlight($result->excerpt, $query) !!}
                     </p>
-                    <p class="mt-2 text-xs uppercase text-gray-400">
+                    <p class="mt-2 text-xs text-gray-400 uppercase">
                         {{ $result->type }}
                     </p>
                 </li>

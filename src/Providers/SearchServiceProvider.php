@@ -20,6 +20,7 @@ use Capell\Search\Support\RenderHooks\RegisterHeaderSearchHook;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\ConnectionResolverInterface;
+use Override;
 use Spatie\LaravelPackageTools\Package;
 
 final class SearchServiceProvider extends AbstractPackageServiceProvider
@@ -86,6 +87,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         $this->app->make(RegisterHeaderSearchHook::class)->register();
     }
 
+    #[Override]
     protected function isPackageInstalled(): bool
     {
         return CapellCore::isPackageInstalled(self::$packageName);

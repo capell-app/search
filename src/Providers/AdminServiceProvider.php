@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\Search\Providers;
 
 use Capell\Admin\Contracts\DashboardSettingsContributor;
+use Capell\Admin\Data\Extensions\ExtensionManagementSurfaceData;
 use Capell\Admin\Enums\DashboardEnum;
 use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Facades\CapellCore;
@@ -12,7 +13,6 @@ use Capell\Search\Actions\BuildTopSearchesQueryAction;
 use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
 use Capell\Search\Console\Commands\PurgeSearchLogsCommand;
 use Capell\Search\Data\SearchInsightsWindowData;
-use Capell\Search\Filament\Pages\SearchSettingsPage;
 use Capell\Search\Filament\Settings\Contributors\SearchDashboardSettingsContributor;
 use Capell\Search\Filament\Widgets\TopSearchesWidget;
 use Capell\Search\Filament\Widgets\TrendingSearchesWidget;
@@ -63,9 +63,12 @@ final class AdminServiceProvider extends ServiceProvider
 
     private function registerExtensionPages(): self
     {
-        if (class_exists(SearchSettingsPage::class)) {
-            CapellAdmin::registerExtensionPage(SearchServiceProvider::$packageName, SearchSettingsPage::class);
-        }
+        CapellAdmin::registerExtensionManagementSurface(ExtensionManagementSurfaceData::settings(
+            packageName: SearchServiceProvider::$packageName,
+            label: 'capell-search::settings.title',
+            settingsGroup: 'search',
+            icon: 'heroicon-o-magnifying-glass',
+        ));
 
         return $this;
     }

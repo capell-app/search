@@ -18,7 +18,7 @@ return new class extends Migration
 
         Schema::create($tableName, function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('site_id')->nullable()->index();
+            $table->foreignId('site_id')->nullable()->constrained('sites')->nullOnDelete();
             $table->foreignId('language_id')->nullable()->index();
             $table->string('query');
             $table->string('normalized_query')->index();

@@ -15,7 +15,7 @@ it('resolves search settings from config when no persisted settings exist', func
 it('maps scout search results to normalized result data', function (): void {
     $search = new ScoutSearch(SearchAdditionalCoverageScoutModel::class, 'path', 'kind', 8);
 
-    $results = $search->search('capell', perPage: 5, page: 2);
+    $results = $search->search('capell', perPage: 5, page: 2, siteId: 12, languageId: 34);
 
     expect($results)->toBeInstanceOf(LengthAwarePaginator::class)
         ->and($results->total())->toBe(1)
@@ -37,7 +37,17 @@ final class SearchAdditionalCoverageScoutModel
 
 final class SearchAdditionalCoverageScoutBuilder
 {
+    /** @var array<string, mixed> */
+    private array $wheres = [];
+
     public function __construct(private readonly string $query) {}
+
+    public function where(string $field, mixed $value): self
+    {
+        $this->wheres[$field] = $value;
+
+        return $this;
+    }
 
     /**
      * @return LengthAwarePaginator<array-key, mixed>
@@ -45,6 +55,10 @@ final class SearchAdditionalCoverageScoutBuilder
     public function paginate(int $perPage, int $page): LengthAwarePaginator
     {
         expect($this->query)->toBe('capell');
+        expect($this->wheres)->toBe([
+            'site_id' => 12,
+            'language_id' => 34,
+        ]);
 
         return new LengthAwarePaginator([
             new SearchAdditionalCoverageScoutRecord([

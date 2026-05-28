@@ -47,8 +47,18 @@ class ScoutSearch implements Search
             return new Paginator([], 0, $perPage, $page);
         }
 
+        $builder = ($this->modelClass)::search($query);
+
+        if ($siteId !== null && method_exists($builder, 'where')) {
+            $builder->where('site_id', $siteId);
+        }
+
+        if ($languageId !== null && method_exists($builder, 'where')) {
+            $builder->where('language_id', $languageId);
+        }
+
         /** @var LengthAwarePaginator<int, object> $paginator */
-        $paginator = ($this->modelClass)::search($query)->paginate(perPage: $perPage, page: $page);
+        $paginator = $builder->paginate(perPage: $perPage, page: $page);
 
         $results = (new Collection($paginator->items()))->map(function (object $model) use ($query): SearchResultData {
             $row = $model->toArray();

@@ -12,5 +12,6 @@ final class SearchInsightsWindowData extends Data
     public function __construct(
         public CarbonImmutable $start,
         public CarbonImmutable $end,
+        public ?int $siteId = null,
     ) {}
 }

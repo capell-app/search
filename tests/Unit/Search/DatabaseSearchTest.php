@@ -22,14 +22,20 @@ beforeAll(function (): void {
         $table->text('body')->nullable();
         $table->string('slug');
         $table->string('type')->default('page');
+        $table->unsignedInteger('site_id')->nullable();
+        $table->unsignedInteger('language_id')->nullable();
+        $table->string('status')->default('published');
     });
 
     Capsule::table('pages')->insert([
-        ['title' => 'Laravel Tutorial', 'excerpt' => 'Learn Laravel today', 'body' => null, 'slug' => 'laravel-tutorial', 'type' => 'post'],
-        ['title' => 'About Us', 'excerpt' => 'Company info', 'body' => 'We are a company', 'slug' => 'about', 'type' => 'page'],
-        ['title' => 'Contact', 'excerpt' => null, 'body' => 'Reach out anytime', 'slug' => 'contact', 'type' => 'page'],
-        ['title' => '50% Discount', 'excerpt' => 'Literal percent offer', 'body' => null, 'slug' => 'percent', 'type' => 'page'],
-        ['title' => '500 Discount', 'excerpt' => 'Numeric offer', 'body' => null, 'slug' => 'numeric', 'type' => 'page'],
+        ['title' => 'Laravel Tutorial', 'excerpt' => 'Learn Laravel today', 'body' => null, 'slug' => 'laravel-tutorial', 'type' => 'post', 'site_id' => 1, 'language_id' => 1, 'status' => 'published'],
+        ['title' => 'About Us', 'excerpt' => 'Company info', 'body' => 'We are a company', 'slug' => 'about', 'type' => 'page', 'site_id' => 1, 'language_id' => 1, 'status' => 'published'],
+        ['title' => 'Contact', 'excerpt' => null, 'body' => 'Reach out anytime', 'slug' => 'contact', 'type' => 'page', 'site_id' => 1, 'language_id' => 1, 'status' => 'published'],
+        ['title' => '50% Discount', 'excerpt' => 'Literal percent offer', 'body' => null, 'slug' => 'percent', 'type' => 'page', 'site_id' => 1, 'language_id' => 1, 'status' => 'published'],
+        ['title' => '500 Discount', 'excerpt' => 'Numeric offer', 'body' => null, 'slug' => 'numeric', 'type' => 'page', 'site_id' => 1, 'language_id' => 1, 'status' => 'published'],
+        ['title' => 'Laravel French', 'excerpt' => 'Learn Laravel in French', 'body' => null, 'slug' => 'laravel-french', 'type' => 'post', 'site_id' => 1, 'language_id' => 2, 'status' => 'published'],
+        ['title' => 'Laravel Draft', 'excerpt' => 'Unpublished Laravel page', 'body' => null, 'slug' => 'laravel-draft', 'type' => 'post', 'site_id' => 1, 'language_id' => 1, 'status' => 'draft'],
+        ['title' => 'Laravel Other Site', 'excerpt' => 'Other site Laravel page', 'body' => null, 'slug' => 'laravel-other-site', 'type' => 'post', 'site_id' => 2, 'language_id' => 1, 'status' => 'published'],
     ]);
 });
 
@@ -49,7 +55,7 @@ test('search returns matching results from the database', function (): void {
     $results = $search->search('Laravel');
     $firstResult = $results->items()[0] ?? null;
 
-    expect($results->total())->toBe(1);
+    expect($results->total())->toBe(3);
     expect($firstResult)->toBeInstanceOf(SearchResultData::class);
     expect($firstResult?->title)->toBe('Laravel Tutorial');
 });
@@ -127,6 +133,15 @@ test('search score is a float', function (): void {
     $firstResult = $results->items()[0] ?? null;
 
     expect($firstResult?->score)->toBeFloat();
+});
+
+test('search filters by site language and published status when columns are present', function (): void {
+    $search = new DatabaseSearch(Capsule::connection());
+
+    $results = $search->search('Laravel', siteId: 1, languageId: 1);
+
+    expect($results->total())->toBe(1);
+    expect(($results->items()[0] ?? null)?->url)->toBe('/laravel-tutorial');
 });
 
 test('wraps matches in <mark> tags with escaping', function (): void {

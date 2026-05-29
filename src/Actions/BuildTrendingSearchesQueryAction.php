@@ -8,6 +8,7 @@ use Capell\Search\Data\SearchInsightsWindowData;
 use Capell\Search\Data\SearchTermSummaryData;
 use Capell\Search\Models\SearchLog;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -65,6 +66,7 @@ final class BuildTrendingSearchesQueryAction
             ])
             ->where('searched_at', '>=', $previousStart)
             ->where('searched_at', '<', $window->start)
+            ->when($window->siteId !== null, fn (Builder $query): Builder => $query->where('site_id', $window->siteId))
             ->groupBy('normalized_query')
             ->pluck('searches', 'normalized_query')
             ->mapWithKeys(fn (mixed $searches, string $normalizedQuery): array => [

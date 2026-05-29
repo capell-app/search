@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-use Capell\Admin\Support\Extensions\ExtensionPageRegistry;
+use Capell\Admin\Support\Extensions\ExtensionManagementSurfaceRegistry;
 use Capell\Core\Support\Settings\SettingsSchemaRegistry;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Drivers\DatabaseSearch;
 use Capell\Search\Enums\SearchDriver;
-use Capell\Search\Filament\Pages\SearchSettingsPage;
 use Capell\Search\Filament\Settings\SearchSettingsSchema;
 use Capell\Search\Providers\SearchServiceProvider;
 use Capell\Search\Settings\SearchSettings;
@@ -57,9 +56,9 @@ test('provider registers search settings metadata and schema', function (): void
         ->and($registry->getMetadata('search')?->packageName)->toBe(SearchServiceProvider::$packageName);
 });
 
-test('provider registers search settings as an extension page', function (): void {
-    $extensionPage = collect(resolve(ExtensionPageRegistry::class)->entries())
-        ->first(fn (array $extensionPage): bool => $extensionPage['page'] === SearchSettingsPage::class);
+test('provider registers search settings as an extension management surface', function (): void {
+    $settingsSurfaces = resolve(ExtensionManagementSurfaceRegistry::class)
+        ->surfacesForPackage(SearchServiceProvider::$packageName);
 
-    expect($extensionPage['page'] ?? null)->toBe(SearchSettingsPage::class);
+    expect($settingsSurfaces[0]->settingsGroup ?? null)->toBe('search');
 });

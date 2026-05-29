@@ -11,6 +11,18 @@ Search adds a frontend search route, configurable search drivers, result click t
 - Capell dependencies: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`
 - Third-party dependencies: `lorisleiva/laravel-actions`, `spatie/laravel-data`, `spatie/laravel-package-tools`
 
+## Why It Helps Your Capell Workflow
+
+- Adds frontend search, configurable search drivers, click tracking, query logging, and admin search insights.
+- Helps owners understand what visitors cannot find while giving users a public search experience.
+- Gives developers driver boundaries and logging Actions instead of coupling search behavior to theme templates.
+
+## Best Used With
+
+- [SEO Suite](../seo-suite/README.md)
+- [Site Discovery](../site-discovery/README.md)
+- [Insights](../insights/README.md)
+
 ## What It Adds
 
 Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search insights.
@@ -152,6 +164,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 
 ## Docs
 
+- [docs index](docs/README.md)
 - [credits-and-acknowledgements.md](docs/credits-and-acknowledgements.md)
 - [drivers-and-logging.md](docs/drivers-and-logging.md)
 - [overview.md](docs/overview.md)

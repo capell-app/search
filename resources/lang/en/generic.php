@@ -9,5 +9,5 @@ return [
     'results_count' => ':count result for :query|:count results for :query',
     'results_label' => 'Search results',
     'search_label' => 'Search this site',
-    'search_placeholder' => 'Search',
+    'search_placeholder' => 'Search pages, services, and resources',
 ];

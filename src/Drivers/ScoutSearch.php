@@ -35,15 +35,30 @@ class ScoutSearch implements Search
         private readonly int $excerptLength = 200,
     ) {}
 
-    public function search(string $query, int $perPage = 10, int $page = 1): LengthAwarePaginator
-    {
+    public function search(
+        string $query,
+        int $perPage = 10,
+        int $page = 1,
+        ?int $siteId = null,
+        ?int $languageId = null,
+    ): LengthAwarePaginator {
         $query = trim($query);
         if ($query === '') {
             return new Paginator([], 0, $perPage, $page);
         }
 
-        /** @var LengthAwarePaginator $paginator */
-        $paginator = ($this->modelClass)::search($query)->paginate(perPage: $perPage, page: $page);
+        $builder = ($this->modelClass)::search($query);
+
+        if ($siteId !== null && method_exists($builder, 'where')) {
+            $builder->where('site_id', $siteId);
+        }
+
+        if ($languageId !== null && method_exists($builder, 'where')) {
+            $builder->where('language_id', $languageId);
+        }
+
+        /** @var LengthAwarePaginator<int, object> $paginator */
+        $paginator = $builder->paginate(perPage: $perPage, page: $page);
 
         $results = (new Collection($paginator->items()))->map(function (object $model) use ($query): SearchResultData {
             $row = $model->toArray();

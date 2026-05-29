@@ -20,7 +20,7 @@
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "optional": [],
+        "supports": [],
         "conflicts": []
     },
     "providers": {
@@ -100,7 +100,13 @@
     },
     "marketplace": {
         "summary": "Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search insights.",
-        "screenshots": [],
+        "screenshots": [
+            {
+                "path": "docs/assets/marketplace/extension-card.jpg",
+                "alt": "Search extension preview image",
+                "caption": "Search extension preview"
+            }
+        ],
         "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {

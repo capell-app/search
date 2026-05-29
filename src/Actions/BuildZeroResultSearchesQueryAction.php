@@ -7,6 +7,7 @@ namespace Capell\Search\Actions;
 use Capell\Search\Data\SearchInsightsWindowData;
 use Capell\Search\Data\SearchTermSummaryData;
 use Capell\Search\Models\SearchLog;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -28,6 +29,7 @@ final class BuildZeroResultSearchesQueryAction
                 DB::raw('SUM(results_count) as results_count'),
             ])
             ->whereBetween('searched_at', [$window->start, $window->end])
+            ->when($window->siteId !== null, fn (Builder $query): Builder => $query->where('site_id', $window->siteId))
             ->where('results_count', 0)
             ->groupBy('normalized_query')
             ->orderByDesc('searches');

@@ -20,8 +20,13 @@ beforeEach(function (): void {
 test('controller returns the search page view with an empty paginator for a blank query', function (): void {
     app()->instance(Search::class, new class implements Search
     {
-        public function search(string $query, int $perPage = 10, int $page = 1): LengthAwarePaginator
-        {
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+        ): LengthAwarePaginator {
             throw new RuntimeException('Search should not run for a blank query.');
         }
 
@@ -48,8 +53,13 @@ test('controller passes normalized valid searches to the site search service', f
     {
         public function __construct(private stdClass $recordedSearch) {}
 
-        public function search(string $query, int $perPage = 10, int $page = 1): LengthAwarePaginator
-        {
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+        ): LengthAwarePaginator {
             $this->recordedSearch->queries[] = $query;
 
             $results = new Collection([
@@ -81,8 +91,13 @@ test('controller passes normalized valid searches to the site search service', f
 test('public search markup does not expose package identifiers', function (): void {
     app()->instance(Search::class, new class implements Search
     {
-        public function search(string $query, int $perPage = 10, int $page = 1): LengthAwarePaginator
-        {
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+        ): LengthAwarePaginator {
             return new Paginator(new Collection([
                 new SearchResultData(
                     title: 'Laravel Search',

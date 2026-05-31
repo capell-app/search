@@ -17,6 +17,8 @@ use Capell\Search\Filament\Settings\SearchSettingsSchema;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Settings\SearchSettings;
 use Capell\Search\Support\RenderHooks\RegisterHeaderSearchHook;
+use Capell\Search\Support\SiteDiscovery\SearchGeneratedOutputCoverageSource;
+use Capell\SiteDiscovery\Contracts\GeneratedOutputCoverageSource;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\ConnectionResolverInterface;
@@ -70,6 +72,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             $this
                 ->registerModels()
                 ->registerSettings()
+                ->registerGeneratedOutputCoverage()
                 ->registerProtectedTables();
         });
     }
@@ -194,6 +197,18 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
     private function registerProtectedTables(): self
     {
         CapellCore::registerProtectedTable(fn (): string => config('capell-search.logs.table_name', 'search_logs'));
+
+        return $this;
+    }
+
+    private function registerGeneratedOutputCoverage(): self
+    {
+        if (! interface_exists(GeneratedOutputCoverageSource::class)) {
+            return $this;
+        }
+
+        $this->app->singleton(SearchGeneratedOutputCoverageSource::class);
+        $this->app->tag([SearchGeneratedOutputCoverageSource::class], GeneratedOutputCoverageSource::TAG);
 
         return $this;
     }

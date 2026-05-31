@@ -157,6 +157,50 @@ test('search insight actions filter by site when the window carries a site id', 
         ->and(BuildTrendingSearchesQueryAction::run($window)->pluck('normalizedQuery')->all())->toBe(['scoped']);
 });
 
+test('search insight actions clamp non-positive limits without querying invalid ranges', function (): void {
+    $window = siteSearchInsightsWindow();
+
+    SearchLog::factory()->create([
+        'query' => 'Laravel',
+        'normalized_query' => 'laravel',
+        'results_count' => 5,
+        'searched_at' => $window->start->addDay(),
+    ]);
+
+    expect(BuildTopSearchesQueryAction::run($window, 0))->toHaveCount(0)
+        ->and(BuildZeroResultSearchesQueryAction::run($window, -1))->toHaveCount(0)
+        ->and(BuildTrendingSearchesQueryAction::run($window, 0))->toHaveCount(0);
+});
+
+test('trending searches bounds current candidates before loading previous window counts', function (): void {
+    config()->set('capell-search.dashboard.trending_candidate_limit', 2);
+
+    $window = siteSearchInsightsWindow();
+
+    SearchLog::factory()->count(3)->create([
+        'query' => 'First',
+        'normalized_query' => 'first',
+        'results_count' => 1,
+        'searched_at' => $window->start->addDay(),
+    ]);
+    SearchLog::factory()->count(2)->create([
+        'query' => 'Second',
+        'normalized_query' => 'second',
+        'results_count' => 1,
+        'searched_at' => $window->start->addDay(),
+    ]);
+    SearchLog::factory()->create([
+        'query' => 'Third',
+        'normalized_query' => 'third',
+        'results_count' => 1,
+        'searched_at' => $window->start->addDay(),
+    ]);
+
+    $summaries = BuildTrendingSearchesQueryAction::run($window, 2);
+
+    expect($summaries->pluck('normalizedQuery')->all())->toBe(['first', 'second']);
+});
+
 function siteSearchInsightsWindow(): SearchInsightsWindowData
 {
     return new SearchInsightsWindowData(

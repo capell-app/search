@@ -22,8 +22,16 @@ final class BuildTrendingSearchesQueryAction
      */
     public function handle(SearchInsightsWindowData $window, ?int $limit = 10): Collection
     {
-        $currentSummaries = BuildTopSearchesQueryAction::run($window, null);
-        $previousSearchCounts = $this->previousSearchCounts($window);
+        if ($limit !== null && $limit <= 0) {
+            return collect();
+        }
+
+        $candidateLimit = $this->candidateLimit($limit);
+        $currentSummaries = BuildTopSearchesQueryAction::run($window, $candidateLimit);
+        $previousSearchCounts = $this->previousSearchCounts(
+            $window,
+            $currentSummaries->pluck('normalizedQuery')->all(),
+        );
 
         $trendingSummaries = $currentSummaries
             ->map(function (SearchTermSummaryData $summary) use ($previousSearchCounts): SearchTermSummaryData {
@@ -53,10 +61,15 @@ final class BuildTrendingSearchesQueryAction
     }
 
     /**
+     * @param  list<string>  $normalizedQueries
      * @return array<string, int>
      */
-    private function previousSearchCounts(SearchInsightsWindowData $window): array
+    private function previousSearchCounts(SearchInsightsWindowData $window, array $normalizedQueries): array
     {
+        if ($normalizedQueries === []) {
+            return [];
+        }
+
         $previousStart = $this->previousWindowStart($window);
 
         return SearchLog::query()
@@ -66,6 +79,7 @@ final class BuildTrendingSearchesQueryAction
             ])
             ->where('searched_at', '>=', $previousStart)
             ->where('searched_at', '<', $window->start)
+            ->whereIn('normalized_query', $normalizedQueries)
             ->when($window->siteId !== null, fn (Builder $query): Builder => $query->where('site_id', $window->siteId))
             ->groupBy('normalized_query')
             ->pluck('searches', 'normalized_query')
@@ -73,6 +87,17 @@ final class BuildTrendingSearchesQueryAction
                 $normalizedQuery => (int) $searches,
             ])
             ->all();
+    }
+
+    private function candidateLimit(?int $limit): ?int
+    {
+        if ($limit === null) {
+            return null;
+        }
+
+        $configuredLimit = (int) config('capell-search.dashboard.trending_candidate_limit', 250);
+
+        return max($limit, $configuredLimit);
     }
 
     private function previousWindowStart(SearchInsightsWindowData $window): CarbonImmutable

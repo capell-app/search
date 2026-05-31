@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Capell\Search\Actions\PurgeSearchLogsAction;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Settings\SearchSettings;
+use Illuminate\Console\Command;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
@@ -97,3 +98,17 @@ test('allows callers to override retention days', function (): void {
     expect($deletedCount)->toBe(1);
     expect(SearchLog::query()->pluck('normalized_query')->all())->toBe(['override retained']);
 });
+
+test('rejects invalid purge command retention days before deleting records', function (string $daysOption): void {
+    SearchLog::factory()->create([
+        'query' => 'old record',
+        'normalized_query' => 'old record',
+        'searched_at' => now()->subDays(90),
+    ]);
+
+    $this->artisan('search:purge', ['--days' => $daysOption])
+        ->expectsOutput('The --days option must be a positive integer.')
+        ->assertExitCode(Command::FAILURE);
+
+    expect(SearchLog::query()->count())->toBe(1);
+})->with(['abc', '-1', '0']);

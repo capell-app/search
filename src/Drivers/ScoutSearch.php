@@ -7,6 +7,7 @@ namespace Capell\Search\Drivers;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchResultData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
 
@@ -49,19 +50,19 @@ class ScoutSearch implements Search
 
         $builder = ($this->modelClass)::search($query);
 
-        if ($siteId !== null && method_exists($builder, 'where')) {
-            $builder->where('site_id', $siteId);
+        if ($siteId !== null && is_callable([$builder, 'where'])) {
+            call_user_func([$builder, 'where'], 'site_id', $siteId);
         }
 
-        if ($languageId !== null && method_exists($builder, 'where')) {
-            $builder->where('language_id', $languageId);
+        if ($languageId !== null && is_callable([$builder, 'where'])) {
+            call_user_func([$builder, 'where'], 'language_id', $languageId);
         }
 
         /** @var LengthAwarePaginator<int, object> $paginator */
         $paginator = $builder->paginate(perPage: $perPage, page: $page);
 
         $results = (new Collection($paginator->items()))->map(function (object $model) use ($query): SearchResultData {
-            $row = $model->toArray();
+            $row = $model instanceof Arrayable ? $model->toArray() : [];
             $title = (string) ($row['title'] ?? '');
             $excerptRaw = (string) ($row['excerpt'] ?? $row['body'] ?? '');
 

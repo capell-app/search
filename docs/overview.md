@@ -6,12 +6,13 @@ This page is the consolidated implementation overview for the Search package. It
 
 ## What This Package Adds
 
-Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search insights.
+Search adds a frontend search route, configurable search drivers, synonym expansion, typo correction, promoted results, source weighting, result click tracking, zero-result reporting, query logging, Site Discovery indexing, and admin search insights.
 
 - Frontend search controller route.
-- Database and Scout search drivers.
+- Database, Site Discovery URL registry, and Scout search drivers.
 - Header search render hook.
 - Search insights widgets.
+- Synonym expansion, typo correction, promoted results, source weighting, and zero-result reporting.
 - Settings schema and dashboard contributor.
 - Actions for search, normalization, logging, click tracking, and purging logs.
 
@@ -23,7 +24,7 @@ Uses a Search contract and driver classes so search can start with database quer
 - Config file: capell-search.php.
 - Route: GET search by default, named capell-frontend.search.
 - Model: SearchLog.
-- Drivers: DatabaseSearch and ScoutSearch.
+- Drivers: DatabaseSearch, SiteDiscoverySearch, and ScoutSearch.
 - Command: PurgeSearchLogsCommand.
 
 ## Operational Notes
@@ -34,7 +35,7 @@ Lets visitors search site content and lets operators review what people searched
 - Adds frontend search route.
 - Adds optional header search render hook.
 - Adds dashboard insights widgets.
-- Adds config keys for driver, route, result count, excerpts, logging, hashing, and retention.
+- Adds config keys for driver, route, result count, excerpts, logging, hashing, retention, synonyms, typo corrections, promoted results, and source weighting.
 
 ## Data And Retention
 
@@ -53,24 +54,25 @@ Lets visitors search site content and lets operators review what people searched
 
 ## Screenshots
 
-![Frontend search results page](../../../public/docs/screenshots/packages/search/frontend-search-results-page.png)
+![Frontend search results page](screenshots/frontend-search-results-page.png)
 
-![Header search field](../../../public/docs/screenshots/packages/search/header-search-field.png)
+![Header search field](screenshots/header-search-field.png)
 
-![Top searches widget](../../../public/docs/screenshots/packages/search/top-searches-widget.png)
+![Top searches widget](screenshots/top-searches-widget.png)
 
-![Trending searches widget](../../../public/docs/screenshots/packages/search/trending-searches-widget.png)
+![Trending searches widget](screenshots/trending-searches-widget.png)
 
-![Zero-result searches widget](../../../public/docs/screenshots/packages/search/zero-result-searches-widget.png)
+![Zero-result searches widget](screenshots/zero-result-searches-widget.png)
 
-![Search settings screen](../../../public/docs/screenshots/packages/search/search-settings-screen.png)
+![Search settings screen](screenshots/search-settings-screen.png)
 
 The header search render hook needs a compatible theme header slot. A core-only demo harness can still screenshot the package search form in a header slot, but a theme pass should also capture the Alpine modal state.
 
 ## Pitfalls
 
 - Database driver config must point at searchable columns that exist.
-- The default core `pages` table is not a flat search index. Point the database driver at a flattened table/view, bind a custom `Search` implementation, or use Scout.
+- The default core `pages` table is not a flat search index. Point the database driver at a flattened table/view, use the Site Discovery URL registry driver, bind a custom `Search` implementation, or use Scout.
+- The Site Discovery driver searches canonical URL registry metadata; use Scout or a custom driver when full page body search is required.
 - Minimum query length defaults to 2 characters.
 - Disable logging or hashing according to privacy requirements.
 - Run log purge if retention needs enforcement.
@@ -90,7 +92,7 @@ The header search render hook needs a compatible theme header slot. A core-only 
 - Bundle: search-seo
 - Contexts: `admin`, `frontend`, `console`
 - Requires: `capell-app/core`, `capell-app/admin`, `capell-app/frontend`
-- Optional dependencies: None listed.
+- Optional dependencies: `capell-app/site-discovery` for URL registry-backed indexing and generated-output coverage.
 
 ## Admin Surfaces
 
@@ -138,7 +140,7 @@ erDiagram
 
 ## Screenshot Automation
 
-Deployment should read [screenshots.json](screenshots.json), install the package with demo data, resolve each admin surface or frontend URL, and write images to `public/docs/screenshots/packages/search`.
+Deployment should read [screenshots.json](screenshots.json), install the package with demo data, resolve each admin surface or frontend URL, and write images to `packages/search/docs/screenshots`.
 
 - Frontend search results page.
 - Header search field.

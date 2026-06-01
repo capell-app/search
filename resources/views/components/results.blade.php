@@ -31,11 +31,17 @@
                 ])
             }}
         </p>
-        <ol class="space-y-4" role="list">
+        <ol
+            class="space-y-4"
+            role="list"
+        >
             @foreach ($results as $result)
                 <li class="rounded-lg border border-gray-100 p-4">
                     <h2 class="text-lg font-semibold">
-                        <a href="{{ $result->url }}" class="hover:underline">
+                        <a
+                            href="{{ $result->url }}"
+                            class="hover:underline"
+                        >
                             {!! $search->highlight($result->title, $query) !!}
                         </a>
                     </h2>

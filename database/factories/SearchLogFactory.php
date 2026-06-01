@@ -19,7 +19,8 @@ class SearchLogFactory extends Factory
      */
     public function definition(): array
     {
-        $query = $this->faker->words(3, true);
+        $words = $this->faker->words(3, true);
+        $query = is_string($words) ? $words : implode(' ', $words);
 
         return [
             'site_id' => null,

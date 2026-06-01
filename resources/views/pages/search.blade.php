@@ -3,5 +3,8 @@
 
     <x-capell-search::form :query="$query" />
 
-    <x-capell-search::results :query="$query" :results="$results" />
+    <x-capell-search::results
+        :query="$query"
+        :results="$results"
+    />
 </section>

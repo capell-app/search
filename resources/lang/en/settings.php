@@ -6,6 +6,7 @@ return [
     'driver' => 'Search driver',
     'driver_options' => [
         'database' => 'Database',
+        'site_discovery' => 'Site Discovery URL registry',
         'scout' => 'Scout',
     ],
     'enabled' => 'Enable site search',

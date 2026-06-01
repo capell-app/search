@@ -6,6 +6,7 @@ use Capell\Admin\Support\Extensions\ExtensionManagementSurfaceRegistry;
 use Capell\Core\Support\Settings\SettingsSchemaRegistry;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Drivers\DatabaseSearch;
+use Capell\Search\Drivers\SiteDiscoverySearch;
 use Capell\Search\Enums\SearchDriver;
 use Capell\Search\Filament\Settings\SearchSettingsSchema;
 use Capell\Search\Providers\SearchServiceProvider;
@@ -16,6 +17,13 @@ test('provider binds the configured database search driver', function (): void {
     config()->set('capell-search.driver', SearchDriver::Database->value);
 
     expect(resolve(Search::class))->toBeInstanceOf(DatabaseSearch::class);
+});
+
+test('provider binds the site discovery search driver', function (): void {
+    app()->register(SearchServiceProvider::class);
+    config()->set('capell-search.driver', SearchDriver::SiteDiscovery->value);
+
+    expect(resolve(Search::class))->toBeInstanceOf(SiteDiscoverySearch::class);
 });
 
 test('provider prefers the settings driver over config', function (): void {
@@ -44,6 +52,7 @@ test('site search settings expose defaults', function (): void {
 
 test('search driver options expose translated filament labels', function (): void {
     expect(SearchDriver::Database->getLabel())->toBe('Database')
+        ->and(SearchDriver::SiteDiscovery->getLabel())->toBe('Site Discovery URL registry')
         ->and(SearchDriver::Scout->getLabel())->toBe('Scout');
 });
 

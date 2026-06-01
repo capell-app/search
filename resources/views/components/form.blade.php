@@ -8,7 +8,10 @@
     role="search"
     class="site-search-form flex items-center gap-2"
 >
-    <label class="sr-only" for="site-search-query">
+    <label
+        class="sr-only"
+        for="site-search-query"
+    >
         {{ __('capell-search::generic.search_label') }}
     </label>
     <input

@@ -1,6 +1,6 @@
 # Search Docs
 
-Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search insights.
+Search adds a frontend search route, configurable search drivers, synonym expansion, typo correction, promoted results, source weighting, result click tracking, zero-result reporting, query logging, Site Discovery indexing, and admin search insights.
 
 Start at the [package README](../README.md) when deciding whether to install this package. Use the docs below for setup, extension, debugging, and verification details.
 

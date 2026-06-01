@@ -7,7 +7,10 @@
 @endphp
 
 <div class="search-layout flex min-h-screen flex-col bg-white dark:bg-gray-900">
-    <a class="sr-only" href="#main">
+    <a
+        class="sr-only"
+        href="#main"
+    >
         {{ __('capell-frontend::generic.skip_link') }}
     </a>
 

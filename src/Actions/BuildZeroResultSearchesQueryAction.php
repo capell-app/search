@@ -21,6 +21,10 @@ final class BuildZeroResultSearchesQueryAction
      */
     public function handle(SearchInsightsWindowData $window, ?int $limit = 10): Collection
     {
+        if ($limit !== null && $limit <= 0) {
+            return collect();
+        }
+
         $query = SearchLog::query()
             ->select([
                 'normalized_query',

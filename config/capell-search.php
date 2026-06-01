@@ -5,13 +5,36 @@ declare(strict_types=1);
 return [
     'enabled' => true,
     'show_header_search' => true,
-    'driver' => env('CAPELL_SITE_SEARCH_DRIVER', 'database'),
+    'driver' => env('CAPELL_SITE_SEARCH_DRIVER', 'database'), // database, site_discovery, or scout
     'route_path' => 'search',
     'results_per_page' => 10,
     'excerpt_length' => 200,
     'minimum_query_length' => 2,
     'record_search_logs' => true,
     'hash_visitor_data' => true,
+    'synonyms' => [
+        // 'cms' => ['content management system'],
+    ],
+    'typo_corrections' => [
+        // 'capel' => 'capell',
+    ],
+    'typo_terms' => [
+        // 'capell',
+    ],
+    'typo_max_distance' => 1,
+    'promoted_results' => [
+        // [
+        //     'queries' => ['pricing'],
+        //     'title' => 'Pricing',
+        //     'url' => '/pricing',
+        //     'excerpt' => 'Plan and billing information.',
+        //     'type' => 'page',
+        //     'score' => 1000.0,
+        // ],
+    ],
+    'source_weights' => [
+        // 'page' => 1.0,
+    ],
     'database' => [
         'table' => 'pages',
         'columns' => ['title', 'excerpt', 'body'],
@@ -36,5 +59,6 @@ return [
     ],
     'dashboard' => [
         'default_days' => 30,
+        'trending_candidate_limit' => 250,
     ],
 ];

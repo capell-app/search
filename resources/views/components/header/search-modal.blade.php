@@ -72,7 +72,10 @@
                     role="search"
                     class="flex items-center gap-2"
                 >
-                    <label class="sr-only" for="site-header-search-query">
+                    <label
+                        class="sr-only"
+                        for="site-header-search-query"
+                    >
                         {{ __('capell-search::generic.search_label') }}
                     </label>
                     <input

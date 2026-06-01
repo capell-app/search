@@ -17,7 +17,9 @@ final class ResolveSearchSettingAction
     public function handle(string $settingKey, string $configKey, mixed $default): mixed
     {
         try {
-            if (! app()->bound(SearchSettings::class) && ! $this->hasPersistedSetting($settingKey)) {
+            $hasPersistedSetting = $this->hasPersistedSetting($settingKey);
+
+            if (! $hasPersistedSetting && ! app()->resolved(SearchSettings::class)) {
                 return config($configKey, $default);
             }
 

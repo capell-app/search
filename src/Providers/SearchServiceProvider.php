@@ -12,6 +12,7 @@ use Capell\Search\Actions\ResolveSearchSettingAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Drivers\DatabaseSearch;
 use Capell\Search\Drivers\ScoutSearch;
+use Capell\Search\Drivers\SiteDiscoverySearch;
 use Capell\Search\Enums\SearchDriver;
 use Capell\Search\Filament\Settings\SearchSettingsSchema;
 use Capell\Search\Models\SearchLog;
@@ -45,7 +46,6 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         if (file_exists(__DIR__ . '/../../database/migrations/2026_05_10_190868_01_create_search_logs_table.php')) {
             $package->hasMigrations([
                 '2026_05_10_190868_01_create_search_logs_table',
-                '2026_05_21_000001_add_site_foreign_key_to_search_logs_table',
                 '2026_05_21_000002_add_fulltext_index_to_search_database_table',
             ]);
         }
@@ -114,6 +114,12 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
                     modelClass: config('capell-search.scout.model'),
                     urlColumn: config('capell-search.scout.url_column', 'slug'),
                     typeColumn: config('capell-search.scout.type_column', 'type'),
+                    excerptLength: config('capell-search.excerpt_length', 200),
+                );
+            }
+
+            if ($driver === SearchDriver::SiteDiscovery->value && class_exists(SiteDiscoverySearch::class)) {
+                return new SiteDiscoverySearch(
                     excerptLength: config('capell-search.excerpt_length', 200),
                 );
             }

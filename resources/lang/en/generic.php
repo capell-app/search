@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'site_discovery_result_excerpt' => ':type URL from :package.',
     'empty_query' => 'Enter a keyword to search this site.',
     'no_results' => 'No results for :query. Try another keyword.',
     'page_title' => 'Search',

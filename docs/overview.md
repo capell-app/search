@@ -9,9 +9,10 @@ This page is the consolidated implementation overview for the Search package. It
 Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search insights.
 
 - Frontend search controller route.
-- Database and Scout search drivers.
+- Database, Site Discovery URL registry, and Scout search drivers.
 - Header search render hook.
 - Search insights widgets.
+- Synonym expansion, typo correction, promoted results, source weighting, and zero-result reporting.
 - Settings schema and dashboard contributor.
 - Actions for search, normalization, logging, click tracking, and purging logs.
 
@@ -23,7 +24,7 @@ Uses a Search contract and driver classes so search can start with database quer
 - Config file: capell-search.php.
 - Route: GET search by default, named capell-frontend.search.
 - Model: SearchLog.
-- Drivers: DatabaseSearch and ScoutSearch.
+- Drivers: DatabaseSearch, SiteDiscoverySearch, and ScoutSearch.
 - Command: PurgeSearchLogsCommand.
 
 ## Operational Notes
@@ -34,7 +35,7 @@ Lets visitors search site content and lets operators review what people searched
 - Adds frontend search route.
 - Adds optional header search render hook.
 - Adds dashboard insights widgets.
-- Adds config keys for driver, route, result count, excerpts, logging, hashing, and retention.
+- Adds config keys for driver, route, result count, excerpts, logging, hashing, retention, synonyms, typo corrections, promoted results, and source weighting.
 
 ## Data And Retention
 
@@ -70,7 +71,8 @@ The header search render hook needs a compatible theme header slot. A core-only 
 ## Pitfalls
 
 - Database driver config must point at searchable columns that exist.
-- The default core `pages` table is not a flat search index. Point the database driver at a flattened table/view, bind a custom `Search` implementation, or use Scout.
+- The default core `pages` table is not a flat search index. Point the database driver at a flattened table/view, use the Site Discovery URL registry driver, bind a custom `Search` implementation, or use Scout.
+- The Site Discovery driver searches canonical URL registry metadata; use Scout or a custom driver when full page body search is required.
 - Minimum query length defaults to 2 characters.
 - Disable logging or hashing according to privacy requirements.
 - Run log purge if retention needs enforcement.
@@ -90,7 +92,7 @@ The header search render hook needs a compatible theme header slot. A core-only 
 - Bundle: search-seo
 - Contexts: `admin`, `frontend`, `console`
 - Requires: `capell-app/core`, `capell-app/admin`, `capell-app/frontend`
-- Optional dependencies: None listed.
+- Optional dependencies: `capell-app/site-discovery` for URL registry-backed indexing and generated-output coverage.
 
 ## Admin Surfaces
 

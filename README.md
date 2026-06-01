@@ -28,9 +28,10 @@ Search adds a frontend search route, configurable search drivers, result click t
 Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search insights.
 
 - Frontend search controller route.
-- Database and Scout search drivers.
+- Database, Site Discovery URL registry, and Scout search drivers.
 - Header search render hook.
 - Search insights widgets.
+- Synonym expansion, typo correction, promoted results, source weighting, and zero-result reporting.
 - Settings schema and dashboard contributor.
 - Actions for search, normalization, logging, click tracking, and purging logs.
 
@@ -81,7 +82,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Config file: capell-search.php.
 - Route: GET search by default, named capell-frontend.search.
 - Model: SearchLog.
-- Drivers: DatabaseSearch and ScoutSearch.
+- Drivers: DatabaseSearch, SiteDiscoverySearch, and ScoutSearch.
 - Command: PurgeSearchLogsCommand.
 
 ## Code Map
@@ -137,7 +138,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Adds frontend search route.
 - Adds optional header search render hook.
 - Adds dashboard insights widgets.
-- Adds config keys for driver, route, result count, excerpts, logging, hashing, and retention.
+- Adds config keys for driver, route, result count, excerpts, logging, hashing, retention, synonyms, typo corrections, promoted results, and source weighting.
 
 ## Install And Setup
 
@@ -157,7 +158,8 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 ## Common Pitfalls
 
 - Database driver config must point at searchable columns that exist.
-- The default core `pages` table is not a flat search index. Use a flattened table/view, a custom `Search` binding, or Scout for real page content.
+- The default core `pages` table is not a flat search index. Use a flattened table/view, the Site Discovery URL registry driver, a custom `Search` binding, or Scout for real page content.
+- The Site Discovery driver searches registry metadata and canonical URLs; use Scout or a custom driver when full page body search is required.
 - Minimum query length defaults to 2 characters.
 - Disable logging or hashing according to privacy requirements.
 - Run log purge if retention needs enforcement.

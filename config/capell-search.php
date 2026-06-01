@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'enabled' => true,
     'show_header_search' => true,
-    'driver' => env('CAPELL_SITE_SEARCH_DRIVER', 'database'),
+    'driver' => env('CAPELL_SITE_SEARCH_DRIVER', 'database'), // database, site_discovery, or scout
     'route_path' => 'search',
     'results_per_page' => 10,
     'excerpt_length' => 200,

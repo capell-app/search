@@ -9,6 +9,7 @@ use Filament\Support\Contracts\HasLabel;
 enum SearchDriver: string implements HasLabel
 {
     case Database = 'database';
+    case SiteDiscovery = 'site_discovery';
     case Scout = 'scout';
 
     public function getLabel(): string

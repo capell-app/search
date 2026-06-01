@@ -20,7 +20,7 @@
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "supports": [],
+        "supports": ["capell-app/site-discovery"],
         "conflicts": []
     },
     "providers": {
@@ -34,7 +34,7 @@
     "database": {
         "migrations": true,
         "settings": true,
-        "requiredTables": []
+        "requiredTables": ["search_logs"]
     },
     "commands": {
         "install": null,
@@ -48,7 +48,13 @@
         "search",
         "search-admin",
         "search-console",
-        "search-frontend"
+        "search-frontend",
+        "search-synonyms",
+        "search-promoted-results",
+        "search-typo-corrections",
+        "search-source-weighting",
+        "search-zero-result-reporting",
+        "search-site-discovery-indexing"
     ],
     "performance": {
         "frontendRenderBudgetMs": 20,

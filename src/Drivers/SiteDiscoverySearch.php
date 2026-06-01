@@ -46,7 +46,7 @@ final readonly class SiteDiscoverySearch implements Search
         $results = $this->registryEntries()
             ->filter(fn (PublicUrlRegistryEntryData $entry): bool => $this->canSearchEntry($entry, $siteId, $languageId))
             ->map(fn (PublicUrlRegistryEntryData $entry): SearchResultData => $this->entryToResult($entry, $normalizedQuery))
-            ->filter(fn (SearchResultData $result): bool => $this->matchesResult($result, $normalizedQuery))
+            ->filter(fn (SearchResultData $result): bool => $this->matchesResult($result))
             ->sortByDesc(static fn (SearchResultData $result): float => $result->score)
             ->values();
 
@@ -111,7 +111,7 @@ final readonly class SiteDiscoverySearch implements Search
         );
     }
 
-    private function matchesResult(SearchResultData $result, string $normalizedQuery): bool
+    private function matchesResult(SearchResultData $result): bool
     {
         return $result->score > 0.0;
     }

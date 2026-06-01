@@ -54,17 +54,17 @@ Lets visitors search site content and lets operators review what people searched
 
 ## Screenshots
 
-![Frontend search results page](../../../public/docs/screenshots/packages/search/frontend-search-results-page.png)
+![Frontend search results page](screenshots/frontend-search-results-page.png)
 
-![Header search field](../../../public/docs/screenshots/packages/search/header-search-field.png)
+![Header search field](screenshots/header-search-field.png)
 
-![Top searches widget](../../../public/docs/screenshots/packages/search/top-searches-widget.png)
+![Top searches widget](screenshots/top-searches-widget.png)
 
-![Trending searches widget](../../../public/docs/screenshots/packages/search/trending-searches-widget.png)
+![Trending searches widget](screenshots/trending-searches-widget.png)
 
-![Zero-result searches widget](../../../public/docs/screenshots/packages/search/zero-result-searches-widget.png)
+![Zero-result searches widget](screenshots/zero-result-searches-widget.png)
 
-![Search settings screen](../../../public/docs/screenshots/packages/search/search-settings-screen.png)
+![Search settings screen](screenshots/search-settings-screen.png)
 
 The header search render hook needs a compatible theme header slot. A core-only demo harness can still screenshot the package search form in a header slot, but a theme pass should also capture the Alpine modal state.
 
@@ -140,7 +140,7 @@ erDiagram
 
 ## Screenshot Automation
 
-Deployment should read [screenshots.json](screenshots.json), install the package with demo data, resolve each admin surface or frontend URL, and write images to `public/docs/screenshots/packages/search`.
+Deployment should read [screenshots.json](screenshots.json), install the package with demo data, resolve each admin surface or frontend URL, and write images to `packages/search/docs/screenshots`.
 
 - Frontend search results page.
 - Header search field.

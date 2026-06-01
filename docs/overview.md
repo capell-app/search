@@ -6,7 +6,7 @@ This page is the consolidated implementation overview for the Search package. It
 
 ## What This Package Adds
 
-Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search insights.
+Search adds a frontend search route, configurable search drivers, synonym expansion, typo correction, promoted results, source weighting, result click tracking, zero-result reporting, query logging, Site Discovery indexing, and admin search insights.
 
 - Frontend search controller route.
 - Database, Site Discovery URL registry, and Scout search drivers.

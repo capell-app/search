@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^4.0",
     "version": "4.x-dev",
-    "description": "Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search insights.",
+    "description": "Search adds a frontend search route, configurable search drivers, synonym expansion, typo correction, promoted results, source weighting, result click tracking, zero-result reporting, query logging, Site Discovery indexing, and admin search insights.",
     "product": {
         "group": "Capell Search & SEO",
         "tier": "premium",
@@ -30,7 +30,48 @@
         "admin": ["Capell\\Search\\Providers\\AdminServiceProvider"],
         "frontend": []
     },
-    "contributes": [],
+    "contributes": [
+        {
+            "type": "route",
+            "class": "Capell\\Search\\Manifest\\SearchFrontendRouteContribution",
+            "routes": ["capell-frontend.search"]
+        },
+        {
+            "type": "model",
+            "class": "Capell\\Search\\Manifest\\SearchLogModelContribution",
+            "modelClass": "Capell\\Search\\Models\\SearchLog"
+        },
+        {
+            "type": "dashboard-widget",
+            "class": "Capell\\Search\\Manifest\\TopSearchesWidgetContribution",
+            "widgetClass": "Capell\\Search\\Filament\\Widgets\\TopSearchesWidget"
+        },
+        {
+            "type": "dashboard-widget",
+            "class": "Capell\\Search\\Manifest\\TrendingSearchesWidgetContribution",
+            "widgetClass": "Capell\\Search\\Filament\\Widgets\\TrendingSearchesWidget"
+        },
+        {
+            "type": "dashboard-widget",
+            "class": "Capell\\Search\\Manifest\\ZeroResultSearchesWidgetContribution",
+            "widgetClass": "Capell\\Search\\Filament\\Widgets\\ZeroResultSearchesWidget"
+        },
+        {
+            "type": "overview-stat",
+            "class": "Capell\\Search\\Manifest\\SearchOverviewStatsContribution",
+            "keys": [
+                "search_overview",
+                "search_overview.unique_queries",
+                "search_overview.zero_result_rate"
+            ]
+        },
+        {
+            "type": "scheduled-job",
+            "class": "Capell\\Search\\Manifest\\SearchLogPurgeScheduleContribution",
+            "command": "search:purge",
+            "frequency": "monthly"
+        }
+    ],
     "database": {
         "migrations": true,
         "settings": true,
@@ -40,9 +81,23 @@
         "install": null,
         "setup": null,
         "demo": null,
-        "doctor": null
+        "doctor": null,
+        "purge": "search:purge"
     },
-    "settings": [],
+    "actions": {
+        "applySearchResultEnhancements": "Capell\\Search\\Actions\\ApplySearchResultEnhancementsAction",
+        "buildTopSearchesQuery": "Capell\\Search\\Actions\\BuildTopSearchesQueryAction",
+        "buildTrendingSearchesQuery": "Capell\\Search\\Actions\\BuildTrendingSearchesQueryAction",
+        "buildZeroResultSearchesQuery": "Capell\\Search\\Actions\\BuildZeroResultSearchesQueryAction",
+        "normalizeSearchQuery": "Capell\\Search\\Actions\\NormalizeSearchQueryAction",
+        "purgeSearchLogs": "Capell\\Search\\Actions\\PurgeSearchLogsAction",
+        "recordSearch": "Capell\\Search\\Actions\\RecordSearchAction",
+        "recordSearchResultClick": "Capell\\Search\\Actions\\RecordSearchResultClickAction",
+        "resolveExpandedSearchQueries": "Capell\\Search\\Actions\\ResolveExpandedSearchQueriesAction",
+        "resolvePromotedSearchResults": "Capell\\Search\\Actions\\ResolvePromotedSearchResultsAction",
+        "runSearch": "Capell\\Search\\Actions\\RunSearchAction"
+    },
+    "settings": ["Capell\\Search\\Settings\\SearchSettings"],
     "permissions": [],
     "capabilities": [
         "search",
@@ -105,7 +160,7 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search insights.",
+        "summary": "Search adds a frontend search route, configurable search drivers, synonym expansion, typo correction, promoted results, source weighting, result click tracking, zero-result reporting, query logging, Site Discovery indexing, and admin search insights.",
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",
@@ -116,12 +171,6 @@
         "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {
-        "deferredContributions": [
-            "dashboard-widget",
-            "model",
-            "overview-stat",
-            "route",
-            "scheduled-job"
-        ]
+        "deferredContributions": []
     }
 }

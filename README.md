@@ -1,6 +1,6 @@
 # Search
 
-Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search insights.
+Search adds a frontend search route, configurable search drivers, synonym expansion, typo correction, promoted results, source weighting, result click tracking, zero-result reporting, query logging, Site Discovery indexing, and admin search insights.
 
 ## At A Glance
 
@@ -25,7 +25,7 @@ Search adds a frontend search route, configurable search drivers, result click t
 
 ## What It Adds
 
-Search adds a frontend search route, configurable search drivers, result click tracking, query logging, and admin search insights.
+Search adds a frontend search route, configurable search drivers, synonym expansion, typo correction, promoted results, source weighting, result click tracking, zero-result reporting, query logging, Site Discovery indexing, and admin search insights.
 
 - Frontend search controller route.
 - Database, Site Discovery URL registry, and Scout search drivers.

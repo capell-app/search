@@ -27,8 +27,8 @@ final class PromotedSearchResultData extends Data
             url: '/' . ltrim($this->url, '/'),
             excerpt: $this->excerpt,
             type: $this->type,
-            typeLabel: null,
             score: $this->score,
+            typeLabel: null,
             promoted: true,
         );
     }

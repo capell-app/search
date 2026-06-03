@@ -70,7 +70,7 @@ final readonly class SiteDiscoverySearch implements Search
 
     private function matchesFilters(PublicUrlRegistryEntryData $entry, ?SearchFilterData $filters): bool
     {
-        return $filters === null
+        return ! $filters instanceof SearchFilterData
             || $filters->types === []
             || in_array($entry->contentType->value, $filters->types, true);
     }
@@ -117,7 +117,6 @@ final readonly class SiteDiscoverySearch implements Search
             url: $entry->canonicalUrl,
             excerpt: Str::limit($this->excerpt($entry), $this->excerptLength),
             type: $entry->contentType->value,
-            typeLabel: null,
             score: $this->score($searchText, $normalizedQuery),
         );
     }

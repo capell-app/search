@@ -7,6 +7,7 @@ namespace Capell\Search\Actions;
 use Capell\Search\Data\PromotedSearchResultData;
 use Capell\Search\Data\SearchResultData;
 use Capell\Search\Models\SearchLog;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
@@ -98,8 +99,8 @@ final class ApplySearchResultEnhancementsAction
             url: $result->url,
             excerpt: $result->excerpt,
             type: $result->type,
-            typeLabel: $label,
             score: $result->score,
+            typeLabel: $label,
             sourceKey: $result->sourceKey,
             updatedAt: $result->updatedAt,
             meta: $result->meta,
@@ -121,10 +122,12 @@ final class ApplySearchResultEnhancementsAction
         $labels = [];
 
         foreach ($configuredLabels as $type => $label) {
-            if (! is_string($type) || ! is_string($label)) {
+            if (! is_string($type)) {
                 continue;
             }
-
+            if (! is_string($label)) {
+                continue;
+            }
             $normalizedType = trim($type);
             $normalizedLabel = trim($label);
 
@@ -165,7 +168,7 @@ final class ApplySearchResultEnhancementsAction
 
     private function applyRecencyBoost(SearchResultData $result): SearchResultData
     {
-        if ($result->updatedAt === null) {
+        if (! $result->updatedAt instanceof CarbonInterface) {
             return $result;
         }
 
@@ -202,8 +205,8 @@ final class ApplySearchResultEnhancementsAction
             url: $result->url,
             excerpt: $result->excerpt,
             type: $result->type,
-            typeLabel: $result->typeLabel,
             score: $score,
+            typeLabel: $result->typeLabel,
             sourceKey: $result->sourceKey,
             updatedAt: $result->updatedAt,
             meta: $result->meta,

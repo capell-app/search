@@ -118,8 +118,8 @@ class DatabaseSearch implements Search
                 url: '/' . ltrim((string) ($row->{$this->urlColumn} ?? ''), '/'),
                 excerpt: $this->truncate($excerptRaw, 200),
                 type: (string) ($row->{$this->typeColumn} ?? 'page'),
-                typeLabel: null,
                 score: $score,
+                typeLabel: null,
                 updatedAt: isset($row->updated_at) ? CarbonImmutable::parse($row->updated_at) : null,
             );
         });
@@ -184,7 +184,7 @@ class DatabaseSearch implements Search
      */
     private function applySearchFilters(Builder $builder, array $availableColumns, ?SearchFilterData $filters): void
     {
-        if ($filters === null || $filters->types === [] || ! in_array($this->typeColumn, $availableColumns, true)) {
+        if (! $filters instanceof SearchFilterData || $filters->types === [] || ! in_array($this->typeColumn, $availableColumns, true)) {
             return;
         }
 

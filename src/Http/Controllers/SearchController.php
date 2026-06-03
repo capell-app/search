@@ -56,7 +56,7 @@ final class SearchController
             ]);
         }
 
-        $content = view('capell-search::pages.search', compact('query', 'results'));
+        $content = view('capell-search::pages.search', ['query' => $query, 'results' => $results]);
 
         if (! $this->canRenderFrontendShell()) {
             return $content;

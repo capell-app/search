@@ -17,9 +17,6 @@ final class RecordSearchResultClickAction
         SearchLog|Request $request,
         string $query,
         ?string $url = null,
-        ?string $type = null,
-        ?int $position = null,
-        ?string $surface = null,
     ): ?SearchLog {
         if ($request instanceof SearchLog) {
             return $this->recordClick($request, $query);

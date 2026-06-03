@@ -133,7 +133,7 @@ class ScoutSearch implements Search
             call_user_func([$builder, 'where'], 'language_id', $languageId);
         }
 
-        if ($filters !== null && $filters->types !== [] && is_callable([$builder, 'whereIn'])) {
+        if ($filters instanceof SearchFilterData && $filters->types !== [] && is_callable([$builder, 'whereIn'])) {
             call_user_func([$builder, 'whereIn'], $this->typeColumn, $filters->types);
         }
 
@@ -156,8 +156,8 @@ class ScoutSearch implements Search
             url: $this->normalizeUrl($url),
             excerpt: $this->truncate($excerptRaw),
             type: (string) ($row['type'] ?? $row[$this->typeColumn] ?? $source->type),
-            typeLabel: null,
             score: $this->score($title . ' ' . $excerptRaw, $query) * $source->weight,
+            typeLabel: null,
             sourceKey: $source->key,
             updatedAt: $this->updatedAt($row),
             meta: is_array($row['meta'] ?? null) ? $row['meta'] : [],
@@ -166,7 +166,7 @@ class ScoutSearch implements Search
 
     private function sourceMatchesFilters(SearchableSourceData $source, ?SearchFilterData $filters): bool
     {
-        if ($filters === null || $filters->isEmpty()) {
+        if (! $filters instanceof SearchFilterData || $filters->isEmpty()) {
             return true;
         }
 

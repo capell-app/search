@@ -13,7 +13,9 @@
         "spatie/laravel-package-tools": "^1.14.1"
     },
     "suggest": {
-        "capell-app/site-discovery": "Enables public URL registry generated-output coverage reporting for search-indexable URLs."
+        "capell-app/site-discovery": "Enables public URL registry generated-output coverage reporting for search-indexable URLs.",
+        "laravel/scout": "Enables Scout-backed public search across registered searchable sources.",
+        "typesense/typesense-php": "Provides the Typesense client when host applications configure Scout to use Typesense."
     },
     "require-dev": {
         "orchestra/testbench": "^9.0",

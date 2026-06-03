@@ -8,6 +8,7 @@ use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Settings\SettingsGroupMetadata;
 use Capell\Core\Support\Settings\SettingsSchemaRegistry;
+use Capell\Search\Actions\RegisterConfiguredSearchableSourcesAction;
 use Capell\Search\Actions\ResolveSearchSettingAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Drivers\DatabaseSearch;
@@ -18,11 +19,15 @@ use Capell\Search\Filament\Settings\SearchSettingsSchema;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Settings\SearchSettings;
 use Capell\Search\Support\RenderHooks\RegisterHeaderSearchHook;
+use Capell\Search\Support\SearchableSourceRegistry;
 use Capell\Search\Support\SiteDiscovery\SearchGeneratedOutputCoverageSource;
 use Capell\SiteDiscovery\Contracts\GeneratedOutputCoverageSource;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\ConnectionResolverInterface;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Override;
 use Spatie\LaravelPackageTools\Package;
 
@@ -62,6 +67,14 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
 
     public function packageRegistered(): void
     {
+        $this->app->singleton(SearchableSourceRegistry::class, function (): SearchableSourceRegistry {
+            $registry = new SearchableSourceRegistry;
+
+            RegisterConfiguredSearchableSourcesAction::run($registry);
+
+            return $registry;
+        });
+
         $this->registerSearchBinding();
 
         $this->app->booted(function (): void {
@@ -79,6 +92,8 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
 
     public function packageBooted(): void
     {
+        $this->registerAutocompleteRateLimiter();
+
         if (! $this->isPackageInstalled()) {
             return;
         }
@@ -96,6 +111,15 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         return CapellCore::isPackageInstalled(self::$packageName);
     }
 
+    private function registerAutocompleteRateLimiter(): void
+    {
+        $name = config('capell-search.autocomplete.rate_limiter', 'capell-search-autocomplete');
+
+        RateLimiter::for($name, static fn (Request $request): Limit => Limit::perMinute(
+            max(1, (int) config('capell-search.autocomplete.rate_limit.per_minute', 120)),
+        )->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
+    }
+
     private function registerSearchBinding(): self
     {
         if (! interface_exists(Search::class)) {
@@ -111,9 +135,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
 
             if ($driver === 'scout' && class_exists(ScoutSearch::class)) {
                 return new ScoutSearch(
-                    modelClass: config('capell-search.scout.model'),
-                    urlColumn: config('capell-search.scout.url_column', 'slug'),
-                    typeColumn: config('capell-search.scout.type_column', 'type'),
+                    registry: $app->make(SearchableSourceRegistry::class),
                     excerptLength: config('capell-search.excerpt_length', 200),
                 );
             }

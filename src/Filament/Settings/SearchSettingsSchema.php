@@ -6,7 +6,9 @@ namespace Capell\Search\Filament\Settings;
 
 use Capell\Admin\Filament\Contracts\HasSchema;
 use Capell\Admin\Filament\Support\HelperText;
+use Capell\Search\Data\SearchableSourceData;
 use Capell\Search\Enums\SearchDriver;
+use Capell\Search\Support\SearchableSourceRegistry;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -60,7 +62,62 @@ final class SearchSettingsSchema implements HasSchema
                         ->integer()
                         ->minValue(1)
                         ->maxValue(10),
+                    ...self::searchableSourceToggles(),
                 ]),
         ];
+    }
+
+    /**
+     * @return list<Toggle>
+     */
+    private static function searchableSourceToggles(): array
+    {
+        return array_values(collect(self::searchableSourceLabels())
+            ->map(
+                static fn (string $label, string $key): Toggle => HelperText::apply(
+                    Toggle::make(sprintf('sources.%s.enabled', $key))
+                        ->label($label),
+                    'capell-search::settings.searchable_source_helper',
+                ),
+            )
+            ->all());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function searchableSourceLabels(): array
+    {
+        $sources = [];
+
+        if (app()->bound(SearchableSourceRegistry::class)) {
+            /** @var SearchableSourceRegistry $registry */
+            $registry = resolve(SearchableSourceRegistry::class);
+
+            $sources = $registry
+                ->all()
+                ->mapWithKeys(static fn (SearchableSourceData $source): array => [$source->key => $source->label])
+                ->all();
+        }
+
+        $configuredSources = config('capell-search.searchables', []);
+
+        if (! is_array($configuredSources)) {
+            return $sources;
+        }
+
+        foreach ($configuredSources as $key => $source) {
+            if (! is_string($key)) {
+                continue;
+            }
+
+            if (! is_array($source)) {
+                continue;
+            }
+
+            $sources[$key] = (string) ($source['label'] ?? $key);
+        }
+
+        return $sources;
     }
 }

@@ -18,6 +18,7 @@ return [
     'record_search_logs' => 'Record search logs',
     'record_search_logs_helper' => 'Store search terms and result counts for admin insights.',
     'results_per_page' => 'Results per page',
+    'searchable_source_helper' => 'Include this source in public search results.',
     'show_header_search' => 'Show search in the header',
     'show_header_search_helper' => 'Render the header search control when the active theme exposes a compatible header slot.',
     'title' => 'Search settings',

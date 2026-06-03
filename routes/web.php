@@ -10,4 +10,11 @@ Route::name('capell-frontend.')
     ->group(function (): void {
         Route::get(config('capell-search.route_path', 'search'), SearchController::class)
             ->name('search');
+
+        Route::get(config('capell-search.autocomplete.route_path', 'search/autocomplete'), [SearchController::class, 'autocomplete'])
+            ->middleware('throttle:' . config('capell-search.autocomplete.rate_limiter', 'capell-search-autocomplete'))
+            ->name('search.autocomplete');
+
+        Route::post(config('capell-search.click_tracking.route_path', 'search/click'), [SearchController::class, 'click'])
+            ->name('search.click');
     });

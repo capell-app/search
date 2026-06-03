@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Capell\Search\Drivers;
 
 use Capell\Search\Contracts\Search;
+use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchResultData;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Connection;
 use Illuminate\Database\ConnectionInterface;
@@ -51,6 +53,7 @@ class DatabaseSearch implements Search
         int $page = 1,
         ?int $siteId = null,
         ?int $languageId = null,
+        ?SearchFilterData $filters = null,
     ): LengthAwarePaginator {
         $query = trim($query);
         $perPage = max(self::MINIMUM_PER_PAGE, min(self::MAXIMUM_PER_PAGE, $perPage));
@@ -90,6 +93,7 @@ class DatabaseSearch implements Search
         }
 
         $this->applyContextFilters($builder, $availableColumns, $siteId, $languageId);
+        $this->applySearchFilters($builder, $availableColumns, $filters);
 
         $total = (clone $builder)->count();
 
@@ -114,7 +118,9 @@ class DatabaseSearch implements Search
                 url: '/' . ltrim((string) ($row->{$this->urlColumn} ?? ''), '/'),
                 excerpt: $this->truncate($excerptRaw, 200),
                 type: (string) ($row->{$this->typeColumn} ?? 'page'),
+                typeLabel: null,
                 score: $score,
+                updatedAt: isset($row->updated_at) ? CarbonImmutable::parse($row->updated_at) : null,
             );
         });
 
@@ -171,6 +177,18 @@ class DatabaseSearch implements Search
         if ($this->publishedStatus !== null && in_array($this->statusColumn, $availableColumns, true)) {
             $builder->where($this->statusColumn, $this->publishedStatus);
         }
+    }
+
+    /**
+     * @param  list<string>  $availableColumns
+     */
+    private function applySearchFilters(Builder $builder, array $availableColumns, ?SearchFilterData $filters): void
+    {
+        if ($filters === null || $filters->types === [] || ! in_array($this->typeColumn, $availableColumns, true)) {
+            return;
+        }
+
+        $builder->whereIn($this->typeColumn, $filters->types);
     }
 
     /**

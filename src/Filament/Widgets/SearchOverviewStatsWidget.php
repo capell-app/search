@@ -6,6 +6,7 @@ namespace Capell\Search\Filament\Widgets;
 
 use Capell\Admin\Contracts\CapellWidgetContract;
 use Capell\Admin\Filament\Concerns\GatedByRoleAndSettings;
+use Capell\Search\Actions\BuildTopClickedResultsQueryAction;
 use Capell\Search\Actions\BuildTopSearchesQueryAction;
 use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
 use Capell\Search\Filament\Widgets\Concerns\BuildsSearchInsightsWindow;
@@ -38,15 +39,20 @@ final class SearchOverviewStatsWidget extends Widget implements CapellWidgetCont
         $window = $this->getInsightsWindow();
         $topSearches = BuildTopSearchesQueryAction::run($window, null);
         $zeroResultSearches = BuildZeroResultSearchesQueryAction::run($window, null);
+        $topClickedResults = BuildTopClickedResultsQueryAction::run($window, 3);
         $totalSearches = (int) $topSearches->sum('searches');
         $zeroResultTotal = (int) $zeroResultSearches->sum('searches');
         $zeroResultRate = $totalSearches === 0 ? 0.0 : round(($zeroResultTotal / $totalSearches) * 100, 1);
+        $clickedSearches = (int) $topClickedResults->sum('clicks');
+        $clickThroughRate = $totalSearches === 0 ? 0.0 : round(($clickedSearches / $totalSearches) * 100, 1);
 
         return [
             'totalSearches' => $totalSearches,
             'uniqueQueries' => $topSearches->count(),
             'totalResults' => (int) $topSearches->sum('resultsCount'),
             'zeroResultRate' => $zeroResultRate,
+            'clickThroughRate' => $clickThroughRate,
+            'topClickedResults' => $topClickedResults,
         ];
     }
 }

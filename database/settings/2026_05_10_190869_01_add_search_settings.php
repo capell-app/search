@@ -17,6 +17,7 @@ return new class extends SettingsMigration
             'search.log_retention_days' => 180,
             'search.hash_visitor_data' => true,
             'search.minimum_query_length' => 2,
+            'search.sources' => [],
         ];
 
         foreach ($defaults as $key => $value) {

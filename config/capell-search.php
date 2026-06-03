@@ -7,9 +7,53 @@ return [
     'show_header_search' => true,
     'driver' => env('CAPELL_SITE_SEARCH_DRIVER', 'database'), // database, site_discovery, or scout
     'route_path' => 'search',
+    'page_view' => null,
     'results_per_page' => 10,
     'excerpt_length' => 200,
     'minimum_query_length' => 2,
+    'autocomplete' => [
+        'enabled' => true,
+        'route_path' => 'search/autocomplete',
+        'limit' => 6,
+        'debounce_ms' => 150,
+        'rate_limiter' => 'capell-search-autocomplete',
+        'rate_limit' => [
+            'per_minute' => 120,
+        ],
+    ],
+    'filters' => [
+        'enabled' => true,
+    ],
+    'click_tracking' => [
+        'enabled' => true,
+        'route_path' => 'search/click',
+        'match_window_minutes' => 30,
+    ],
+    'keyboard_shortcuts' => [
+        'enabled' => true,
+    ],
+    'public_urls' => [
+        'allowed_schemes' => ['', 'http', 'https'],
+        'blocked_path_prefixes' => [
+            '/admin',
+            '/cp',
+            '/filament',
+        ],
+        'strip_query_keys' => [
+            'expires',
+            'signature',
+            'token',
+            'preview',
+        ],
+    ],
+    'ranking' => [
+        'exact_match_boost' => 25.0,
+        'recency_days' => 90,
+        'click_boost_weight' => 0.25,
+    ],
+    'type_labels' => [
+        'page' => 'Page',
+    ],
     'record_search_logs' => true,
     'hash_visitor_data' => true,
     'synonyms' => [
@@ -35,6 +79,16 @@ return [
     'source_weights' => [
         // 'page' => 1.0,
     ],
+    'searchables' => [
+        // 'pages' => [
+        //     'label' => 'Pages',
+        //     'model' => App\Models\Page::class,
+        //     'type' => 'page',
+        //     'enabled' => true,
+        //     'weight' => 1.0,
+        //     'index' => null,
+        // ],
+    ],
     'database' => [
         'table' => 'pages',
         'columns' => ['title', 'excerpt', 'body'],
@@ -52,6 +106,7 @@ return [
         'model' => null,
         'url_column' => 'slug',
         'type_column' => 'type',
+        'chunk' => 500,
     ],
     'logs' => [
         'table_name' => 'search_logs',

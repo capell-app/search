@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Search\Contracts;
 
+use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchResultData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -22,6 +23,7 @@ interface Search
         int $page = 1,
         ?int $siteId = null,
         ?int $languageId = null,
+        ?SearchFilterData $filters = null,
     ): LengthAwarePaginator;
 
     public function highlight(string $text, string $query): string;

@@ -3,18 +3,156 @@
 declare(strict_types=1);
 
 use Capell\Search\Contracts\Search;
+use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchResultData;
 use Capell\Search\Http\Controllers\SearchController;
+use Capell\Search\Models\SearchLog;
 use Capell\Search\Providers\SearchServiceProvider;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Route;
 
 beforeEach(function (): void {
     app()->register(SearchServiceProvider::class);
     config()->set('capell-search.results_per_page', 5);
     config()->set('capell-search.minimum_query_length', 2);
+});
+
+test('autocomplete returns no results for blank or too-short queries', function (string $query): void {
+    app()->instance(Search::class, new class implements Search
+    {
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+            ?SearchFilterData $filters = null,
+        ): LengthAwarePaginator {
+            throw new RuntimeException('Search should not run for blank or too-short autocomplete queries.');
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return $text;
+        }
+    });
+
+    $request = Request::create('/search/autocomplete', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => $query]);
+    $response = (new SearchController)->autocomplete($request);
+
+    expect($response->getData(true))->toMatchArray([
+        'query' => $query,
+        'minimumLength' => 2,
+        'results' => [],
+        'allResultsUrl' => route('capell-frontend.search', ['q' => $query]),
+    ]);
+})->with(['', 'c']);
+
+test('autocomplete returns limited public-safe results without writing search logs', function (): void {
+    config()->set('capell-search.autocomplete.limit', 1);
+    config()->set('capell-search.type_labels', [
+        'marketing_content' => 'Marketing',
+    ]);
+
+    $recordedSearch = new stdClass;
+    $recordedSearch->perPage = null;
+    $recordedSearch->page = null;
+
+    app()->instance(Search::class, new readonly class($recordedSearch) implements Search
+    {
+        public function __construct(private stdClass $recordedSearch) {}
+
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+            ?SearchFilterData $filters = null,
+        ): LengthAwarePaginator {
+            $this->recordedSearch->perPage = $perPage;
+            $this->recordedSearch->page = $page;
+
+            return new Paginator(new Collection([
+                new SearchResultData(
+                    title: 'Capell CMS',
+                    url: '/capell-cms',
+                    excerpt: 'Capell CMS result',
+                    type: 'marketing_content',
+                    score: 4.0,
+                ),
+                new SearchResultData(
+                    title: 'Hidden extra',
+                    url: '/hidden-extra',
+                    excerpt: 'Should be limited away',
+                    type: 'marketing_content',
+                    score: 1.0,
+                ),
+            ]), 2, $perPage, $page);
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return $text;
+        }
+    });
+
+    $request = Request::create('/search/autocomplete', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Capell']);
+    $response = (new SearchController)->autocomplete($request);
+    $payload = $response->getData(true);
+
+    expect($recordedSearch->perPage)->toBe(1)
+        ->and($recordedSearch->page)->toBe(1)
+        ->and($payload)->toHaveKeys(['query', 'minimumLength', 'results', 'allResultsUrl'])
+        ->and($payload['results'])->toHaveCount(1)
+        ->and($payload['results'][0])->toBe([
+            'title' => 'Capell CMS',
+            'url' => '/capell-cms',
+            'excerpt' => 'Capell CMS result',
+            'type' => 'marketing_content',
+            'typeLabel' => 'Marketing',
+            'score' => 4,
+        ])
+        ->and($payload['results'][0])->not->toHaveKeys(['id', 'model', 'modelClass', 'adminUrl', 'signedUrl'])
+        ->and(SearchLog::query()->count())->toBe(0);
+});
+
+test('autocomplete route is lightly throttled', function (): void {
+    $route = Route::getRoutes()->getByName('capell-frontend.search.autocomplete');
+
+    expect($route?->gatherMiddleware())->toContain('throttle:capell-search-autocomplete');
+});
+
+test('controller uses configured page view when it exists', function (): void {
+    config()->set('capell-search.page_view', 'capell-search::components.form');
+
+    app()->instance(Search::class, new class implements Search
+    {
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+            ?SearchFilterData $filters = null,
+        ): LengthAwarePaginator {
+            return new Paginator(new Collection, 0, $perPage, $page);
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return $text;
+        }
+    });
+
+    $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Capell']);
+    $view = (new SearchController)($request);
+
+    expect($view->name())->toBe('capell-search::components.form')
+        ->and($view->getData()['query'])->toBe('Capell');
 });
 
 test('controller returns the search page view with an empty paginator for a blank query', function (): void {
@@ -26,6 +164,7 @@ test('controller returns the search page view with an empty paginator for a blan
             int $page = 1,
             ?int $siteId = null,
             ?int $languageId = null,
+            ?SearchFilterData $filters = null,
         ): LengthAwarePaginator {
             throw new RuntimeException('Search should not run for a blank query.');
         }
@@ -59,6 +198,7 @@ test('controller passes normalized valid searches to the site search service', f
             int $page = 1,
             ?int $siteId = null,
             ?int $languageId = null,
+            ?SearchFilterData $filters = null,
         ): LengthAwarePaginator {
             $this->recordedSearch->queries[] = $query;
 
@@ -97,6 +237,7 @@ test('public search markup does not expose package identifiers', function (): vo
             int $page = 1,
             ?int $siteId = null,
             ?int $languageId = null,
+            ?SearchFilterData $filters = null,
         ): LengthAwarePaginator {
             return new Paginator(new Collection([
                 new SearchResultData(

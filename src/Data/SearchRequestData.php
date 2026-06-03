@@ -14,5 +14,6 @@ final class SearchRequestData extends Data
         public int $perPage = 10,
         public ?int $siteId = null,
         public ?int $languageId = null,
+        public ?SearchFilterData $filters = null,
     ) {}
 }

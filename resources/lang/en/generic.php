@@ -11,4 +11,6 @@ return [
     'results_label' => 'Search results',
     'search_label' => 'Search this site',
     'search_placeholder' => 'Search pages, services, and resources',
+    'suggestions_available' => ':count suggestions available.',
+    'view_all_results' => 'View all results',
 ];

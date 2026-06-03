@@ -13,5 +13,10 @@ test('search result data is serialisable to array', function (): void {
         'excerpt' => 'World',
         'type' => 'post',
         'score' => 0.5,
+        'typeLabel' => null,
+        'sourceKey' => null,
+        'updatedAt' => null,
+        'meta' => [],
+        'promoted' => false,
     ]);
 });

@@ -11,6 +11,8 @@ use Capell\Search\Enums\SearchDriver;
 use Capell\Search\Filament\Settings\SearchSettingsSchema;
 use Capell\Search\Providers\SearchServiceProvider;
 use Capell\Search\Settings\SearchSettings;
+use Capell\Search\Support\SearchableSourceRegistry;
+use Illuminate\Database\Eloquent\Model;
 
 test('provider binds the configured database search driver', function (): void {
     app()->register(SearchServiceProvider::class);
@@ -70,4 +72,24 @@ test('provider registers search settings as an extension management surface', fu
         ->surfacesForPackage(SearchServiceProvider::$packageName);
 
     expect($settingsSurfaces[0]->settingsGroup ?? null)->toBe('search');
+});
+
+test('provider registers configured searchable sources', function (): void {
+    config()->set('capell-search.searchables', [
+        'extensions' => [
+            'label' => 'Extensions',
+            'model' => Model::class,
+            'type' => 'extension',
+            'enabled' => true,
+            'weight' => 2.0,
+        ],
+    ]);
+
+    app()->register(SearchServiceProvider::class);
+
+    /** @var SearchableSourceRegistry $registry */
+    $registry = resolve(SearchableSourceRegistry::class);
+
+    expect($registry->get('extensions')?->type)->toBe('extension')
+        ->and($registry->get('extensions')?->weight)->toBe(2.0);
 });

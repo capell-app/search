@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\Search\Actions;
 
 use Capell\Search\Contracts\Search;
+use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -45,6 +46,7 @@ final readonly class RunSearchAction
             page: $data->page,
             siteId: $data->siteId,
             languageId: $data->languageId,
+            filters: $data->filters,
         );
 
         return ApplySearchResultEnhancementsAction::run($results, $normalizedQuery);
@@ -60,6 +62,7 @@ final readonly class RunSearchAction
         int $page,
         ?int $siteId,
         ?int $languageId,
+        ?SearchFilterData $filters,
     ): LengthAwarePaginator {
         $primaryQuery = $queries[0] ?? '';
 
@@ -70,6 +73,7 @@ final readonly class RunSearchAction
                 page: $page,
                 siteId: $siteId,
                 languageId: $languageId,
+                filters: $filters,
             );
         }
 
@@ -84,6 +88,7 @@ final readonly class RunSearchAction
                 page: 1,
                 siteId: $siteId,
                 languageId: $languageId,
+                filters: $filters,
             );
 
             $total += $results->total();

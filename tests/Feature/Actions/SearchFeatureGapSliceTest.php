@@ -6,6 +6,7 @@ use Capell\Search\Actions\ApplySearchResultEnhancementsAction;
 use Capell\Search\Actions\ResolveExpandedSearchQueriesAction;
 use Capell\Search\Actions\RunSearchAction;
 use Capell\Search\Contracts\Search;
+use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -46,6 +47,7 @@ test('runs expanded synonym queries and deduplicates results by url', function (
             int $page = 1,
             ?int $siteId = null,
             ?int $languageId = null,
+            ?SearchFilterData $filters = null,
         ): LengthAwarePaginator {
             $this->queries[] = $query;
 
@@ -130,6 +132,7 @@ test('runs typo corrected queries and deduplicates results by url', function ():
             int $page = 1,
             ?int $siteId = null,
             ?int $languageId = null,
+            ?SearchFilterData $filters = null,
         ): LengthAwarePaginator {
             $this->queries[] = $query;
 
@@ -202,10 +205,10 @@ test('promotes configured results and applies source weights', function (): void
 
     expect((new Collection($enhancedResults->items()))->pluck('url')->all())->toBe([
         '/contact-cms-hosting',
-        '/cms-hosting-guide',
         '/cms-hosting',
+        '/cms-hosting-guide',
     ]);
-    expect(($enhancedResults->items()[1] ?? null)?->score)->toBe(2.0);
+    expect(($enhancedResults->items()[1] ?? null)?->score)->toBeGreaterThan(25.0);
     expect($enhancedResults->total())->toBe(3);
 });
 

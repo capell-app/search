@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Search\Actions\BuildTopClickedResultsQueryAction;
 use Capell\Search\Actions\BuildTopSearchesQueryAction;
 use Capell\Search\Actions\BuildTrendingSearchesQueryAction;
 use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
@@ -92,6 +93,43 @@ test('zero result searches only includes searches with no results', function ():
     expect($summaries)->toHaveCount(1);
     expect($summaries[0]->normalizedQuery)->toBe('missing page');
     expect($summaries[0]->resultsCount)->toBe(0);
+});
+
+test('top clicked results aggregate existing clicked result urls', function (): void {
+    $window = siteSearchInsightsWindow();
+
+    SearchLog::factory()->count(2)->create([
+        'site_id' => 10,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => '/platform',
+        'searched_at' => $window->start->addDay(),
+    ]);
+    SearchLog::factory()->create([
+        'site_id' => 10,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => '/marketplace',
+        'searched_at' => $window->start->addDay(),
+    ]);
+    SearchLog::factory()->create([
+        'site_id' => 20,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => '/other-site',
+        'searched_at' => $window->start->addDay(),
+    ]);
+
+    $summaries = BuildTopClickedResultsQueryAction::run(new SearchInsightsWindowData(
+        start: $window->start,
+        end: $window->end,
+        siteId: 10,
+    ));
+
+    expect($summaries->all())->toBe([
+        ['url' => '/platform', 'clicks' => 2],
+        ['url' => '/marketplace', 'clicks' => 1],
+    ]);
 });
 
 test('trending searches compares against the previous equivalent window', function (): void {

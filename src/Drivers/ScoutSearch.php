@@ -5,36 +5,56 @@ declare(strict_types=1);
 namespace Capell\Search\Drivers;
 
 use Capell\Search\Contracts\Search;
+use Capell\Search\Data\SearchableSourceData;
+use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchResultData;
+use Capell\Search\Support\SearchableSourceRegistry;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
+use Closure;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
+use Throwable;
 
 /**
  * Search driver backed by Laravel Scout.
  *
- * Bind this in your ServiceProvider when Meilisearch/Algolia/Typesense is
- * configured:
- *
- *   $this->app->bind(Search::class, fn (): Search =>
- *       new ScoutSearch(\App\Models\Page::class, urlColumn: 'slug')
- *   );
- *
- * The model class must use the Searchable trait. The driver maps model
- * instances to SearchResultData objects using toArray().
+ * The registered model classes must use Laravel Scout's Searchable trait.
  */
 class ScoutSearch implements Search
 {
+    private const int MINIMUM_PER_PAGE = 1;
+
+    private const int MAXIMUM_PER_PAGE = 100;
+
+    private readonly SearchableSourceRegistry $registry;
+
     /**
-     * @param  class-string  $modelClass  Eloquent model that uses the Searchable trait
+     * @param  SearchableSourceRegistry|class-string  $registry  Registry or legacy Scout model class.
      */
     public function __construct(
-        private readonly string $modelClass,
+        SearchableSourceRegistry|string $registry,
         private readonly string $urlColumn = 'slug',
         private readonly string $typeColumn = 'type',
         private readonly int $excerptLength = 200,
-    ) {}
+    ) {
+        if ($registry instanceof SearchableSourceRegistry) {
+            $this->registry = $registry;
+
+            return;
+        }
+
+        $this->registry = new SearchableSourceRegistry;
+        $this->registry->register(new SearchableSourceData(
+            key: 'default',
+            label: 'Default',
+            modelClass: $registry,
+            type: 'page',
+            enabledByDefault: true,
+        ));
+    }
 
     public function search(
         string $query,
@@ -42,42 +62,37 @@ class ScoutSearch implements Search
         int $page = 1,
         ?int $siteId = null,
         ?int $languageId = null,
+        ?SearchFilterData $filters = null,
     ): LengthAwarePaginator {
         $query = trim($query);
+        $perPage = max(self::MINIMUM_PER_PAGE, min(self::MAXIMUM_PER_PAGE, $perPage));
+        $page = max(1, $page);
+
         if ($query === '') {
             return new Paginator([], 0, $perPage, $page);
         }
 
-        $builder = ($this->modelClass)::search($query);
+        $results = $this->registry
+            ->enabled()
+            ->filter(fn (SearchableSourceData $source): bool => $this->sourceMatchesFilters($source, $filters))
+            ->flatMap(fn (SearchableSourceData $source): Collection => $this->searchSource(
+                source: $source,
+                query: $query,
+                perPage: $perPage * $page,
+                siteId: $siteId,
+                languageId: $languageId,
+                filters: $filters,
+            ))
+            ->filter(static fn (SearchResultData $result): bool => $result->title !== '' && $result->url !== '/')
+            ->unique(static fn (SearchResultData $result): string => $result->url)
+            ->sortByDesc(static fn (SearchResultData $result): float => $result->score)
+            ->values();
 
-        if ($siteId !== null && is_callable([$builder, 'where'])) {
-            call_user_func([$builder, 'where'], 'site_id', $siteId);
-        }
+        $items = $results
+            ->forPage($page, $perPage)
+            ->values();
 
-        if ($languageId !== null && is_callable([$builder, 'where'])) {
-            call_user_func([$builder, 'where'], 'language_id', $languageId);
-        }
-
-        /** @var LengthAwarePaginator<int, object> $paginator */
-        $paginator = $builder->paginate(perPage: $perPage, page: $page);
-
-        $results = (new Collection($paginator->items()))->map(function (object $model) use ($query): SearchResultData {
-            $row = $model instanceof Arrayable ? $model->toArray() : [];
-            $title = (string) ($row['title'] ?? '');
-            $excerptRaw = (string) ($row['excerpt'] ?? $row['body'] ?? '');
-
-            return new SearchResultData(
-                title: $title,
-                url: '/' . ltrim((string) ($row[$this->urlColumn] ?? ''), '/'),
-                excerpt: mb_strlen($excerptRaw) > $this->excerptLength
-                    ? rtrim(mb_substr($excerptRaw, 0, $this->excerptLength)) . '...'
-                    : $excerptRaw,
-                type: (string) ($row[$this->typeColumn] ?? 'page'),
-                score: (float) substr_count(mb_strtolower($title . ' ' . $excerptRaw), mb_strtolower($query)),
-            );
-        });
-
-        return new Paginator($results, $paginator->total(), $perPage, $page);
+        return new Paginator($items, $results->count(), $perPage, $page);
     }
 
     public function highlight(string $text, string $query): string
@@ -91,5 +106,165 @@ class ScoutSearch implements Search
         $pattern = '/(' . preg_quote($query, '/') . ')/i';
 
         return (string) preg_replace($pattern, '<mark>$1</mark>', $escaped);
+    }
+
+    /**
+     * @return Collection<int, SearchResultData>
+     */
+    private function searchSource(
+        SearchableSourceData $source,
+        string $query,
+        int $perPage,
+        ?int $siteId,
+        ?int $languageId,
+        ?SearchFilterData $filters,
+    ): Collection {
+        $builder = ($source->modelClass)::search($query);
+
+        if ($source->indexName !== null && is_callable([$builder, 'within'])) {
+            call_user_func([$builder, 'within'], $source->indexName);
+        }
+
+        if ($siteId !== null && is_callable([$builder, 'where'])) {
+            call_user_func([$builder, 'where'], 'site_id', $siteId);
+        }
+
+        if ($languageId !== null && is_callable([$builder, 'where'])) {
+            call_user_func([$builder, 'where'], 'language_id', $languageId);
+        }
+
+        if ($filters !== null && $filters->types !== [] && is_callable([$builder, 'whereIn'])) {
+            call_user_func([$builder, 'whereIn'], $this->typeColumn, $filters->types);
+        }
+
+        /** @var LengthAwarePaginator<int, object> $paginator */
+        $paginator = $builder->paginate(perPage: $perPage, page: 1);
+
+        return (new Collection($paginator->items()))
+            ->map(fn (object $model): SearchResultData => $this->mapModelToResult($model, $source, $query));
+    }
+
+    private function mapModelToResult(object $model, SearchableSourceData $source, string $query): SearchResultData
+    {
+        $row = $this->publicSearchPayload($model);
+        $title = (string) ($row['title'] ?? '');
+        $excerptRaw = (string) ($row['excerpt'] ?? $row['body'] ?? '');
+        $url = $this->resolveUrl($model, $row, $source);
+
+        return new SearchResultData(
+            title: $title,
+            url: $this->normalizeUrl($url),
+            excerpt: $this->truncate($excerptRaw),
+            type: (string) ($row['type'] ?? $row[$this->typeColumn] ?? $source->type),
+            typeLabel: null,
+            score: $this->score($title . ' ' . $excerptRaw, $query) * $source->weight,
+            sourceKey: $source->key,
+            updatedAt: $this->updatedAt($row),
+            meta: is_array($row['meta'] ?? null) ? $row['meta'] : [],
+        );
+    }
+
+    private function sourceMatchesFilters(SearchableSourceData $source, ?SearchFilterData $filters): bool
+    {
+        if ($filters === null || $filters->isEmpty()) {
+            return true;
+        }
+
+        if ($filters->sourceKeys !== [] && ! in_array($source->key, $filters->sourceKeys, true)) {
+            return false;
+        }
+
+        return $filters->types === [] || in_array($source->type, $filters->types, true);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function publicSearchPayload(object $model): array
+    {
+        if (method_exists($model, 'toSearchableArray')) {
+            $payload = $model->toSearchableArray();
+
+            if (is_array($payload)) {
+                return $payload;
+            }
+        }
+
+        if ($model instanceof Arrayable) {
+            $payload = $model->toArray();
+
+            return is_array($payload) ? $payload : [];
+        }
+
+        return [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     */
+    private function resolveUrl(object $model, array $row, SearchableSourceData $source): string
+    {
+        if (is_string($row['url'] ?? null) && $row['url'] !== '') {
+            return $row['url'];
+        }
+
+        if ($source->urlResolver instanceof Closure) {
+            $resolvedUrl = ($source->urlResolver)($model, $row);
+
+            if (is_string($resolvedUrl)) {
+                return $resolvedUrl;
+            }
+        }
+
+        return (string) ($row[$this->urlColumn] ?? '');
+    }
+
+    private function normalizeUrl(string $url): string
+    {
+        if ($url === '') {
+            return '/';
+        }
+
+        if (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) {
+            return $url;
+        }
+
+        return '/' . ltrim($url, '/');
+    }
+
+    private function truncate(string $text): string
+    {
+        if (mb_strlen($text) <= $this->excerptLength) {
+            return $text;
+        }
+
+        return rtrim(mb_substr($text, 0, $this->excerptLength)) . '...';
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     */
+    private function updatedAt(array $row): ?CarbonInterface
+    {
+        $value = $row['updated_at'] ?? $row['updatedAt'] ?? null;
+
+        if ($value instanceof CarbonInterface) {
+            return $value;
+        }
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        try {
+            return CarbonImmutable::parse($value);
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    private function score(string $haystack, string $needle): float
+    {
+        return (float) substr_count(mb_strtolower($haystack), mb_strtolower($needle));
     }
 }

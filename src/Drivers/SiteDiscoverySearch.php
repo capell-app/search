@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\Search\Drivers;
 
 use Capell\Search\Contracts\Search;
+use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchResultData;
 use Capell\SiteDiscovery\Actions\BuildPublicUrlRegistryAction;
 use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
@@ -33,6 +34,7 @@ final readonly class SiteDiscoverySearch implements Search
         int $page = 1,
         ?int $siteId = null,
         ?int $languageId = null,
+        ?SearchFilterData $filters = null,
     ): LengthAwarePaginator {
         $query = trim($query);
         $perPage = max(1, min($perPage, 100));
@@ -45,6 +47,7 @@ final readonly class SiteDiscoverySearch implements Search
         $normalizedQuery = Str::lower($query);
         $results = $this->registryEntries()
             ->filter(fn (PublicUrlRegistryEntryData $entry): bool => $this->canSearchEntry($entry, $siteId, $languageId))
+            ->filter(fn (PublicUrlRegistryEntryData $entry): bool => $this->matchesFilters($entry, $filters))
             ->map(fn (PublicUrlRegistryEntryData $entry): SearchResultData => $this->entryToResult($entry, $normalizedQuery))
             ->filter(fn (SearchResultData $result): bool => $this->matchesResult($result))
             ->sortByDesc(static fn (SearchResultData $result): float => $result->score)
@@ -63,6 +66,13 @@ final readonly class SiteDiscoverySearch implements Search
         }
 
         return preg_replace('/(' . preg_quote(e($query), '/') . ')/i', '<mark>$1</mark>', $escapedText) ?? $escapedText;
+    }
+
+    private function matchesFilters(PublicUrlRegistryEntryData $entry, ?SearchFilterData $filters): bool
+    {
+        return $filters === null
+            || $filters->types === []
+            || in_array($entry->contentType->value, $filters->types, true);
     }
 
     /**
@@ -107,6 +117,7 @@ final readonly class SiteDiscoverySearch implements Search
             url: $entry->canonicalUrl,
             excerpt: Str::limit($this->excerpt($entry), $this->excerptLength),
             type: $entry->contentType->value,
+            typeLabel: null,
             score: $this->score($searchText, $normalizedQuery),
         );
     }

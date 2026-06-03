@@ -7,6 +7,7 @@ use Capell\Search\Filament\Settings\SearchSettingsSchema;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Model;
 
 it('builds search settings with driver, logging, and privacy controls', function (): void {
     $schema = SearchSettingsSchema::make(Schema::make());
@@ -31,6 +32,21 @@ it('builds search settings with driver, logging, and privacy controls', function
             static fn (SearchDriver $driver): string => $driver->value,
             SearchDriver::cases(),
         ));
+});
+
+it('exposes configured searchable source toggles', function (): void {
+    config()->set('capell-search.searchables', [
+        'extensions' => [
+            'label' => 'Extensions',
+            'model' => Model::class,
+            'type' => 'extension',
+            'enabled' => true,
+        ],
+    ]);
+
+    $schema = SearchSettingsSchema::make(Schema::make());
+
+    expect(searchSettingsComponentNames($schema))->toContain('sources.extensions.enabled');
 });
 
 /**

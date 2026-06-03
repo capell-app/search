@@ -27,6 +27,9 @@ final class SearchSettings extends Settings implements SettingsContract
 
     public int $minimum_query_length = 2;
 
+    /** @phpstan-var array<string, array<string, bool>> */
+    public array $sources = [];
+
     public static function group(): string
     {
         return 'search';

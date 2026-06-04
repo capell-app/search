@@ -19,7 +19,7 @@ final class ApplySearchResultEnhancementsAction
 {
     use AsAction;
 
-    private const CLICK_COUNTS_CACHE_PREFIX = 'capell-search:click-counts';
+    private const string CLICK_COUNTS_CACHE_PREFIX = 'capell-search:click-counts';
 
     public static function forgetClickCountsCache(?int $siteId = null): void
     {

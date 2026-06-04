@@ -30,50 +30,52 @@
     ></button>
 
     <div
-        class="relative w-full max-w-2xl border border-gray-200 bg-white p-4 shadow-2xl dark:border-white/10 dark:bg-gray-950"
+        class="border-outline/70 bg-surface-lowest text-on-surface relative w-full max-w-2xl rounded-lg border p-5 shadow-2xl shadow-black/35"
     >
         <form
             method="GET"
             action="{{ route('capell-frontend.search') }}"
             role="search"
-            class="flex items-center gap-2"
+            class="grid gap-3"
             data-site-search-form
         >
             <label
-                class="sr-only"
+                class="text-on-surface text-sm font-semibold"
                 for="{{ $inputId }}"
             >
                 {{ __('capell-search::generic.search_label') }}
             </label>
-            <input
-                id="{{ $inputId }}"
-                type="search"
-                name="q"
-                placeholder="{{ __('capell-search::generic.search_placeholder') }}"
-                class="focus:border-primary focus:ring-primary h-12 min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-4 text-base text-gray-900 shadow-sm placeholder:text-gray-400 focus:ring-1 focus:outline-none dark:border-white/10 dark:bg-gray-900 dark:text-gray-100 dark:placeholder:text-gray-500"
-                data-site-search-input
-                role="combobox"
-                aria-autocomplete="list"
-                aria-controls="{{ $resultsId }}"
-                aria-expanded="false"
-                autocomplete="off"
-            />
-            <button
-                type="submit"
-                class="bg-primary focus:ring-primary inline-flex h-11 items-center justify-center rounded-md px-4 text-sm font-medium text-white transition hover:opacity-90 focus:ring-2 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-900"
-            >
-                {{ __('capell-search::button.search') }}
-            </button>
-            <button
-                type="button"
-                class="hover:text-primary focus:text-primary focus:ring-primary/40 inline-flex h-11 w-11 items-center justify-center rounded-md border border-gray-200 focus:ring-2 focus:outline-none dark:border-gray-700"
-                data-site-search-close
-            >
-                <span class="sr-only">
-                    {{ __('capell-frontend::generic.close') }}
-                </span>
-                @svg('heroicon-o-x-mark', 'h-5 w-5')
-            </button>
+            <div class="flex flex-col gap-3 sm:flex-row">
+                <input
+                    id="{{ $inputId }}"
+                    type="search"
+                    name="q"
+                    placeholder="{{ __('capell-search::generic.search_placeholder') }}"
+                    class="border-outline/70 bg-surface text-on-surface placeholder:text-outline-variant focus:border-primary focus:outline-primary h-12 min-w-0 flex-1 rounded-md border px-4 text-base transition focus:outline-2 focus:outline-offset-2"
+                    data-site-search-input
+                    role="combobox"
+                    aria-autocomplete="list"
+                    aria-controls="{{ $resultsId }}"
+                    aria-expanded="false"
+                    autocomplete="off"
+                />
+                <button
+                    type="submit"
+                    class="bg-primary text-primary-on hover:bg-primary-container focus-visible:outline-primary inline-flex h-12 shrink-0 items-center justify-center rounded-md px-5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2"
+                >
+                    {{ __('capell-search::button.search') }}
+                </button>
+                <button
+                    type="button"
+                    class="border-outline/70 text-on-surface-variant hover:border-primary hover:text-primary focus-visible:outline-primary inline-flex h-12 w-full shrink-0 items-center justify-center rounded-md border transition focus-visible:outline-2 focus-visible:outline-offset-2 sm:w-12"
+                    data-site-search-close
+                >
+                    <span class="sr-only">
+                        {{ __('capell-frontend::generic.close') }}
+                    </span>
+                    @svg('heroicon-o-x-mark', 'h-5 w-5')
+                </button>
+            </div>
         </form>
 
         <x-capell-search::header.autocomplete-results
@@ -264,6 +266,9 @@
                 const list = dialog.querySelector(selectors.list)
                 const status = dialog.querySelector(selectors.status)
                 const allResults = dialog.querySelector(selectors.allResults)
+                const resultsRegion = dialog.querySelector(
+                    '[data-site-search-results]',
+                )
                 const state = stateFor(dialog)
 
                 window.clearTimeout(state.debounceTimer)
@@ -272,6 +277,9 @@
                 list.replaceChildren()
                 list.hidden = true
                 allResults.hidden = true
+                if (resultsRegion) {
+                    resultsRegion.hidden = true
+                }
                 input.setAttribute('aria-expanded', 'false')
                 input.removeAttribute('aria-activedescendant')
                 status.textContent = ''
@@ -290,8 +298,7 @@
                     const isActive = itemIndex === index
 
                     item.toggleAttribute('data-active', isActive)
-                    item.classList.toggle('bg-gray-50', isActive)
-                    item.classList.toggle('dark:bg-white/5', isActive)
+                    item.classList.toggle('bg-surface-low', isActive)
                 })
 
                 if (items[index]) {
@@ -311,8 +318,7 @@
                 item.id = `${listId}-option-${index}`
                 item.setAttribute('role', 'option')
                 item.setAttribute('data-site-search-result', '')
-                item.className =
-                    'border-b border-gray-100 last:border-b-0 dark:border-white/10'
+                item.className = 'border-outline/50 border-b last:border-b-0'
 
                 link.href = result.url
                 link.setAttribute('data-site-search-click', '')
@@ -327,18 +333,17 @@
                 )
                 link.setAttribute('data-site-search-surface', 'autocomplete')
                 link.className =
-                    'grid gap-1 p-3 text-left transition hover:bg-gray-50 dark:hover:bg-white/5'
+                    'hover:bg-surface-low grid gap-1 p-3 text-left transition'
 
-                title.className =
-                    'text-sm font-medium text-gray-950 dark:text-white'
+                title.className = 'text-on-surface text-sm font-medium'
                 title.textContent = result.title
 
                 excerpt.className =
-                    'line-clamp-2 text-sm text-gray-600 dark:text-gray-300'
+                    'text-on-surface-variant line-clamp-2 text-sm'
                 excerpt.textContent = result.excerpt
 
                 type.className =
-                    'text-xs font-medium uppercase tracking-wide text-gray-400'
+                    'text-outline-variant text-xs font-medium uppercase tracking-wide'
                 type.textContent = result.typeLabel || result.type
 
                 link.append(title, excerpt, type)
@@ -372,6 +377,9 @@
                 )
                 list.hidden = results.length === 0
                 allResults.hidden = results.length === 0
+                if (resultsRegion) {
+                    resultsRegion.hidden = results.length === 0
+                }
                 allResults.href =
                     payload.allResultsUrl || input.form?.action || '/search'
                 input.setAttribute(

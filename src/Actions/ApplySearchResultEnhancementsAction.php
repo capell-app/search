@@ -125,9 +125,11 @@ final class ApplySearchResultEnhancementsAction
             if (! is_string($type)) {
                 continue;
             }
+
             if (! is_string($label)) {
                 continue;
             }
+
             $normalizedType = trim($type);
             $normalizedLabel = trim($label);
 

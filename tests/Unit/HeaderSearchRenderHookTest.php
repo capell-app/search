@@ -58,5 +58,9 @@ test('header search hook renders a real package view', function (): void {
         ->toContain('role="search"')
         ->toContain(route('capell-frontend.search'))
         ->toContain('type="search"')
+        ->toContain('Search')
+        ->toContain('placeholder="Search pages, services, and resources"')
+        ->toContain('data-site-search-results')
+        ->toContain('hidden')
         ->toContain(route('capell-frontend.search.autocomplete'));
 });

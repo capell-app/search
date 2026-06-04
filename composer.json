@@ -1,6 +1,6 @@
 {
     "name": "capell-app/search",
-    "description": "Site search for Capell with frontend search, optional logging, and admin insights",
+    "description": "Production-grade site search for Capell with relevance-tuned results, synonyms, typo tolerance, curated promotions, and admin search insights.",
     "type": "library",
     "license": "proprietary",
     "require": {

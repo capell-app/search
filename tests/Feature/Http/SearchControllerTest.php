@@ -150,9 +150,14 @@ test('controller uses configured page view when it exists', function (): void {
 
     $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Capell']);
     $view = (new SearchController)($request);
+    $html = $view->render();
 
     expect($view->name())->toBe('capell-search::components.form')
-        ->and($view->getData()['query'])->toBe('Capell');
+        ->and($view->getData()['query'])->toBe('Capell')
+        ->and($html)->toContain('Search this site')
+        ->and($html)->toContain('placeholder="Search pages, services, and resources"')
+        ->and($html)->toContain('placeholder:text-outline-variant')
+        ->and($html)->toContain('text-primary-on');
 });
 
 test('controller returns the search page view with an empty paginator for a blank query', function (): void {

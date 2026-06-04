@@ -6,26 +6,28 @@
     method="GET"
     action="{{ route('capell-frontend.search') }}"
     role="search"
-    class="site-search-form flex flex-col gap-2 sm:flex-row sm:items-center"
+    class="site-search-form grid gap-3"
 >
     <label
-        class="sr-only"
+        class="text-on-surface text-sm font-semibold"
         for="site-search-query"
     >
         {{ __('capell-search::generic.search_label') }}
     </label>
-    <input
-        id="site-search-query"
-        type="search"
-        name="q"
-        value="{{ $query }}"
-        placeholder="{{ __('capell-search::generic.search_placeholder') }}"
-        class="focus:border-primary focus:ring-primary h-11 min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:ring-1 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-    />
-    <button
-        type="submit"
-        class="bg-primary focus:ring-primary inline-flex h-11 items-center justify-center rounded-md px-4 text-sm font-medium text-white transition hover:opacity-90 focus:ring-2 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-900"
-    >
-        {{ __('capell-search::button.search') }}
-    </button>
+    <div class="flex flex-col gap-3 sm:flex-row">
+        <input
+            id="site-search-query"
+            type="search"
+            name="q"
+            value="{{ $query }}"
+            placeholder="{{ __('capell-search::generic.search_placeholder') }}"
+            class="border-outline/70 bg-surface text-on-surface placeholder:text-outline-variant focus:border-primary focus:outline-primary h-12 min-w-0 flex-1 rounded-md border px-4 text-base transition focus:outline-2 focus:outline-offset-2"
+        />
+        <button
+            type="submit"
+            class="bg-primary text-primary-on hover:bg-primary-container focus-visible:outline-primary inline-flex h-12 shrink-0 items-center justify-center rounded-md px-5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2"
+        >
+            {{ __('capell-search::button.search') }}
+        </button>
+    </div>
 </form>

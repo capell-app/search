@@ -16,15 +16,15 @@
     data-site-search-click-url="{{ route('capell-frontend.search.click') }}"
 >
     @if ($query === '')
-        <p class="text-gray-600">
+        <p class="text-on-surface-variant">
             {{ __('capell-search::generic.empty_query') }}
         </p>
     @elseif ($results->isEmpty())
-        <p class="text-gray-600">
+        <p class="text-on-surface-variant">
             {{ __('capell-search::generic.no_results', ['query' => $query]) }}
         </p>
     @else
-        <p class="mb-4 text-sm text-gray-500">
+        <p class="text-on-surface-variant mb-4 text-sm">
             {{
                 trans_choice('capell-search::generic.results_count', $results->total(), [
                     'count' => $results->total(),
@@ -38,12 +38,12 @@
         >
             @foreach ($results as $result)
                 <li
-                    class="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-950"
+                    class="border-outline/70 bg-surface-lowest rounded-lg border p-4 shadow-sm"
                 >
                     <h2 class="text-lg font-semibold">
                         <a
                             href="{{ $result->url }}"
-                            class="hover:underline"
+                            class="text-on-surface hover:text-primary hover:underline"
                             data-site-search-click
                             data-site-search-query="{{ $query }}"
                             data-site-search-type="{{ $result->type }}"
@@ -53,10 +53,10 @@
                             {!! $search->highlight($result->title, $query) !!}
                         </a>
                     </h2>
-                    <p class="mt-1 text-sm text-gray-600">
+                    <p class="text-on-surface-variant mt-1 text-sm">
                         {!! $search->highlight($result->excerpt, $query) !!}
                     </p>
-                    <p class="mt-2 text-xs text-gray-400 uppercase">
+                    <p class="text-outline-variant mt-2 text-xs uppercase">
                         {{ $result->typeLabel ?? $result->type }}
                     </p>
                 </li>

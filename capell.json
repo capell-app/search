@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^4.0",
     "version": "4.x-dev",
-    "description": "Search adds a frontend search route, configurable search drivers, synonym expansion, typo correction, promoted results, source weighting, result click tracking, zero-result reporting, query logging, Site Discovery indexing, and admin search insights.",
+    "description": "Search gives every Capell site a fast, themeable search experience: a results page, header search field, and type-ahead autocomplete, backed by a pluggable driver contract (database, Site Discovery URL registry, or Laravel Scout/Meilisearch/Typesense). Curate results with synonyms, typo corrections, and promoted \"best bet\" answers, and tune ranking with source weighting plus exact-match, recency, and click-through boosts. The admin dashboard surfaces top searches, trending terms, and — critically — zero-result queries, so editors see exactly where content is missing. Privacy-first by default: visitor identifiers are hashed and query logs auto-purge on a configurable retention window.",
     "product": {
         "group": "Capell Search & SEO",
         "tier": "premium",
@@ -160,12 +160,73 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "Search adds a frontend search route, configurable search drivers, synonym expansion, typo correction, promoted results, source weighting, result click tracking, zero-result reporting, query logging, Site Discovery indexing, and admin search insights.",
+        "summary": "Production-grade site search for Capell — relevance-tuned results with synonyms, typo tolerance, and curated promotions, plus admin insights into what visitors search for and where you have no answers.",
+        "description": "Search gives every Capell site a fast, themeable search experience: a results page, header search field, and type-ahead autocomplete, backed by a pluggable driver contract (database, Site Discovery URL registry, or Laravel Scout/Meilisearch/Typesense). Curate results with synonyms, typo corrections, and promoted \"best bet\" answers, and tune ranking with source weighting plus exact-match, recency, and click-through boosts. The admin dashboard surfaces top searches, trending terms, and — critically — zero-result queries, so editors see exactly where content is missing. Privacy-first by default: visitor identifiers are hashed and query logs auto-purge on a configurable retention window.",
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",
                 "alt": "Search extension preview image",
                 "caption": "Search extension preview"
+            },
+            {
+                "path": "docs/screenshots/frontend-search-results-page.png",
+                "alt": "Frontend search results page with ranked Capell content",
+                "caption": "Themeable frontend search results"
+            },
+            {
+                "path": "docs/screenshots/frontend-search-results-page-dark.png",
+                "alt": "Dark mode frontend search results page with ranked Capell content",
+                "caption": "Frontend search results in dark mode"
+            },
+            {
+                "path": "docs/screenshots/header-search-field.png",
+                "alt": "Header search field with type-ahead search UI",
+                "caption": "Header search and autocomplete"
+            },
+            {
+                "path": "docs/screenshots/header-search-field-dark.png",
+                "alt": "Dark mode header search field with type-ahead search UI",
+                "caption": "Header search in dark mode"
+            },
+            {
+                "path": "docs/screenshots/search-settings-screen.png",
+                "alt": "Search settings screen for query logging, ranking, and retention",
+                "caption": "Configurable search settings"
+            },
+            {
+                "path": "docs/screenshots/search-settings-screen-dark.png",
+                "alt": "Dark mode search settings screen for query logging, ranking, and retention",
+                "caption": "Search settings in dark mode"
+            },
+            {
+                "path": "docs/screenshots/top-searches-widget.png",
+                "alt": "Admin widget showing the most common visitor searches",
+                "caption": "Top searches insight widget"
+            },
+            {
+                "path": "docs/screenshots/top-searches-widget-dark.png",
+                "alt": "Dark mode admin widget showing the most common visitor searches",
+                "caption": "Top searches in dark mode"
+            },
+            {
+                "path": "docs/screenshots/trending-searches-widget.png",
+                "alt": "Admin widget showing trending search terms",
+                "caption": "Trending searches insight widget"
+            },
+            {
+                "path": "docs/screenshots/trending-searches-widget-dark.png",
+                "alt": "Dark mode admin widget showing trending search terms",
+                "caption": "Trending searches in dark mode"
+            },
+            {
+                "path": "docs/screenshots/zero-result-searches-widget.png",
+                "alt": "Admin widget showing visitor searches with no matching content",
+                "caption": "Zero-result search insight widget"
+            },
+            {
+                "path": "docs/screenshots/zero-result-searches-widget-dark.png",
+                "alt": "Dark mode admin widget showing visitor searches with no matching content",
+                "caption": "Zero-result searches in dark mode"
             }
         ],
         "categories": ["admin", "console", "frontend", "search-seo"]

@@ -32,8 +32,9 @@ it('declares implemented search gap features contributions and actions', functio
         flags: JSON_THROW_ON_ERROR,
     );
 
-    expect($manifest['description'])->toContain('synonym expansion')
-        ->and($manifest['marketplace']['summary'])->toContain('Site Discovery indexing')
+    expect($manifest['description'])->toContain('synonyms')
+        ->and($manifest['description'])->toContain('Site Discovery URL registry')
+        ->and($manifest['marketplace']['summary'])->toContain('Production-grade site search')
         ->and($manifest['dependencies']['supports'])->toContain('capell-app/site-discovery')
         ->and($manifest['commands']['purge'])->toBe('search:purge')
         ->and($manifest['settings'])->toContain(SearchSettings::class)

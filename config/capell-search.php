@@ -50,6 +50,7 @@ return [
         'exact_match_boost' => 25.0,
         'recency_days' => 90,
         'click_boost_weight' => 0.25,
+        'click_counts_cache_seconds' => 60,
     ],
     'type_labels' => [
         'page' => 'Page',

@@ -60,6 +60,7 @@ final class RecordSearchResultClickAction
         ]);
 
         $log->save();
+        ApplySearchResultEnhancementsAction::forgetClickCountsCache($log->site_id);
 
         return $log;
     }

@@ -11,6 +11,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema as SchemaFacade;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -18,14 +19,27 @@ final class ApplySearchResultEnhancementsAction
 {
     use AsAction;
 
+    private const CLICK_COUNTS_CACHE_PREFIX = 'capell-search:click-counts';
+
+    public static function forgetClickCountsCache(?int $siteId = null): void
+    {
+        Cache::forget(self::clickCountsCacheKey(null));
+
+        if ($siteId !== null) {
+            Cache::forget(self::clickCountsCacheKey($siteId));
+        }
+    }
+
     /**
      * @param  LengthAwarePaginator<int, SearchResultData>  $results
      * @return LengthAwarePaginator<int, SearchResultData>
      */
-    public function handle(LengthAwarePaginator $results, string $normalizedQuery): LengthAwarePaginator
+    public function handle(LengthAwarePaginator $results, string $normalizedQuery, ?int $siteId = null): LengthAwarePaginator
     {
         $promotedResults = (new ResolvePromotedSearchResultsAction)->handle($normalizedQuery);
         $sourceWeights = $this->sourceWeights();
+        $typeLabels = $this->typeLabels();
+        $clickCounts = $this->clickCounts($siteId);
 
         $promotedUrls = (new Collection($promotedResults))
             ->map(static fn (PromotedSearchResultData $promotion): string => $promotion->toSearchResult()->url)
@@ -38,11 +52,13 @@ final class ApplySearchResultEnhancementsAction
             ))
             ->map(fn (SearchResultData $result): ?SearchResultData => SanitizeSearchResultAction::run($result))
             ->filter(static fn (?SearchResultData $result): bool => $result instanceof SearchResultData)
-            ->map(fn (SearchResultData $result): SearchResultData => $this->applyTypeLabel($result))
-            ->map(fn (SearchResultData $result): SearchResultData => $this->applySourceWeight($result, $sourceWeights))
-            ->map(fn (SearchResultData $result): SearchResultData => $this->applyExactMatchBoost($result, $normalizedQuery))
-            ->map(fn (SearchResultData $result): SearchResultData => $this->applyRecencyBoost($result))
-            ->map(fn (SearchResultData $result): SearchResultData => $this->applyClickBoost($result, $this->clickCounts()));
+            ->map(fn (SearchResultData $result): SearchResultData => $this->enhanceResult(
+                result: $result,
+                normalizedQuery: $normalizedQuery,
+                typeLabels: $typeLabels,
+                sourceWeights: $sourceWeights,
+                clickCounts: $clickCounts,
+            ));
 
         $items = $this->sortByWeightedScore($items);
 
@@ -56,6 +72,13 @@ final class ApplySearchResultEnhancementsAction
                 'pageName' => $results instanceof Paginator ? $results->getPageName() : 'page',
             ],
         );
+    }
+
+    private static function clickCountsCacheKey(?int $siteId): string
+    {
+        $scope = $siteId === null ? 'all-sites' : 'site-' . $siteId;
+
+        return self::CLICK_COUNTS_CACHE_PREFIX . ':' . (new SearchLog)->getTable() . ':' . $scope;
     }
 
     /**
@@ -90,9 +113,32 @@ final class ApplySearchResultEnhancementsAction
         return $weights;
     }
 
-    private function applyTypeLabel(SearchResultData $result): SearchResultData
+    /**
+     * @param  array<string, string>  $typeLabels
+     * @param  array<string, float>  $sourceWeights
+     * @param  array<string, int>  $clickCounts
+     */
+    private function enhanceResult(
+        SearchResultData $result,
+        string $normalizedQuery,
+        array $typeLabels,
+        array $sourceWeights,
+        array $clickCounts,
+    ): SearchResultData {
+        $result = $this->applyTypeLabel($result, $typeLabels);
+        $result = $this->applySourceWeight($result, $sourceWeights);
+        $result = $this->applyExactMatchBoost($result, $normalizedQuery);
+        $result = $this->applyRecencyBoost($result);
+
+        return $this->applyClickBoost($result, $clickCounts);
+    }
+
+    /**
+     * @param  array<string, string>  $typeLabels
+     */
+    private function applyTypeLabel(SearchResultData $result, array $typeLabels): SearchResultData
     {
-        $label = $this->typeLabels()[$result->type] ?? str($result->type)->replace(['_', '-'], ' ')->headline()->toString();
+        $label = $typeLabels[$result->type] ?? str($result->type)->replace(['_', '-'], ' ')->headline()->toString();
 
         return new SearchResultData(
             title: $result->title,
@@ -219,16 +265,40 @@ final class ApplySearchResultEnhancementsAction
     /**
      * @return array<string, int>
      */
-    private function clickCounts(): array
+    private function clickCounts(?int $siteId): array
     {
         if (! SchemaFacade::hasTable((new SearchLog)->getTable())) {
             return [];
         }
 
-        return SearchLog::query()
+        $cacheSeconds = max(0, (int) config('capell-search.ranking.click_counts_cache_seconds', 60));
+
+        if ($cacheSeconds <= 0) {
+            return $this->queryClickCounts($siteId);
+        }
+
+        return Cache::remember(
+            self::clickCountsCacheKey($siteId),
+            $cacheSeconds,
+            fn (): array => $this->queryClickCounts($siteId),
+        );
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function queryClickCounts(?int $siteId): array
+    {
+        $query = SearchLog::query()
             ->whereNotNull('clicked_result_url')
             ->selectRaw('clicked_result_url, count(*) as clicks')
-            ->groupBy('clicked_result_url')
+            ->groupBy('clicked_result_url');
+
+        if ($siteId !== null) {
+            $query->where('site_id', $siteId);
+        }
+
+        return $query
             ->pluck('clicks', 'clicked_result_url')
             ->map(static fn (mixed $clicks): int => (int) $clicks)
             ->all();

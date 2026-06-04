@@ -3,15 +3,26 @@
 declare(strict_types=1);
 
 use Capell\Search\Actions\ApplySearchResultEnhancementsAction;
+use Capell\Search\Actions\RecordSearchResultClickAction;
 use Capell\Search\Actions\ResolveExpandedSearchQueriesAction;
 use Capell\Search\Actions\RunSearchAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
+use Capell\Search\Models\SearchLog;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+afterEach(function (): void {
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10);
+    Schema::dropIfExists('search_logs');
+});
 
 test('expands configured synonyms in both directions', function (): void {
     config()->set('capell-search.synonyms', [
@@ -237,3 +248,97 @@ test('configured promotions deduplicate search results with the same url', funct
     expect(($enhancedResults->items()[0] ?? null)?->excerpt)->toBe('Plans and billing.');
     expect($enhancedResults->total())->toBe(1);
 });
+
+test('click boosts use cached click aggregates for the current site', function (): void {
+    createSearchLogsTableForEnhancementTests();
+    config()->set('capell-search.ranking.click_counts_cache_seconds', 300);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10);
+
+    SearchLog::factory()->count(4)->create([
+        'site_id' => 10,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => '/clicked',
+    ]);
+    SearchLog::factory()->count(6)->create([
+        'site_id' => 20,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => '/clicked',
+    ]);
+
+    $results = new Paginator(new Collection([
+        new SearchResultData(
+            title: 'Clicked',
+            url: '/clicked',
+            excerpt: 'Clicked result.',
+            score: 1.0,
+        ),
+    ]), 1, 10, 1);
+
+    $aggregateQueries = 0;
+
+    DB::listen(function (QueryExecuted $query) use (&$aggregateQueries): void {
+        if (str_contains($query->sql, 'clicked_result_url') && str_contains($query->sql, 'count(*)')) {
+            $aggregateQueries++;
+        }
+    });
+
+    $firstRun = ApplySearchResultEnhancementsAction::run($results, 'capell', 10);
+    $secondRun = ApplySearchResultEnhancementsAction::run($results, 'capell', 10);
+
+    expect($aggregateQueries)->toBe(1)
+        ->and(($firstRun->items()[0] ?? null)?->score)->toBe(2.0)
+        ->and(($secondRun->items()[0] ?? null)?->score)->toBe(2.0);
+});
+
+test('recording a click flushes cached click aggregates', function (): void {
+    createSearchLogsTableForEnhancementTests();
+    config()->set('capell-search.ranking.click_counts_cache_seconds', 300);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10);
+
+    $log = SearchLog::factory()->create([
+        'site_id' => 10,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => null,
+    ]);
+
+    $results = new Paginator(new Collection([
+        new SearchResultData(
+            title: 'Clicked',
+            url: '/clicked',
+            excerpt: 'Clicked result.',
+            score: 1.0,
+        ),
+    ]), 1, 10, 1);
+
+    $beforeClick = ApplySearchResultEnhancementsAction::run($results, 'capell', 10);
+
+    RecordSearchResultClickAction::run($log, '/clicked');
+
+    $afterClick = ApplySearchResultEnhancementsAction::run($results, 'capell', 10);
+
+    expect(($beforeClick->items()[0] ?? null)?->score)->toBe(1.0)
+        ->and(($afterClick->items()[0] ?? null)?->score)->toBe(1.25);
+});
+
+function createSearchLogsTableForEnhancementTests(): void
+{
+    config()->set('capell-search.logs.table_name', 'search_logs');
+
+    Schema::dropIfExists('search_logs');
+    Schema::create('search_logs', function (Blueprint $table): void {
+        $table->id();
+        $table->foreignId('site_id')->nullable()->index();
+        $table->foreignId('language_id')->nullable()->index();
+        $table->string('query');
+        $table->string('normalized_query')->index();
+        $table->unsignedInteger('results_count')->default(0);
+        $table->string('clicked_result_url')->nullable();
+        $table->string('ip_hash', 64)->nullable();
+        $table->string('user_agent_hash', 64)->nullable();
+        $table->timestamp('searched_at')->index();
+        $table->timestamps();
+    });
+}

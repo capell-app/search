@@ -47,8 +47,8 @@ final class SearchHealthCheck implements ChecksExtensionHealth
             label: 'Search log storage table',
             passed: $tableExists,
             message: $tableExists
-                ? "The {$tableName} table is present for query analytics and click tracking."
-                : "The {$tableName} table is missing.",
+                ? sprintf('The %s table is present for query analytics and click tracking.', $tableName)
+                : sprintf('The %s table is missing.', $tableName),
             remediation: $tableExists
                 ? null
                 : 'Run the Capell migrations to create the search log table.',
@@ -82,7 +82,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
             passed: $configurationValid,
             message: $configurationValid
                 ? 'Search query logging has a valid minimum query length and retention window.'
-                : "Invalid search logging configuration: minimum_query_length={$minimumQueryLength}, retention_days={$retentionDays}.",
+                : sprintf('Invalid search logging configuration: minimum_query_length=%s, retention_days=%s.', $minimumQueryLength, $retentionDays),
             remediation: $configurationValid
                 ? null
                 : 'Set capell-search.minimum_query_length and capell-search.logs.retention_days to positive integers.',

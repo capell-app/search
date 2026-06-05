@@ -28,14 +28,21 @@ Bind the contract when a package needs a custom backend.
 
 ```php
 use Capell\Search\Contracts\Search;
+use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchResultData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 
 final class DemoSearchDriver implements Search
 {
-    public function search(string $query, int $perPage = 10, int $page = 1): LengthAwarePaginator
-    {
+    public function search(
+        string $query,
+        int $perPage = 10,
+        int $page = 1,
+        ?int $siteId = null,
+        ?int $languageId = null,
+        ?SearchFilterData $filters = null,
+    ): LengthAwarePaginator {
         $results = collect([
             new SearchResultData(
                 title: 'About Capell',
@@ -51,14 +58,24 @@ final class DemoSearchDriver implements Search
 
     public function highlight(string $text, string $query): string
     {
-        return str_ireplace($query, '<mark>' . e($query) . '</mark>', e($text));
+        $escapedText = e($text);
+        $query = trim($query);
+
+        if ($query === '') {
+            return $escapedText;
+        }
+
+        return preg_replace('/(' . preg_quote(e($query), '/') . ')/i', '<mark>$1</mark>', $escapedText)
+            ?? $escapedText;
     }
 }
 
 $this->app->singleton(Search::class, DemoSearchDriver::class);
 ```
 
-Escape text before adding markup. Search results are rendered on public pages.
+`highlight()` returns HTML rendered on public pages, so every custom driver must escape the
+entire input text before adding trusted `<mark>` tags. Do not return raw model content or
+admin/editor metadata from a search driver.
 
 ## Logging
 

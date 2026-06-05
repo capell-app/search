@@ -24,6 +24,7 @@ use Capell\Search\Manifest\TrendingSearchesWidgetContribution;
 use Capell\Search\Manifest\ZeroResultSearchesWidgetContribution;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Settings\SearchSettings;
+use Pest\Expectation;
 
 it('declares implemented search gap features contributions and actions', function (): void {
     $manifest = json_decode(
@@ -31,10 +32,15 @@ it('declares implemented search gap features contributions and actions', functio
         associative: true,
         flags: JSON_THROW_ON_ERROR,
     );
+    $screenshotPaths = array_map(
+        static fn (array $screenshot): string => __DIR__ . '/../../' . $screenshot['path'],
+        $manifest['marketplace']['screenshots'],
+    );
 
     expect($manifest['description'])->toContain('synonyms')
         ->and($manifest['description'])->toContain('Site Discovery URL registry')
         ->and($manifest['marketplace']['summary'])->toContain('Production-grade site search')
+        ->and($screenshotPaths)->each(fn (Expectation $path): Expectation => $path->toBeFile())
         ->and($manifest['dependencies']['supports'])->toContain('capell-app/site-discovery')
         ->and($manifest['commands']['purge'])->toBe('search:purge')
         ->and($manifest['settings'])->toContain(SearchSettings::class)

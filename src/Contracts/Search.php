@@ -26,5 +26,11 @@ interface Search
         ?SearchFilterData $filters = null,
     ): LengthAwarePaginator;
 
+    /**
+     * Return public-safe HTML for highlighted search text.
+     *
+     * Implementations must escape the full input text and only add trusted
+     * highlight markup, currently `<mark>...</mark>`.
+     */
     public function highlight(string $text, string $query): string;
 }

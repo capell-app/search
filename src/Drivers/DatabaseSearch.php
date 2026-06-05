@@ -70,7 +70,7 @@ class DatabaseSearch implements Search
         $availableColumns = $this->db->getSchemaBuilder()->getColumnListing($this->table);
         $columns = array_values(array_intersect($this->columns, $availableColumns));
 
-        if ($columns === []) {
+        if ($columns === [] || $this->requiresMissingPublishedStatusColumn($availableColumns)) {
             return new Paginator([], 0, $perPage, $page);
         }
 
@@ -177,6 +177,14 @@ class DatabaseSearch implements Search
         if ($this->publishedStatus !== null && in_array($this->statusColumn, $availableColumns, true)) {
             $builder->where($this->statusColumn, $this->publishedStatus);
         }
+    }
+
+    /**
+     * @param  list<string>  $availableColumns
+     */
+    private function requiresMissingPublishedStatusColumn(array $availableColumns): bool
+    {
+        return $this->publishedStatus !== null && ! in_array($this->statusColumn, $availableColumns, true);
     }
 
     /**

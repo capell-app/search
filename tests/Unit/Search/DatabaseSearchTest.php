@@ -37,6 +37,20 @@ beforeAll(function (): void {
         ['title' => 'Laravel Draft', 'excerpt' => 'Unpublished Laravel page', 'body' => null, 'slug' => 'laravel-draft', 'type' => 'post', 'site_id' => 1, 'language_id' => 1, 'status' => 'draft'],
         ['title' => 'Laravel Other Site', 'excerpt' => 'Other site Laravel page', 'body' => null, 'slug' => 'laravel-other-site', 'type' => 'post', 'site_id' => 2, 'language_id' => 1, 'status' => 'published'],
     ]);
+
+    Capsule::schema()->create('search_pages_without_status', function (Blueprint $table): void {
+        $table->increments('id');
+        $table->string('title');
+        $table->text('excerpt')->nullable();
+        $table->text('body')->nullable();
+        $table->string('slug');
+        $table->string('type')->default('page');
+    });
+
+    Capsule::table('search_pages_without_status')->insert([
+        ['title' => 'Laravel Public Article', 'excerpt' => 'Searchable public content', 'body' => null, 'slug' => 'laravel-public-article', 'type' => 'page'],
+        ['title' => 'Laravel Private Article', 'excerpt' => 'Searchable private content', 'body' => null, 'slug' => 'laravel-private-article', 'type' => 'page'],
+    ]);
 });
 
 test('returns empty paginator for empty query', function (): void {
@@ -142,6 +156,18 @@ test('search filters by site language and published status when columns are pres
 
     expect($results->total())->toBe(1);
     expect(($results->items()[0] ?? null)?->url)->toBe('/laravel-tutorial');
+});
+
+test('search returns no public results when configured status guard column is missing', function (): void {
+    $search = new DatabaseSearch(
+        db: Capsule::connection(),
+        table: 'search_pages_without_status',
+    );
+
+    $results = $search->search('Laravel');
+
+    expect($results->total())->toBe(0);
+    expect($results->isEmpty())->toBeTrue();
 });
 
 test('wraps matches in <mark> tags with escaping', function (): void {

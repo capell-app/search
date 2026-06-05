@@ -141,6 +141,7 @@ class ScoutSearch implements Search
         $paginator = $builder->paginate(perPage: $perPage, page: 1);
 
         return (new Collection($paginator->items()))
+            ->filter(fn (object $model): bool => $this->isPublicSearchPayload($this->publicSearchPayload($model)))
             ->map(fn (object $model): SearchResultData => $this->mapModelToResult($model, $source, $query));
     }
 
@@ -197,6 +198,36 @@ class ScoutSearch implements Search
         }
 
         return [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     */
+    private function isPublicSearchPayload(array $row): bool
+    {
+        $status = $row['status'] ?? null;
+
+        if ($status !== null && $status !== 'published') {
+            return false;
+        }
+
+        foreach (['is_public', 'published', 'is_published'] as $flag) {
+            if (array_key_exists($flag, $row) && $row[$flag] !== true) {
+                return false;
+            }
+        }
+
+        foreach (['private', 'is_private'] as $flag) {
+            if (array_key_exists($flag, $row) && $row[$flag] === true) {
+                return false;
+            }
+        }
+
+        if (array_key_exists('visibility', $row) && $row['visibility'] !== 'public') {
+            return false;
+        }
+
+        return true;
     }
 
     /**

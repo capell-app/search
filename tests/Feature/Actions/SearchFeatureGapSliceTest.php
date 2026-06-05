@@ -21,6 +21,10 @@ use Illuminate\Support\Facades\Schema;
 
 afterEach(function (): void {
     ApplySearchResultEnhancementsAction::forgetClickCountsCache(10);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10, 1);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10, 2);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(20, 1);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(20, 2);
     Schema::dropIfExists('search_logs');
 });
 
@@ -249,19 +253,28 @@ test('configured promotions deduplicate search results with the same url', funct
     expect($enhancedResults->total())->toBe(1);
 });
 
-test('click boosts use cached click aggregates for the current site', function (): void {
+test('click boosts use cached click aggregates for the current site and language', function (): void {
     createSearchLogsTableForEnhancementTests();
     config()->set('capell-search.ranking.click_counts_cache_seconds', 300);
-    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10, 1);
 
     SearchLog::factory()->count(4)->create([
         'site_id' => 10,
+        'language_id' => 1,
         'query' => 'Capell',
         'normalized_query' => 'capell',
         'clicked_result_url' => '/clicked',
     ]);
     SearchLog::factory()->count(6)->create([
         'site_id' => 20,
+        'language_id' => 1,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => '/clicked',
+    ]);
+    SearchLog::factory()->count(8)->create([
+        'site_id' => 10,
+        'language_id' => 2,
         'query' => 'Capell',
         'normalized_query' => 'capell',
         'clicked_result_url' => '/clicked',
@@ -284,21 +297,72 @@ test('click boosts use cached click aggregates for the current site', function (
         }
     });
 
-    $firstRun = ApplySearchResultEnhancementsAction::run($results, 'capell', 10);
-    $secondRun = ApplySearchResultEnhancementsAction::run($results, 'capell', 10);
+    $firstRun = ApplySearchResultEnhancementsAction::run($results, 'capell', 10, 1);
+    $secondRun = ApplySearchResultEnhancementsAction::run($results, 'capell', 10, 1);
 
     expect($aggregateQueries)->toBe(1)
         ->and(($firstRun->items()[0] ?? null)?->score)->toBe(2.0)
         ->and(($secondRun->items()[0] ?? null)?->score)->toBe(2.0);
 });
 
+test('cached click aggregates preserve language scoped result ranking', function (): void {
+    createSearchLogsTableForEnhancementTests();
+    config()->set('capell-search.ranking.click_counts_cache_seconds', 300);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10, 1);
+
+    SearchLog::factory()->count(5)->create([
+        'site_id' => 10,
+        'language_id' => 1,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => '/clicked',
+    ]);
+    SearchLog::factory()->count(10)->create([
+        'site_id' => 10,
+        'language_id' => 2,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => '/other-language-clicked',
+    ]);
+
+    $results = new Paginator(new Collection([
+        new SearchResultData(
+            title: 'Clicked',
+            url: '/clicked',
+            excerpt: 'Clicked result.',
+            score: 1.0,
+        ),
+        new SearchResultData(
+            title: 'Other Language Clicked',
+            url: '/other-language-clicked',
+            excerpt: 'Other language clicked result.',
+            score: 1.5,
+        ),
+    ]), 2, 10, 1);
+
+    $firstRun = ApplySearchResultEnhancementsAction::run($results, 'capell', 10, 1);
+    $secondRun = ApplySearchResultEnhancementsAction::run($results, 'capell', 10, 1);
+
+    expect((new Collection($firstRun->items()))->pluck('url')->all())->toBe([
+        '/clicked',
+        '/other-language-clicked',
+    ]);
+    expect((new Collection($secondRun->items()))->pluck('url')->all())->toBe([
+        '/clicked',
+        '/other-language-clicked',
+    ]);
+    expect(($secondRun->items()[0] ?? null)?->score)->toBe(2.25)
+        ->and(($secondRun->items()[1] ?? null)?->score)->toBe(1.5);
+});
+
 test('recording a click flushes cached click aggregates', function (): void {
     createSearchLogsTableForEnhancementTests();
     config()->set('capell-search.ranking.click_counts_cache_seconds', 300);
-    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10, 1);
 
     $log = SearchLog::factory()->create([
         'site_id' => 10,
+        'language_id' => 1,
         'query' => 'Capell',
         'normalized_query' => 'capell',
         'clicked_result_url' => null,
@@ -313,11 +377,11 @@ test('recording a click flushes cached click aggregates', function (): void {
         ),
     ]), 1, 10, 1);
 
-    $beforeClick = ApplySearchResultEnhancementsAction::run($results, 'capell', 10);
+    $beforeClick = ApplySearchResultEnhancementsAction::run($results, 'capell', 10, 1);
 
     RecordSearchResultClickAction::run($log, '/clicked');
 
-    $afterClick = ApplySearchResultEnhancementsAction::run($results, 'capell', 10);
+    $afterClick = ApplySearchResultEnhancementsAction::run($results, 'capell', 10, 1);
 
     expect(($beforeClick->items()[0] ?? null)?->score)->toBe(1.0)
         ->and(($afterClick->items()[0] ?? null)?->score)->toBe(1.25);

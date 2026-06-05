@@ -21,12 +21,20 @@ final class ApplySearchResultEnhancementsAction
 
     private const string CLICK_COUNTS_CACHE_PREFIX = 'capell-search:click-counts';
 
-    public static function forgetClickCountsCache(?int $siteId = null): void
+    public static function forgetClickCountsCache(?int $siteId = null, ?int $languageId = null): void
     {
-        Cache::forget(self::clickCountsCacheKey(null));
+        Cache::forget(self::clickCountsCacheKey(null, null));
 
         if ($siteId !== null) {
-            Cache::forget(self::clickCountsCacheKey($siteId));
+            Cache::forget(self::clickCountsCacheKey($siteId, null));
+        }
+
+        if ($languageId !== null) {
+            Cache::forget(self::clickCountsCacheKey(null, $languageId));
+        }
+
+        if ($siteId !== null && $languageId !== null) {
+            Cache::forget(self::clickCountsCacheKey($siteId, $languageId));
         }
     }
 
@@ -34,19 +42,25 @@ final class ApplySearchResultEnhancementsAction
      * @param  LengthAwarePaginator<int, SearchResultData>  $results
      * @return LengthAwarePaginator<int, SearchResultData>
      */
-    public function handle(LengthAwarePaginator $results, string $normalizedQuery, ?int $siteId = null): LengthAwarePaginator
-    {
+    public function handle(
+        LengthAwarePaginator $results,
+        string $normalizedQuery,
+        ?int $siteId = null,
+        ?int $languageId = null,
+    ): LengthAwarePaginator {
         $promotedResults = (new ResolvePromotedSearchResultsAction)->handle($normalizedQuery);
         $sourceWeights = $this->sourceWeights();
         $typeLabels = $this->typeLabels();
-        $clickCounts = $this->clickCounts($siteId);
+        $clickCounts = $this->clickCounts($siteId, $languageId);
 
-        $promotedUrls = (new Collection($promotedResults))
-            ->map(static fn (PromotedSearchResultData $promotion): string => $promotion->toSearchResult()->url)
+        $promotedItems = (new Collection($promotedResults))
+            ->map(static fn (PromotedSearchResultData $promotion): SearchResultData => $promotion->toSearchResult());
+
+        $promotedUrls = $promotedItems
+            ->pluck('url')
             ->all();
 
-        $items = (new Collection($promotedResults))
-            ->map(static fn (PromotedSearchResultData $promotion): SearchResultData => $promotion->toSearchResult())
+        $items = $promotedItems
             ->merge((new Collection($results->items()))->reject(
                 static fn (SearchResultData $result): bool => in_array($result->url, $promotedUrls, true),
             ))
@@ -74,11 +88,12 @@ final class ApplySearchResultEnhancementsAction
         );
     }
 
-    private static function clickCountsCacheKey(?int $siteId): string
+    private static function clickCountsCacheKey(?int $siteId, ?int $languageId): string
     {
-        $scope = $siteId === null ? 'all-sites' : 'site-' . $siteId;
+        $siteScope = $siteId === null ? 'all-sites' : 'site-' . $siteId;
+        $languageScope = $languageId === null ? 'all-languages' : 'language-' . $languageId;
 
-        return self::CLICK_COUNTS_CACHE_PREFIX . ':' . (new SearchLog)->getTable() . ':' . $scope;
+        return self::CLICK_COUNTS_CACHE_PREFIX . ':' . (new SearchLog)->getTable() . ':' . $siteScope . ':' . $languageScope;
     }
 
     /**
@@ -265,7 +280,7 @@ final class ApplySearchResultEnhancementsAction
     /**
      * @return array<string, int>
      */
-    private function clickCounts(?int $siteId): array
+    private function clickCounts(?int $siteId, ?int $languageId): array
     {
         if (! SchemaFacade::hasTable((new SearchLog)->getTable())) {
             return [];
@@ -274,20 +289,20 @@ final class ApplySearchResultEnhancementsAction
         $cacheSeconds = max(0, (int) config('capell-search.ranking.click_counts_cache_seconds', 60));
 
         if ($cacheSeconds <= 0) {
-            return $this->queryClickCounts($siteId);
+            return $this->queryClickCounts($siteId, $languageId);
         }
 
         return Cache::remember(
-            self::clickCountsCacheKey($siteId),
+            self::clickCountsCacheKey($siteId, $languageId),
             $cacheSeconds,
-            fn (): array => $this->queryClickCounts($siteId),
+            fn (): array => $this->queryClickCounts($siteId, $languageId),
         );
     }
 
     /**
      * @return array<string, int>
      */
-    private function queryClickCounts(?int $siteId): array
+    private function queryClickCounts(?int $siteId, ?int $languageId): array
     {
         $query = SearchLog::query()
             ->whereNotNull('clicked_result_url')
@@ -296,6 +311,10 @@ final class ApplySearchResultEnhancementsAction
 
         if ($siteId !== null) {
             $query->where('site_id', $siteId);
+        }
+
+        if ($languageId !== null) {
+            $query->where('language_id', $languageId);
         }
 
         return $query

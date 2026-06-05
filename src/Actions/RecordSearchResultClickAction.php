@@ -60,7 +60,7 @@ final class RecordSearchResultClickAction
         ]);
 
         $log->save();
-        ApplySearchResultEnhancementsAction::forgetClickCountsCache($log->site_id);
+        ApplySearchResultEnhancementsAction::forgetClickCountsCache($log->site_id, $log->language_id);
 
         return $log;
     }

@@ -49,7 +49,7 @@ final readonly class RunSearchAction
             filters: $data->filters,
         );
 
-        return ApplySearchResultEnhancementsAction::run($results, $normalizedQuery, $data->siteId);
+        return ApplySearchResultEnhancementsAction::run($results, $normalizedQuery, $data->siteId, $data->languageId);
     }
 
     /**

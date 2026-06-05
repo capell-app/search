@@ -45,7 +45,12 @@ final class SearchController
 
         $results = RunSearchAction::run($data);
 
-        RecordSearchAction::run($data, $results->total(), $request);
+        RecordSearchAction::dispatchAfterResponse(
+            $data,
+            $results->total(),
+            $request->ip(),
+            $request->userAgent(),
+        );
 
         $pageView = $this->configuredPageView();
 

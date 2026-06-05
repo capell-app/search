@@ -8,7 +8,6 @@ use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Models\SearchLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
 beforeEach(function (): void {
@@ -39,11 +38,6 @@ afterEach(function (): void {
 });
 
 test('logs valid searches with normalized query and hashed visitor data', function (): void {
-    $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, server: [
-        'REMOTE_ADDR' => '203.0.113.10',
-        'HTTP_USER_AGENT' => 'Capell Test Browser',
-    ]);
-
     $log = RecordSearchAction::run(
         new SearchRequestData(
             query: '  Laravel   Search  ',
@@ -51,7 +45,8 @@ test('logs valid searches with normalized query and hashed visitor data', functi
             languageId: 20,
         ),
         7,
-        $request,
+        '203.0.113.10',
+        'Capell Test Browser',
     );
 
     expect($log)->toBeInstanceOf(SearchLog::class);
@@ -69,7 +64,6 @@ test('skips blank searches', function (): void {
     $log = RecordSearchAction::run(
         new SearchRequestData(query: '   '),
         0,
-        Request::create('/search'),
     );
 
     expect($log)->toBeNull();
@@ -82,7 +76,6 @@ test('skips searches shorter than the minimum query length', function (): void {
     $log = RecordSearchAction::run(
         new SearchRequestData(query: 'ab'),
         0,
-        Request::create('/search'),
     );
 
     expect($log)->toBeNull();
@@ -95,7 +88,6 @@ test('respects disabled search logging', function (): void {
     $log = RecordSearchAction::run(
         new SearchRequestData(query: 'Laravel Search'),
         1,
-        Request::create('/search'),
     );
 
     expect($log)->toBeNull();
@@ -108,10 +100,8 @@ test('omits visitor hashes when visitor hashing is disabled', function (): void 
     $log = RecordSearchAction::run(
         new SearchRequestData(query: 'Laravel Search'),
         1,
-        Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, server: [
-            'REMOTE_ADDR' => '203.0.113.10',
-            'HTTP_USER_AGENT' => 'Capell Test Browser',
-        ]),
+        '203.0.113.10',
+        'Capell Test Browser',
     );
 
     expect($log)->toBeInstanceOf(SearchLog::class);

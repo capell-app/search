@@ -6,7 +6,6 @@ namespace Capell\Search\Actions;
 
 use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Models\SearchLog;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema as SchemaFacade;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -14,8 +13,12 @@ final class RecordSearchAction
 {
     use AsAction;
 
-    public function handle(SearchRequestData $data, int $resultsCount, Request $request): ?SearchLog
-    {
+    public function handle(
+        SearchRequestData $data,
+        int $resultsCount,
+        ?string $ipAddress = null,
+        ?string $userAgent = null,
+    ): ?SearchLog {
         if (! (bool) ResolveSearchSettingAction::run(
             'record_search_logs',
             'capell-search.record_search_logs',
@@ -45,8 +48,8 @@ final class RecordSearchAction
             'query' => $data->query,
             'normalized_query' => $normalizedQuery,
             'results_count' => $resultsCount,
-            'ip_hash' => $this->hashVisitorValue($request->ip()),
-            'user_agent_hash' => $this->hashVisitorValue($request->userAgent()),
+            'ip_hash' => $this->hashVisitorValue($ipAddress),
+            'user_agent_hash' => $this->hashVisitorValue($userAgent),
             'searched_at' => now(),
         ]);
     }

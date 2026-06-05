@@ -233,6 +233,53 @@ test('controller passes normalized valid searches to the site search service', f
     expect($view->getData()['results']->perPage())->toBe(5);
 });
 
+test('controller defers search log writes until after the response', function (): void {
+    app()->instance(Search::class, new class implements Search
+    {
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+            ?SearchFilterData $filters = null,
+        ): LengthAwarePaginator {
+            return new Paginator(new Collection([
+                new SearchResultData(
+                    title: 'Laravel Search',
+                    url: '/laravel-search',
+                    excerpt: 'Search result content',
+                ),
+            ]), 1, $perPage, $page);
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return $text;
+        }
+    });
+
+    $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Laravel Search'], server: [
+        'REMOTE_ADDR' => '203.0.113.10',
+        'HTTP_USER_AGENT' => 'Capell Test Browser',
+    ]);
+
+    (new SearchController)($request);
+
+    expect(SearchLog::query()->count())->toBe(0);
+
+    app()->terminate();
+
+    $log = SearchLog::query()->first();
+
+    expect(SearchLog::query()->count())->toBe(1)
+        ->and($log)->toBeInstanceOf(SearchLog::class)
+        ->and($log->query)->toBe('Laravel Search')
+        ->and($log->results_count)->toBe(1)
+        ->and($log->ip_hash)->toBe(hash('sha256', '203.0.113.10|' . config('app.key')))
+        ->and($log->user_agent_hash)->toBe(hash('sha256', 'Capell Test Browser|' . config('app.key')));
+});
+
 test('public search markup does not expose package identifiers', function (): void {
     app()->instance(Search::class, new class implements Search
     {

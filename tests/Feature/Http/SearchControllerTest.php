@@ -273,11 +273,17 @@ test('controller defers search log writes until after the response', function ()
     $log = SearchLog::query()->first();
 
     expect(SearchLog::query()->count())->toBe(1)
-        ->and($log)->toBeInstanceOf(SearchLog::class)
-        ->and($log->query)->toBe('Laravel Search')
+        ->and($log)->toBeInstanceOf(SearchLog::class);
+
+    throw_unless($log instanceof SearchLog, RuntimeException::class, 'Expected deferred search log.');
+
+    $appKey = config('app.key');
+    throw_unless(is_string($appKey), RuntimeException::class, 'Expected app key string.');
+
+    expect($log->query)->toBe('Laravel Search')
         ->and($log->results_count)->toBe(1)
-        ->and($log->ip_hash)->toBe(hash('sha256', '203.0.113.10|' . config('app.key')))
-        ->and($log->user_agent_hash)->toBe(hash('sha256', 'Capell Test Browser|' . config('app.key')));
+        ->and($log->ip_hash)->toBe(hash('sha256', '203.0.113.10|' . $appKey))
+        ->and($log->user_agent_hash)->toBe(hash('sha256', 'Capell Test Browser|' . $appKey));
 });
 
 test('public search markup does not expose package identifiers', function (): void {

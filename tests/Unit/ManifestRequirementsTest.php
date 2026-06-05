@@ -27,49 +27,57 @@ use Capell\Search\Settings\SearchSettings;
 use Pest\Expectation;
 
 it('declares implemented search gap features contributions and actions', function (): void {
-    $manifest = json_decode(
-        (string) file_get_contents(__DIR__ . '/../../capell.json'),
-        associative: true,
-        flags: JSON_THROW_ON_ERROR,
-    );
+    $manifest = capell_json_file_array(__DIR__ . '/../../capell.json');
+    $screenshots = data_get($manifest, 'marketplace.screenshots', []);
+
+    throw_unless(is_array($screenshots), RuntimeException::class, 'Search screenshots must be an array.');
+
     $screenshotPaths = array_map(
-        static fn (array $screenshot): string => __DIR__ . '/../../' . $screenshot['path'],
-        $manifest['marketplace']['screenshots'],
+        static function (mixed $screenshot): string {
+            throw_unless(is_array($screenshot), RuntimeException::class, 'Search screenshot entries must be arrays.');
+
+            $path = $screenshot['path'] ?? null;
+
+            throw_unless(is_string($path), RuntimeException::class, 'Search screenshot paths must be strings.');
+
+            return __DIR__ . '/../../' . $path;
+        },
+        $screenshots,
     );
 
-    expect($manifest['description'])->toContain('synonyms')
-        ->and($manifest['description'])->toContain('Site Discovery URL registry')
-        ->and($manifest['marketplace']['summary'])->toContain('Production-grade site search')
+    expect(data_get($manifest, 'description'))->toContain('synonyms')
+        ->and(data_get($manifest, 'description'))->toContain('Site Discovery URL registry')
+        ->and(data_get($manifest, 'marketplace.summary'))->toContain('Production-grade site search')
         ->and($screenshotPaths)->each(fn (Expectation $path): Expectation => $path->toBeFile())
-        ->and($manifest['dependencies']['supports'])->toContain('capell-app/site-discovery')
-        ->and($manifest['commands']['purge'])->toBe('search:purge')
-        ->and($manifest['settings'])->toContain(SearchSettings::class)
-        ->and($manifest['contributes'])->toContain([
+        ->and(data_get($manifest, 'dependencies.supports'))->toContain('capell-app/site-discovery')
+        ->and(data_get($manifest, 'commands.purge'))->toBe('search:purge')
+        ->and(data_get($manifest, 'settings'))->toContain(SearchSettings::class)
+        ->and(data_get($manifest, 'contributes'))->toContain([
             'type' => 'route',
             'class' => SearchFrontendRouteContribution::class,
             'routes' => ['capell-frontend.search'],
         ])
-        ->and($manifest['contributes'])->toContain([
+        ->and(data_get($manifest, 'contributes'))->toContain([
             'type' => 'model',
             'class' => SearchLogModelContribution::class,
             'modelClass' => SearchLog::class,
         ])
-        ->and($manifest['contributes'])->toContain([
+        ->and(data_get($manifest, 'contributes'))->toContain([
             'type' => 'dashboard-widget',
             'class' => TopSearchesWidgetContribution::class,
             'widgetClass' => TopSearchesWidget::class,
         ])
-        ->and($manifest['contributes'])->toContain([
+        ->and(data_get($manifest, 'contributes'))->toContain([
             'type' => 'dashboard-widget',
             'class' => TrendingSearchesWidgetContribution::class,
             'widgetClass' => TrendingSearchesWidget::class,
         ])
-        ->and($manifest['contributes'])->toContain([
+        ->and(data_get($manifest, 'contributes'))->toContain([
             'type' => 'dashboard-widget',
             'class' => ZeroResultSearchesWidgetContribution::class,
             'widgetClass' => ZeroResultSearchesWidget::class,
         ])
-        ->and($manifest['contributes'])->toContain([
+        ->and(data_get($manifest, 'contributes'))->toContain([
             'type' => 'overview-stat',
             'class' => SearchOverviewStatsContribution::class,
             'keys' => [
@@ -84,14 +92,14 @@ it('declares implemented search gap features contributions and actions', functio
             'command' => 'search:purge',
             'frequency' => 'monthly',
         ])
-        ->and($manifest['actions'])->toHaveKey('applySearchResultEnhancements', ApplySearchResultEnhancementsAction::class)
-        ->and($manifest['actions'])->toHaveKey('buildTopSearchesQuery', BuildTopSearchesQueryAction::class)
-        ->and($manifest['actions'])->toHaveKey('buildTrendingSearchesQuery', BuildTrendingSearchesQueryAction::class)
-        ->and($manifest['actions'])->toHaveKey('buildZeroResultSearchesQuery', BuildZeroResultSearchesQueryAction::class)
-        ->and($manifest['actions'])->toHaveKey('resolveExpandedSearchQueries', ResolveExpandedSearchQueriesAction::class)
-        ->and($manifest['actions'])->toHaveKey('resolvePromotedSearchResults', ResolvePromotedSearchResultsAction::class)
-        ->and($manifest['actions'])->toHaveKey('runSearch', RunSearchAction::class)
-        ->and($manifest['capabilities'])->toContain(
+        ->and(data_get($manifest, 'actions'))->toHaveKey('applySearchResultEnhancements', ApplySearchResultEnhancementsAction::class)
+        ->and(data_get($manifest, 'actions'))->toHaveKey('buildTopSearchesQuery', BuildTopSearchesQueryAction::class)
+        ->and(data_get($manifest, 'actions'))->toHaveKey('buildTrendingSearchesQuery', BuildTrendingSearchesQueryAction::class)
+        ->and(data_get($manifest, 'actions'))->toHaveKey('buildZeroResultSearchesQuery', BuildZeroResultSearchesQueryAction::class)
+        ->and(data_get($manifest, 'actions'))->toHaveKey('resolveExpandedSearchQueries', ResolveExpandedSearchQueriesAction::class)
+        ->and(data_get($manifest, 'actions'))->toHaveKey('resolvePromotedSearchResults', ResolvePromotedSearchResultsAction::class)
+        ->and(data_get($manifest, 'actions'))->toHaveKey('runSearch', RunSearchAction::class)
+        ->and(data_get($manifest, 'capabilities'))->toContain(
             'search-synonyms',
             'search-promoted-results',
             'search-typo-corrections',
@@ -105,7 +113,7 @@ it('declares implemented search gap features contributions and actions', functio
         ->and(class_implements(ZeroResultSearchesWidgetContribution::class))->toContain(RegistersExtensionWidget::class)
         ->and(class_implements(SearchOverviewStatsContribution::class))->toContain(RegistersExtensionWidget::class)
         ->and(class_implements(SearchLogPurgeScheduleContribution::class))->toContain(RunsScheduledExtensionJob::class)
-        ->and($manifest['contributionTraceability']['deferredContributions'])->not->toContain(
+        ->and(data_get($manifest, 'contributionTraceability.deferredContributions'))->not->toContain(
             'dashboard-widget',
             'model',
             'overview-stat',

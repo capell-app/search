@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema as SchemaFacade;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static LengthAwarePaginator<int, SearchResultData> run(LengthAwarePaginator<int, SearchResultData> $results, string $normalizedQuery, ?int $siteId = null, ?int $languageId = null)
+ */
 final class ApplySearchResultEnhancementsAction
 {
     use AsAction;

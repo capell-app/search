@@ -169,16 +169,6 @@
                 "caption": "Search extension preview"
             },
             {
-                "path": "docs/screenshots/frontend-search-results-page.png",
-                "alt": "Frontend search results page with ranked Capell content",
-                "caption": "Themeable frontend search results"
-            },
-            {
-                "path": "docs/screenshots/frontend-search-results-page-dark.png",
-                "alt": "Dark mode frontend search results page with ranked Capell content",
-                "caption": "Frontend search results in dark mode"
-            },
-            {
                 "path": "docs/screenshots/header-search-field.png",
                 "alt": "Header search field with type-ahead search UI",
                 "caption": "Header search and autocomplete"

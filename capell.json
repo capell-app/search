@@ -13,28 +13,40 @@
         "bundle": "search-seo"
     },
     "namespace": "Capell\\Search",
-    "surfaces": ["admin", "frontend", "console"],
+    "surfaces": [
+        "admin",
+        "frontend",
+        "console"
+    ],
     "dependencies": {
         "requires": [
             "capell-app/admin",
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "supports": ["capell-app/site-discovery"],
+        "supports": [
+            "capell-app/site-discovery"
+        ],
         "conflicts": []
     },
     "providers": {
         "metadata": [],
         "install": [],
-        "runtime": ["Capell\\Search\\Providers\\SearchServiceProvider"],
-        "admin": ["Capell\\Search\\Providers\\AdminServiceProvider"],
+        "runtime": [
+            "Capell\\Search\\Providers\\SearchServiceProvider"
+        ],
+        "admin": [
+            "Capell\\Search\\Providers\\AdminServiceProvider"
+        ],
         "frontend": []
     },
     "contributes": [
         {
             "type": "route",
             "class": "Capell\\Search\\Manifest\\SearchFrontendRouteContribution",
-            "routes": ["capell-frontend.search"]
+            "routes": [
+                "capell-frontend.search"
+            ]
         },
         {
             "type": "model",
@@ -75,7 +87,9 @@
     "database": {
         "migrations": true,
         "settings": true,
-        "requiredTables": ["search_logs"]
+        "requiredTables": [
+            "search_logs"
+        ]
     },
     "commands": {
         "install": null,
@@ -97,7 +111,9 @@
         "resolvePromotedSearchResults": "Capell\\Search\\Actions\\ResolvePromotedSearchResultsAction",
         "runSearch": "Capell\\Search\\Actions\\RunSearchAction"
     },
-    "settings": ["Capell\\Search\\Settings\\SearchSettings"],
+    "settings": [
+        "Capell\\Search\\Settings\\SearchSettings"
+    ],
     "permissions": [],
     "capabilities": [
         "search",
@@ -114,10 +130,15 @@
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
-        "cacheTags": ["search"],
+        "cacheTags": [
+            "search"
+        ],
         "cacheSafety": {
             "cacheable": false,
-            "variesBy": ["site", "locale"],
+            "variesBy": [
+                "site",
+                "locale"
+            ],
             "sensitiveOutput": false,
             "invalidationSources": [],
             "queueInvalidation": true
@@ -169,16 +190,6 @@
                 "caption": "Search extension preview"
             },
             {
-                "path": "docs/screenshots/header-search-field.png",
-                "alt": "Header search field with type-ahead search UI",
-                "caption": "Header search and autocomplete"
-            },
-            {
-                "path": "docs/screenshots/header-search-field-dark.png",
-                "alt": "Dark mode header search field with type-ahead search UI",
-                "caption": "Header search in dark mode"
-            },
-            {
                 "path": "docs/screenshots/search-settings-screen.png",
                 "alt": "Search settings screen for query logging, ranking, and retention",
                 "caption": "Configurable search settings"
@@ -187,39 +198,14 @@
                 "path": "docs/screenshots/search-settings-screen-dark.png",
                 "alt": "Dark mode search settings screen for query logging, ranking, and retention",
                 "caption": "Search settings in dark mode"
-            },
-            {
-                "path": "docs/screenshots/top-searches-widget.png",
-                "alt": "Admin widget showing the most common visitor searches",
-                "caption": "Top searches insight widget"
-            },
-            {
-                "path": "docs/screenshots/top-searches-widget-dark.png",
-                "alt": "Dark mode admin widget showing the most common visitor searches",
-                "caption": "Top searches in dark mode"
-            },
-            {
-                "path": "docs/screenshots/trending-searches-widget.png",
-                "alt": "Admin widget showing trending search terms",
-                "caption": "Trending searches insight widget"
-            },
-            {
-                "path": "docs/screenshots/trending-searches-widget-dark.png",
-                "alt": "Dark mode admin widget showing trending search terms",
-                "caption": "Trending searches in dark mode"
-            },
-            {
-                "path": "docs/screenshots/zero-result-searches-widget.png",
-                "alt": "Admin widget showing visitor searches with no matching content",
-                "caption": "Zero-result search insight widget"
-            },
-            {
-                "path": "docs/screenshots/zero-result-searches-widget-dark.png",
-                "alt": "Dark mode admin widget showing visitor searches with no matching content",
-                "caption": "Zero-result searches in dark mode"
             }
         ],
-        "categories": ["admin", "console", "frontend", "search-seo"]
+        "categories": [
+            "admin",
+            "console",
+            "frontend",
+            "search-seo"
+        ]
     },
     "contributionTraceability": {
         "deferredContributions": []

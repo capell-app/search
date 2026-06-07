@@ -10,6 +10,7 @@ use Capell\Core\Models\Layout;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\Theme;
 use Capell\Frontend\Facades\Frontend;
+use Capell\Search\Actions\BuildSearchFacetGroupsAction;
 use Capell\Search\Actions\NormalizeSearchFiltersAction;
 use Capell\Search\Actions\RecordSearchAction;
 use Capell\Search\Actions\RecordSearchResultClickAction;
@@ -17,6 +18,7 @@ use Capell\Search\Actions\ResolveSearchSettingAction;
 use Capell\Search\Actions\RunAutocompleteSearchAction;
 use Capell\Search\Actions\RunSearchAction;
 use Capell\Search\Contracts\Search;
+use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchRequestData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
@@ -48,6 +50,13 @@ final class SearchController
 
         $results = RunSearchAction::run($data);
         $highlightedResults = $this->highlightedResults(app(Search::class), $results, $query);
+        $facetGroups = BuildSearchFacetGroupsAction::run(
+            request: $request,
+            query: $query,
+            filters: $data->filters ?? new SearchFilterData,
+            siteId: $data->siteId,
+            languageId: $data->languageId,
+        );
 
         RecordSearchAction::dispatchAfterResponse(
             $data,
@@ -61,6 +70,7 @@ final class SearchController
         if ($pageView !== null) {
             return view($pageView, [
                 'highlightedResults' => $highlightedResults,
+                'facetGroups' => $facetGroups,
                 'query' => $query,
                 'results' => $results,
             ]);
@@ -68,6 +78,7 @@ final class SearchController
 
         $content = view('capell-search::pages.search', [
             'highlightedResults' => $highlightedResults,
+            'facetGroups' => $facetGroups,
             'query' => $query,
             'results' => $results,
         ]);
@@ -78,6 +89,7 @@ final class SearchController
 
         $slot = view('capell-search::layouts.frontend', [
             'highlightedResults' => $highlightedResults,
+            'facetGroups' => $facetGroups,
             'query' => $query,
             'results' => $results,
         ]);

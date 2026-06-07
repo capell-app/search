@@ -8,7 +8,9 @@ use Capell\Search\Data\SearchResultData;
 use Capell\Search\Http\Controllers\SearchController;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Providers\SearchServiceProvider;
+use Capell\Search\Support\SearchableSourceRegistry;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Http\Request;
@@ -405,6 +407,76 @@ test('controller defers search log writes until after the response', function ()
         ->and($log->results_count)->toBe(1)
         ->and($log->ip_hash)->toBe(hash('sha256', '203.0.113.10|' . $appKey))
         ->and($log->user_agent_hash)->toBe(hash('sha256', 'Capell Test Browser|' . $appKey));
+});
+
+test('controller renders public filter facets with live counts', function (): void {
+    config()->set('capell-search.searchables', [
+        'pages' => [
+            'label' => 'Pages',
+            'model' => Model::class,
+            'type' => 'page',
+            'enabled' => true,
+        ],
+        'articles' => [
+            'label' => 'Articles',
+            'model' => Model::class,
+            'type' => 'article',
+            'enabled' => true,
+        ],
+    ]);
+
+    app()->forgetInstance(SearchableSourceRegistry::class);
+    app()->instance(Search::class, new class implements Search
+    {
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+            ?SearchFilterData $filters = null,
+        ): LengthAwarePaginator {
+            $total = match (true) {
+                $filters?->types === ['page'] => 2,
+                $filters?->types === ['article'] => 1,
+                $filters?->sourceKeys === ['pages'] => 2,
+                $filters?->sourceKeys === ['articles'] => 1,
+                default => 3,
+            };
+
+            return new Paginator(new Collection([
+                new SearchResultData(
+                    title: 'Laravel Search',
+                    url: '/laravel-search',
+                    excerpt: 'Search result content',
+                    type: 'page',
+                ),
+            ]), $total, $perPage, $page);
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return e($text);
+        }
+    });
+
+    $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, [
+        'q' => 'Laravel',
+        'type' => ['page'],
+    ]);
+    $view = (new SearchController)($request);
+    $html = $view->render();
+
+    expect($view->getData()['facetGroups'])->toHaveCount(2)
+        ->and($html)->toContain('Search filters')
+        ->and($html)->toContain('Type')
+        ->and($html)->toContain('Page')
+        ->and($html)->toContain('Article')
+        ->and($html)->toContain('Source')
+        ->and($html)->toContain('Pages')
+        ->and($html)->toContain('Articles')
+        ->and($html)->toContain('aria-current="true"')
+        ->and($html)->not()->toContain('capell-search');
 });
 
 test('public search markup does not expose package identifiers', function (): void {

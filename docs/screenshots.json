@@ -82,6 +82,18 @@
             "useCase": "A site owner configures search settings, logging, retention, and result behavior.",
             "screenshotPath": "packages/search/docs/screenshots/search-settings-screen.png",
             "darkScreenshotPath": "packages/search/docs/screenshots/search-settings-screen-dark.png"
+        },
+        {
+            "id": "search-curation-annotated",
+            "title": "Annotated search curation settings.",
+            "package": "search",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": null,
+            "required": true,
+            "notes": "Annotated marketplace explainer derived from the Search settings surface to show synonyms, typo corrections, and promoted results.",
+            "useCase": "A site owner understands how Search curation controls query intent and promoted answers.",
+            "screenshotPath": "packages/search/docs/screenshots/search-curation-annotated.png"
         }
     ]
 }

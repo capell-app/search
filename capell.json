@@ -227,6 +227,11 @@
                 "caption": "Search settings in dark mode"
             },
             {
+                "path": "docs/screenshots/search-curation-annotated.png",
+                "alt": "Annotated search curation settings for synonyms, typo corrections, and promoted results",
+                "caption": "Search curation controls"
+            },
+            {
                 "path": "docs/screenshots/top-searches-widget.png",
                 "alt": "Top searches admin insight widget",
                 "caption": "Top search analytics"

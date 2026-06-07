@@ -72,17 +72,20 @@ class ScoutSearch implements Search
             return new Paginator([], 0, $perPage, $page);
         }
 
-        $results = $this->registry
+        $sourceResults = $this->registry
             ->enabled()
             ->filter(fn (SearchableSourceData $source): bool => $this->sourceMatchesFilters($source, $filters))
-            ->flatMap(fn (SearchableSourceData $source): Collection => $this->searchSource(
+            ->map(fn (SearchableSourceData $source): array => $this->searchSource(
                 source: $source,
                 query: $query,
                 perPage: $perPage * $page,
                 siteId: $siteId,
                 languageId: $languageId,
                 filters: $filters,
-            ))
+            ));
+
+        $results = $sourceResults
+            ->flatMap(static fn (array $sourceResult): Collection => $sourceResult['items'])
             ->filter(static fn (SearchResultData $result): bool => $result->title !== '' && $result->url !== '/')
             ->unique(static fn (SearchResultData $result): string => $result->url)
             ->sortByDesc(static fn (SearchResultData $result): float => $result->score)
@@ -92,7 +95,9 @@ class ScoutSearch implements Search
             ->forPage($page, $perPage)
             ->values();
 
-        return new Paginator($items, $results->count(), $perPage, $page);
+        $sourceTotal = (int) $sourceResults->sum(static fn (array $sourceResult): int => $sourceResult['total']);
+
+        return new Paginator($items, max($sourceTotal, $results->count()), $perPage, $page);
     }
 
     public function highlight(string $text, string $query): string
@@ -109,7 +114,7 @@ class ScoutSearch implements Search
     }
 
     /**
-     * @return Collection<int, SearchResultData>
+     * @return array{items: Collection<int, SearchResultData>, total: int}
      */
     private function searchSource(
         SearchableSourceData $source,
@@ -118,7 +123,7 @@ class ScoutSearch implements Search
         ?int $siteId,
         ?int $languageId,
         ?SearchFilterData $filters,
-    ): Collection {
+    ): array {
         $builder = ($source->modelClass)::search($query);
 
         if ($source->indexName !== null && is_callable([$builder, 'within'])) {
@@ -140,9 +145,16 @@ class ScoutSearch implements Search
         /** @var LengthAwarePaginator<int, object> $paginator */
         $paginator = $builder->paginate(perPage: $perPage, page: 1);
 
-        return (new Collection($paginator->items()))
+        $rawItems = new Collection($paginator->items());
+
+        $items = $rawItems
             ->filter(fn (object $model): bool => $this->isPublicSearchPayload($this->publicSearchPayload($model)))
             ->map(fn (object $model): SearchResultData => $this->mapModelToResult($model, $source, $query));
+
+        return [
+            'items' => $items,
+            'total' => $paginator->total() > $rawItems->count() ? $paginator->total() : $items->count(),
+        ];
     }
 
     private function mapModelToResult(object $model, SearchableSourceData $source, string $query): SearchResultData
@@ -157,7 +169,7 @@ class ScoutSearch implements Search
             url: $this->normalizeUrl($url),
             excerpt: $this->truncate($excerptRaw),
             type: (string) ($row['type'] ?? $row[$this->typeColumn] ?? $source->type),
-            score: $this->score($title . ' ' . $excerptRaw, $query) * $source->weight,
+            score: $this->resultScore($row, $title . ' ' . $excerptRaw, $query) * $source->weight,
             typeLabel: null,
             sourceKey: $source->key,
             updatedAt: $this->updatedAt($row),
@@ -297,5 +309,19 @@ class ScoutSearch implements Search
     private function score(string $haystack, string $needle): float
     {
         return (float) substr_count(mb_strtolower($haystack), mb_strtolower($needle));
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     */
+    private function resultScore(array $row, string $haystack, string $needle): float
+    {
+        foreach (['_rankingScore', '_score', 'scout_score', 'text_match'] as $key) {
+            if (is_numeric($row[$key] ?? null)) {
+                return (float) $row[$key];
+            }
+        }
+
+        return $this->score($haystack, $needle);
     }
 }

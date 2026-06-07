@@ -106,6 +106,8 @@
         "buildTopSearchesQuery": "Capell\\Search\\Actions\\BuildTopSearchesQueryAction",
         "buildTrendingSearchesQuery": "Capell\\Search\\Actions\\BuildTrendingSearchesQueryAction",
         "buildZeroResultSearchesQuery": "Capell\\Search\\Actions\\BuildZeroResultSearchesQueryAction",
+        "createPromotedResultFromZeroResultSearch": "Capell\\Search\\Actions\\CreatePromotedResultFromZeroResultSearchAction",
+        "createSynonymFromZeroResultSearch": "Capell\\Search\\Actions\\CreateSynonymFromZeroResultSearchAction",
         "flushScoutSearchSources": "Capell\\Search\\Actions\\FlushScoutSearchSourcesAction",
         "indexScoutSearchSources": "Capell\\Search\\Actions\\IndexScoutSearchSourcesAction",
         "normalizeSearchQuery": "Capell\\Search\\Actions\\NormalizeSearchQueryAction",

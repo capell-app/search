@@ -10,6 +10,8 @@ use Capell\Search\Actions\BuildTopClickedResultsQueryAction;
 use Capell\Search\Actions\BuildTopSearchesQueryAction;
 use Capell\Search\Actions\BuildTrendingSearchesQueryAction;
 use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
+use Capell\Search\Actions\CreatePromotedResultFromZeroResultSearchAction;
+use Capell\Search\Actions\CreateSynonymFromZeroResultSearchAction;
 use Capell\Search\Actions\FlushScoutSearchSourcesAction;
 use Capell\Search\Actions\IndexScoutSearchSourcesAction;
 use Capell\Search\Actions\ResolveExpandedSearchQueriesAction;
@@ -102,6 +104,8 @@ it('declares implemented search gap features contributions and actions', functio
         ->and(data_get($manifest, 'actions'))->toHaveKey('buildTopSearchesQuery', BuildTopSearchesQueryAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('buildTrendingSearchesQuery', BuildTrendingSearchesQueryAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('buildZeroResultSearchesQuery', BuildZeroResultSearchesQueryAction::class)
+        ->and(data_get($manifest, 'actions'))->toHaveKey('createPromotedResultFromZeroResultSearch', CreatePromotedResultFromZeroResultSearchAction::class)
+        ->and(data_get($manifest, 'actions'))->toHaveKey('createSynonymFromZeroResultSearch', CreateSynonymFromZeroResultSearchAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('flushScoutSearchSources', FlushScoutSearchSourcesAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('indexScoutSearchSources', IndexScoutSearchSourcesAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('resolveExpandedSearchQueries', ResolveExpandedSearchQueriesAction::class)

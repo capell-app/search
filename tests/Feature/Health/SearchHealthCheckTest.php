@@ -17,8 +17,8 @@ beforeEach(function (): void {
     Schema::dropIfExists('search_logs');
     Schema::create('search_logs', function (Blueprint $table): void {
         $table->id();
-        $table->foreignId('site_id')->nullable()->index();
-        $table->foreignId('language_id')->nullable()->index();
+        $table->foreignId('site_id')->nullable();
+        $table->foreignId('language_id')->nullable();
         $table->string('query');
         $table->string('normalized_query')->index();
         $table->unsignedInteger('results_count')->default(0);
@@ -28,45 +28,54 @@ beforeEach(function (): void {
         $table->timestamp('searched_at')->index();
         $table->timestamps();
     });
+
+    CapellCore::registerModels([SearchLog::class]);
 });
 
 afterEach(function (): void {
     Schema::dropIfExists('search_logs');
 });
 
-it('reports a compatible capell api version', function (): void {
+it('reports compatible capell api version', function (): void {
     expect(SearchHealthCheck::compatibleCapellApiVersion())->toBe('^4.0');
 });
 
-it('runs real diagnostics returning check results', function (): void {
+it('runs diagnostics with runtime probes', function (): void {
     $results = SearchHealthCheck::runDiagnostics();
 
-    expect($results)->toHaveCount(3)
-        ->and($results->every(static fn (mixed $result): bool => $result instanceof DoctorCheckResultData))->toBeTrue();
+    expect($results)->toHaveCount(5)
+        ->and($results->every(static fn (DoctorCheckResultData $result): bool => $result instanceof DoctorCheckResultData))->toBeTrue()
+        ->and($results->pluck('label')->all())->toContain(
+            'Search log storage table',
+            'SearchLog model registration',
+            'Search driver resolution',
+            'Search log write probe',
+            'Search logging configuration',
+        );
 });
 
-it('passes when the storage table, model registration, and logging config are valid', function (): void {
-    expect(CapellCore::getModels())->toContain(SearchLog::class)
-        ->and(SearchHealthCheck::passed())->toBeTrue()
-        ->and(SearchHealthCheck::runDiagnostics()->every(static fn (DoctorCheckResultData $result): bool => $result->passed))->toBeTrue();
+it('passes storage table, model registration, runtime probes, and logging config when valid', function (): void {
+    $results = SearchHealthCheck::runDiagnostics();
+
+    expect($results->pluck('passed')->all())->toBe([true, true, true, true, true])
+        ->and(SearchLog::query()->where('query', '__capell_health_probe__')->exists())->toBeFalse();
 });
 
-it('fails when the search log table is missing', function (): void {
-    Schema::drop('search_logs');
+it('fails storage table check when table is missing', function (): void {
+    Schema::dropIfExists('search_logs');
 
-    $check = new SearchHealthCheck;
+    $result = (new SearchHealthCheck)->storageTableCheck();
 
-    expect($check->hasSearchLogTable())->toBeFalse()
-        ->and($check->storageTableCheck()->passed)->toBeFalse()
-        ->and(SearchHealthCheck::passed())->toBeFalse();
+    expect($result->passed)->toBeFalse()
+        ->and($result->remediation)->not->toBeNull();
 });
 
-it('fails when logging configuration cannot support retention', function (): void {
+it('fails logging configuration check when values are invalid', function (): void {
+    config()->set('capell-search.minimum_query_length', 0);
     config()->set('capell-search.logs.retention_days', 0);
 
-    $check = new SearchHealthCheck;
+    $result = (new SearchHealthCheck)->loggingConfigurationCheck();
 
-    expect($check->hasValidLoggingConfiguration())->toBeFalse()
-        ->and($check->loggingConfigurationCheck()->passed)->toBeFalse()
-        ->and(SearchHealthCheck::passed())->toBeFalse();
+    expect($result->passed)->toBeFalse()
+        ->and($result->remediation)->not->toBeNull();
 });

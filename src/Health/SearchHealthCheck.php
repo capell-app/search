@@ -7,9 +7,12 @@ namespace Capell\Search\Health;
 use Capell\Core\Contracts\Extensions\ChecksExtensionHealth;
 use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
 use Capell\Core\Facades\CapellCore;
+use Capell\Search\Contracts\Search;
 use Capell\Search\Models\SearchLog;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 final class SearchHealthCheck implements ChecksExtensionHealth
 {
@@ -28,6 +31,8 @@ final class SearchHealthCheck implements ChecksExtensionHealth
         return collect([
             $check->storageTableCheck(),
             $check->modelRegistrationCheck(),
+            $check->searchDriverCheck(),
+            $check->searchLogWriteCheck(),
             $check->loggingConfigurationCheck(),
         ]);
     }
@@ -68,6 +73,69 @@ final class SearchHealthCheck implements ChecksExtensionHealth
             remediation: $modelRegistered
                 ? null
                 : 'Ensure SearchServiceProvider registers SearchLog through CapellCore::registerModels().',
+        );
+    }
+
+    public function searchDriverCheck(): DoctorCheckResultData
+    {
+        try {
+            $driver = app(Search::class);
+            $driverResolves = $driver instanceof Search;
+        } catch (Throwable) {
+            $driverResolves = false;
+        }
+
+        return new DoctorCheckResultData(
+            label: 'Search driver resolution',
+            passed: $driverResolves,
+            message: $driverResolves
+                ? sprintf('The configured %s implementation resolves successfully.', Search::class)
+                : sprintf('The configured %s implementation could not be resolved.', Search::class),
+            remediation: $driverResolves
+                ? null
+                : 'Check capell-search.driver and any configured database, Site Discovery, or Scout dependencies.',
+        );
+    }
+
+    public function searchLogWriteCheck(): DoctorCheckResultData
+    {
+        $tableName = $this->searchLogTableName();
+
+        if (! $this->hasSearchLogTable()) {
+            return new DoctorCheckResultData(
+                label: 'Search log write probe',
+                passed: false,
+                message: sprintf('The %s table is missing, so writeability could not be checked.', $tableName),
+                remediation: 'Run the Capell migrations to create the search log table.',
+            );
+        }
+
+        try {
+            $recordId = DB::table($tableName)->insertGetId([
+                'query' => '__capell_health_probe__',
+                'normalized_query' => '__capell_health_probe__',
+                'results_count' => 0,
+                'searched_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::table($tableName)->where('id', $recordId)->delete();
+
+            $writeable = true;
+        } catch (Throwable) {
+            $writeable = false;
+        }
+
+        return new DoctorCheckResultData(
+            label: 'Search log write probe',
+            passed: $writeable,
+            message: $writeable
+                ? sprintf('The %s table accepts query-log writes.', $tableName)
+                : sprintf('The %s table rejected a query-log write probe.', $tableName),
+            remediation: $writeable
+                ? null
+                : 'Verify the search log migration columns and database write permissions.',
         );
     }
 

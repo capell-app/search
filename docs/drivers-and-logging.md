@@ -17,10 +17,11 @@ Search exposes a public frontend route and records first-party search behavior w
 | `capell-search.hash_visitor_data`                  | Hashes visitor identifiers in logs.                                                  |
 | `capell-search.ranking.click_counts_cache_seconds` | Caches click-through aggregate counts used for result boosts; set to `0` to disable. |
 | `capell-search.database.*`                         | Database driver table and column mapping.                                            |
+| `capell-search.database.column_weights`            | Database driver fallback ranking weights for fields such as `title`, `excerpt`, and `body`. |
 | `capell-search.scout.*`                            | Scout model and column mapping.                                                      |
 | `capell-search.logs.retention_days`                | Retention window for purge behavior.                                                 |
 
-The Site Discovery driver is the safe default because it searches Capell's canonical public URL registry instead of assuming page content lives in flat database columns. The database driver expects a flat searchable source. Do not point it at a table whose title, body, URL, or type values live only in nested JSON unless the configured columns can be queried directly. For standard Capell pages, use Site Discovery for URL/title search, a flattened index table/view, a custom `Search` implementation, or Scout.
+The Site Discovery driver is the safe default because it searches Capell's canonical public URL registry instead of assuming page content lives in flat database columns. The database driver expects a flat searchable source. Do not point it at a table whose title, body, URL, or type values live only in nested JSON unless the configured columns can be queried directly. For standard Capell pages, use Site Discovery for URL/title search, a flattened index table/view, a custom `Search` implementation, or Scout. When the database driver falls back to `LIKE`, `database.column_weights` controls the generated `search_score`, so a title match can outrank repeated body matches.
 
 ## Swap the Search Driver
 

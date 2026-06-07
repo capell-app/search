@@ -111,6 +111,11 @@ return [
     'database' => [
         'table' => 'pages',
         'columns' => ['title', 'excerpt', 'body'],
+        'column_weights' => [
+            'title' => 3.0,
+            'excerpt' => 2.0,
+            'body' => 1.0,
+        ],
         'title_column' => 'title',
         'url_column' => 'slug',
         'excerpt_column' => 'excerpt',

@@ -36,6 +36,8 @@ beforeAll(function (): void {
         ['title' => 'Laravel French', 'excerpt' => 'Learn Laravel in French', 'body' => null, 'slug' => 'laravel-french', 'type' => 'post', 'site_id' => 1, 'language_id' => 2, 'status' => 'published'],
         ['title' => 'Laravel Draft', 'excerpt' => 'Unpublished Laravel page', 'body' => null, 'slug' => 'laravel-draft', 'type' => 'post', 'site_id' => 1, 'language_id' => 1, 'status' => 'draft'],
         ['title' => 'Laravel Other Site', 'excerpt' => 'Other site Laravel page', 'body' => null, 'slug' => 'laravel-other-site', 'type' => 'post', 'site_id' => 2, 'language_id' => 1, 'status' => 'published'],
+        ['title' => 'Weightedterm Title Result', 'excerpt' => null, 'body' => null, 'slug' => 'weighted-title', 'type' => 'page', 'site_id' => 1, 'language_id' => 1, 'status' => 'published'],
+        ['title' => 'Body Weighted Result', 'excerpt' => null, 'body' => 'weightedterm weightedterm weightedterm weightedterm', 'slug' => 'weighted-body', 'type' => 'page', 'site_id' => 1, 'language_id' => 1, 'status' => 'published'],
     ]);
 
     Capsule::schema()->create('search_pages_without_status', function (Blueprint $table): void {
@@ -147,6 +149,23 @@ test('search score is a float', function (): void {
     $firstResult = $results->items()[0] ?? null;
 
     expect($firstResult?->score)->toBeFloat();
+});
+
+test('search ranks database fallback results with configured column weights', function (): void {
+    $search = new DatabaseSearch(
+        db: Capsule::connection(),
+        columnWeights: [
+            'title' => 10.0,
+            'body' => 1.0,
+        ],
+    );
+
+    $results = $search->search('weightedterm');
+    $firstResult = $results->items()[0] ?? null;
+
+    expect($results->total())->toBe(2)
+        ->and($firstResult?->url)->toBe('/weighted-title')
+        ->and($firstResult?->score)->toBe(10.0);
 });
 
 test('search filters by site language and published status when columns are present', function (): void {

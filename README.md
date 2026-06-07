@@ -138,7 +138,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Adds frontend search route.
 - Adds optional header search render hook.
 - Adds dashboard insights widgets.
-- Adds config keys for driver, route, result count, excerpts, logging, hashing, retention, synonyms, typo corrections, promoted results, and source weighting.
+- Adds config keys for driver, route, result count, excerpts, logging, hashing, retention, synonyms, typo corrections, promoted results, source weighting, and database column weighting.
 
 ## Install And Setup
 

@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Models\Language;
+use Capell\Core\Models\Layout;
+use Capell\Core\Models\Page;
+use Capell\Core\Models\Site;
+use Capell\Core\Models\Theme;
+use Capell\Frontend\Support\CapellFrontendContext;
+use Capell\Frontend\Support\State\FrontendState;
 use Capell\Search\Actions\GenerateSearchClickTokenAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchFilterData;
@@ -381,6 +388,74 @@ test('controller returns the search page view with an empty paginator for a blan
     expect($view->getData()['query'])->toBe('   ');
     expect($view->getData()['results'])->toBeInstanceOf(LengthAwarePaginator::class);
     expect($view->getData()['results']->total())->toBe(0);
+});
+
+test('controller wraps the search page in the frontend shell when context is available', function (): void {
+    app()->instance(Search::class, new class implements Search
+    {
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+            ?SearchFilterData $filters = null,
+        ): LengthAwarePaginator {
+            throw new RuntimeException('Search should not run for a blank query.');
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return $text;
+        }
+    });
+
+    $site = new Site;
+    $site->setRawAttributes(['id' => 1, 'name' => 'Capell']);
+
+    $language = new Language;
+    $language->setRawAttributes(['id' => 1, 'name' => 'English', 'code' => 'en']);
+
+    $page = new Page;
+    $page->setRawAttributes(['id' => 1, 'name' => 'Search']);
+
+    $layout = new Layout;
+    $layout->setRawAttributes([
+        'id' => 1,
+        'name' => 'Default',
+        'meta' => json_encode(['container' => 'xl'], JSON_THROW_ON_ERROR),
+    ]);
+
+    $theme = new Theme;
+    $theme->setRawAttributes([
+        'id' => 1,
+        'name' => 'Minimal',
+        'meta' => json_encode(['header' => false, 'footer' => false], JSON_THROW_ON_ERROR),
+    ]);
+
+    app()->instance(
+        CapellFrontendContext::class,
+        new CapellFrontendContext(
+            (new FrontendState)
+                ->withSite($site)
+                ->withLanguage($language)
+                ->withPage($page)
+                ->withLayout($layout)
+                ->withTheme($theme),
+        ),
+    );
+
+    $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => '']);
+    $view = (new SearchController)($request);
+
+    expect($view->name())->toBe('capell::app')
+        ->and($view->getData()['site'])->toBe($site)
+        ->and($view->getData()['language'])->toBe($language)
+        ->and($view->getData()['pageRecord'])->toBe($page)
+        ->and($view->getData()['layout'])->toBe($layout)
+        ->and($view->getData()['theme'])->toBe($theme)
+        ->and((string) $view->getData()['slot'])->toContain('search-layout')
+        ->and((string) $view->getData()['slot'])->toContain('Search this site');
 });
 
 test('controller passes normalized valid searches to the site search service', function (): void {

@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
+use Capell\Search\Actions\GenerateSearchClickTokenAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchFilterData;
+use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
 use Capell\Search\Http\Controllers\SearchController;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Providers\SearchServiceProvider;
 use Capell\Search\Support\SearchableSourceRegistry;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
@@ -16,6 +19,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 
@@ -244,6 +248,45 @@ test('result click beacon does not require a csrf token', function (): void {
         ->toContain("body.set(\n                    'token',")
         ->not()->toContain('csrf-token')
         ->not()->toContain('X-CSRF-TOKEN');
+});
+
+test('click tracking endpoint records result clicks by token', function (): void {
+    RateLimiter::for('capell-search-clicks', static fn (): Limit => Limit::perMinute(120));
+
+    Schema::dropIfExists('search_logs');
+    Schema::create('search_logs', function (Blueprint $table): void {
+        $table->id();
+        $table->foreignId('site_id')->nullable()->index();
+        $table->foreignId('language_id')->nullable()->index();
+        $table->string('query');
+        $table->string('normalized_query')->index();
+        $table->unsignedInteger('results_count')->default(0);
+        $table->string('clicked_result_url')->nullable();
+        $table->string('ip_hash', 64)->nullable();
+        $table->string('user_agent_hash', 64)->nullable();
+        $table->timestamp('searched_at')->index();
+        $table->timestamps();
+    });
+
+    $searchData = new SearchRequestData(query: 'Laravel Search');
+    $log = SearchLog::query()->create([
+        'query' => 'Laravel Search',
+        'normalized_query' => 'laravel search',
+        'results_count' => 1,
+        'searched_at' => now(),
+    ]);
+    $token = GenerateSearchClickTokenAction::run($searchData);
+
+    $this
+        ->withoutMiddleware()
+        ->post(route('capell-frontend.search.click'), [
+            'query' => 'Laravel Search',
+            'url' => '/laravel-search',
+            'token' => $token,
+        ])
+        ->assertNoContent();
+
+    expect($log->refresh()->clicked_result_url)->toBe('/laravel-search');
 });
 
 test('controller uses configured page view when it exists', function (): void {

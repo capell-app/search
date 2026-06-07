@@ -132,7 +132,7 @@ final readonly class SiteDiscoverySearch implements Search
         $path = trim($path, '/');
 
         if ($path === '') {
-            return 'Home';
+            return __('capell-search::generic.site_discovery_home_title');
         }
 
         $lastSegment = basename($path);

@@ -75,6 +75,27 @@ test('site discovery search matches route package and content type metadata', fu
         ->and($firstResult?->type)->toBe('article');
 });
 
+test('site discovery search translates the root url title', function (): void {
+    app('translator')->addLines([
+        'generic.site_discovery_home_title' => 'Homepage',
+    ], 'en', 'capell-search');
+
+    $search = new SiteDiscoverySearch(new Collection([
+        new PublicUrlRegistryEntryData(
+            canonicalUrl: 'https://example.com/',
+            sourcePackage: 'capell-app/core',
+            siteKey: 1,
+            languageKey: 1,
+        ),
+    ]));
+
+    $results = $search->search('homepage');
+    $firstResult = $results->items()[0] ?? null;
+
+    expect($results->total())->toBe(1)
+        ->and($firstResult?->title)->toBe('Homepage');
+});
+
 test('site discovery search paginates and highlights safely', function (): void {
     $search = new SiteDiscoverySearch(new Collection([
         new PublicUrlRegistryEntryData(

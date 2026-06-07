@@ -170,6 +170,24 @@ test('search returns no public results when configured status guard column is mi
     expect($results->isEmpty())->toBeTrue();
 });
 
+test('fulltext index compatibility allows covering indexes regardless of column order', function (): void {
+    $search = new DatabaseSearch(Capsule::connection());
+    $method = new ReflectionMethod(DatabaseSearch::class, 'hasCompatibleFullTextIndex');
+
+    expect($method->invoke($search, [
+        ['body', 'excerpt', 'title'],
+    ], ['title', 'excerpt']))->toBeTrue();
+});
+
+test('fulltext index compatibility rejects indexes missing configured search columns', function (): void {
+    $search = new DatabaseSearch(Capsule::connection());
+    $method = new ReflectionMethod(DatabaseSearch::class, 'hasCompatibleFullTextIndex');
+
+    expect($method->invoke($search, [
+        ['title', 'excerpt'],
+    ], ['title', 'excerpt', 'body']))->toBeFalse();
+});
+
 test('wraps matches in <mark> tags with escaping', function (): void {
     $databaseConnection = Mockery::mock(ConnectionInterface::class);
     $search = new DatabaseSearch($databaseConnection);

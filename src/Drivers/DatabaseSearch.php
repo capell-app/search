@@ -30,6 +30,11 @@ class DatabaseSearch implements Search
     private const int MAXIMUM_PER_PAGE = 100;
 
     /**
+     * @var array<string, bool>
+     */
+    private static array $fullTextIndexCompatibilityCache = [];
+
+    /**
      * @param  list<string>  $columns  Columns to search against.
      */
     public function __construct(
@@ -210,6 +215,18 @@ class DatabaseSearch implements Search
             return false;
         }
 
+        $cacheKey = implode('|', [
+            spl_object_id($connection),
+            $connection->getDriverName(),
+            $connection->getDatabaseName(),
+            $this->table,
+            implode(',', $columns),
+        ]);
+
+        if (array_key_exists($cacheKey, self::$fullTextIndexCompatibilityCache)) {
+            return self::$fullTextIndexCompatibilityCache[$cacheKey];
+        }
+
         try {
             $databaseName = $connection->getDatabaseName();
             $indexedColumns = $connection->table('information_schema.STATISTICS')
@@ -224,12 +241,38 @@ class DatabaseSearch implements Search
                     ->map(static fn (mixed $column): string => (string) $column)
                     ->all());
 
-            return $indexedColumns->contains(
-                static fn (array $indexColumns): bool => $indexColumns === $columns,
+            return self::$fullTextIndexCompatibilityCache[$cacheKey] = $this->hasCompatibleFullTextIndex(
+                $indexedColumns->values()->all(),
+                $columns,
             );
         } catch (Throwable) {
+            return self::$fullTextIndexCompatibilityCache[$cacheKey] = false;
+        }
+    }
+
+    /**
+     * @param  list<list<string>>  $indexedColumnSets
+     * @param  list<string>  $columns
+     */
+    private function hasCompatibleFullTextIndex(array $indexedColumnSets, array $columns): bool
+    {
+        $searchColumns = collect($columns)
+            ->map(static fn (string $column): string => mb_strtolower($column))
+            ->unique()
+            ->values();
+
+        if ($searchColumns->isEmpty()) {
             return false;
         }
+
+        return collect($indexedColumnSets)->contains(function (array $indexColumns) use ($searchColumns): bool {
+            $normalizedIndexColumns = collect($indexColumns)
+                ->map(static fn (string $column): string => mb_strtolower($column))
+                ->unique()
+                ->values();
+
+            return $searchColumns->diff($normalizedIndexColumns)->isEmpty();
+        });
     }
 
     /**

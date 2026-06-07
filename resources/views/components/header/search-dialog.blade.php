@@ -459,18 +459,15 @@
                     '[data-site-search-click]',
                 )
 
-                if (trackedLink) {
+                if (trackedLink && !window.capellSearchClickBeaconInitialized) {
                     const trackingContainer = trackedLink.closest(
                         '[data-site-search-click-url]',
                     )
-                    const token = document
-                        .querySelector('meta[name="csrf-token"]')
-                        ?.getAttribute('content')
                     const url = trackingContainer?.getAttribute(
                         'data-site-search-click-url',
                     )
 
-                    if (token && url) {
+                    if (url) {
                         const body = new FormData()
                         body.set(
                             'query',
@@ -500,7 +497,7 @@
                         fetch(url, {
                             method: 'POST',
                             body,
-                            headers: { 'X-CSRF-TOKEN': token },
+                            mode: 'no-cors',
                             keepalive: true,
                         }).catch(() => {})
                     }

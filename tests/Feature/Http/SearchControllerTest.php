@@ -9,6 +9,7 @@ use Capell\Search\Http\Controllers\SearchController;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Providers\SearchServiceProvider;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
@@ -124,6 +125,35 @@ test('autocomplete route is lightly throttled', function (): void {
     $route = Route::getRoutes()->getByName('capell-frontend.search.autocomplete');
 
     expect($route?->gatherMiddleware())->toContain('throttle:capell-search-autocomplete');
+});
+
+test('click tracking route is csrf exempt for cached frontend beacons', function (): void {
+    $route = Route::getRoutes()->getByName('capell-frontend.search.click');
+
+    expect($route?->gatherMiddleware())->toContain('throttle:capell-search-clicks')
+        ->and($route?->excludedMiddleware())->toContain(VerifyCsrfToken::class);
+});
+
+test('header click beacon does not require a csrf token', function (): void {
+    $html = view('capell-search::components.header.search-dialog')->render();
+
+    expect($html)
+        ->toContain("mode: 'no-cors'")
+        ->not()->toContain('csrf-token')
+        ->not()->toContain('X-CSRF-TOKEN');
+});
+
+test('result click beacon does not require a csrf token', function (): void {
+    $html = view('capell-search::components.results', [
+        'query' => '',
+        'results' => new Paginator(new Collection, 0, 5, 1),
+    ])->render();
+
+    expect($html)
+        ->toContain('window.capellSearchClickBeaconInitialized')
+        ->toContain("mode: 'no-cors'")
+        ->not()->toContain('csrf-token')
+        ->not()->toContain('X-CSRF-TOKEN');
 });
 
 test('controller uses configured page view when it exists', function (): void {

@@ -27,6 +27,7 @@ return [
     'click_tracking' => [
         'enabled' => true,
         'route_path' => 'search/click',
+        'rate_limiter' => 'capell-search-clicks',
         'match_window_minutes' => 30,
     ],
     'keyboard_shortcuts' => [

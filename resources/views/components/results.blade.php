@@ -67,3 +67,62 @@
         </div>
     @endif
 </section>
+
+@once
+    <script>
+        ;(() => {
+            if (window.capellSearchClickBeaconInitialized) {
+                return
+            }
+
+            window.capellSearchClickBeaconInitialized = true
+
+            document.addEventListener('click', (event) => {
+                const trackedLink = event.target.closest(
+                    '[data-site-search-click]',
+                )
+
+                if (!trackedLink) {
+                    return
+                }
+
+                const trackingContainer = trackedLink.closest(
+                    '[data-site-search-click-url]',
+                )
+                const url = trackingContainer?.getAttribute(
+                    'data-site-search-click-url',
+                )
+
+                if (!url) {
+                    return
+                }
+
+                const body = new FormData()
+                body.set(
+                    'query',
+                    trackedLink.getAttribute('data-site-search-query') || '',
+                )
+                body.set('url', trackedLink.href)
+                body.set(
+                    'type',
+                    trackedLink.getAttribute('data-site-search-type') || '',
+                )
+                body.set(
+                    'position',
+                    trackedLink.getAttribute('data-site-search-position') || '',
+                )
+                body.set(
+                    'surface',
+                    trackedLink.getAttribute('data-site-search-surface') || '',
+                )
+
+                fetch(url, {
+                    method: 'POST',
+                    body,
+                    mode: 'no-cors',
+                    keepalive: true,
+                }).catch(() => {})
+            })
+        })()
+    </script>
+@endonce

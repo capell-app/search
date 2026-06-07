@@ -10,17 +10,23 @@ use Capell\Core\Models\Layout;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\Theme;
 use Capell\Frontend\Facades\Frontend;
+use Capell\Search\Actions\BuildSearchFacetGroupsAction;
+use Capell\Search\Actions\GenerateSearchClickTokenAction;
 use Capell\Search\Actions\NormalizeSearchFiltersAction;
 use Capell\Search\Actions\RecordSearchAction;
 use Capell\Search\Actions\RecordSearchResultClickAction;
 use Capell\Search\Actions\ResolveSearchSettingAction;
 use Capell\Search\Actions\RunAutocompleteSearchAction;
 use Capell\Search\Actions\RunSearchAction;
+use Capell\Search\Contracts\Search;
+use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchRequestData;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 use Throwable;
 
@@ -44,25 +50,51 @@ final class SearchController
         );
 
         $results = RunSearchAction::run($data);
+        $highlightedResults = $this->highlightedResults(app(Search::class), $results, $query);
+        $clickTrackingToken = GenerateSearchClickTokenAction::run($data);
+        $facetGroups = BuildSearchFacetGroupsAction::run(
+            request: $request,
+            query: $query,
+            filters: $data->filters ?? new SearchFilterData,
+            siteId: $data->siteId,
+            languageId: $data->languageId,
+        );
 
-        RecordSearchAction::run($data, $results->total(), $request);
+        RecordSearchAction::dispatchAfterResponse(
+            $data,
+            $results->total(),
+            $request->ip(),
+            $request->userAgent(),
+        );
 
         $pageView = $this->configuredPageView();
 
         if ($pageView !== null) {
             return view($pageView, [
+                'highlightedResults' => $highlightedResults,
+                'facetGroups' => $facetGroups,
+                'clickTrackingToken' => $clickTrackingToken,
                 'query' => $query,
                 'results' => $results,
             ]);
         }
 
-        $content = view('capell-search::pages.search', compact('query', 'results'));
+        $content = view('capell-search::pages.search', [
+            'highlightedResults' => $highlightedResults,
+            'facetGroups' => $facetGroups,
+            'clickTrackingToken' => $clickTrackingToken,
+            'query' => $query,
+            'results' => $results,
+        ]);
 
         if (! $this->canRenderFrontendShell()) {
             return $content;
         }
 
         $slot = view('capell-search::layouts.frontend', [
+            'highlightedResults' => $highlightedResults,
+            'facetGroups' => $facetGroups,
+            'clickTrackingToken' => $clickTrackingToken,
             'query' => $query,
             'results' => $results,
         ]);
@@ -92,6 +124,7 @@ final class SearchController
             request: $request,
             query: (string) $request->string('query'),
             url: (string) $request->string('url'),
+            token: $request->string('token')->toString() ?: null,
             type: $request->string('type')->toString() ?: null,
             position: $request->integer('position') ?: null,
             surface: $request->string('surface')->toString() ?: null,
@@ -113,6 +146,19 @@ final class SearchController
             languageId: is_object($language) ? (int) data_get($language, 'id') : null,
             filters: NormalizeSearchFiltersAction::run($request),
         );
+    }
+
+    /**
+     * @return Collection<int, array{title: string, excerpt: string}>
+     */
+    private function highlightedResults(Search $search, LengthAwarePaginator $results, string $query): Collection
+    {
+        return collect($results->items())
+            ->map(static fn (mixed $result): array => [
+                'title' => $search->highlight((string) data_get($result, 'title', ''), $query),
+                'excerpt' => $search->highlight((string) data_get($result, 'excerpt', ''), $query),
+            ])
+            ->values();
     }
 
     /**

@@ -143,16 +143,47 @@ final class SanitizeSearchResultAction
      */
     private function safeMeta(array $meta): array
     {
+        $allowedKeys = $this->allowedMetaKeys();
+
         return collect($meta)
-            ->reject(static fn (mixed $value, string $key): bool => str($key)->lower()->contains([
-                'admin',
-                'editor',
-                'model',
-                'signed',
-                'token',
-                'preview',
-                'field',
-            ]))
+            ->filter(fn (mixed $value, string $key): bool => in_array(str($key)->lower()->toString(), $allowedKeys, true)
+                && $this->isSafeMetaValue($value))
             ->all();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function allowedMetaKeys(): array
+    {
+        $keys = config('capell-search.public_urls.allowed_meta_keys', []);
+
+        if (! is_array($keys)) {
+            return [];
+        }
+
+        return array_values(collect($keys)
+            ->map(static fn (mixed $key): string => is_string($key) ? str($key)->lower()->toString() : '')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all());
+    }
+
+    private function isSafeMetaValue(mixed $value): bool
+    {
+        if ($value === null || is_scalar($value)) {
+            return true;
+        }
+
+        if (! is_array($value)) {
+            return false;
+        }
+
+        if (! array_is_list($value)) {
+            return false;
+        }
+
+        return collect($value)->every(static fn (mixed $item): bool => $item === null || is_scalar($item));
     }
 }

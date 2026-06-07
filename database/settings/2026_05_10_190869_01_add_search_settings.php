@@ -12,7 +12,7 @@ return new class extends SettingsMigration
             'search.enabled' => true,
             'search.show_header_search' => true,
             'search.results_per_page' => 10,
-            'search.driver' => 'database',
+            'search.driver' => 'site_discovery',
             'search.record_search_logs' => true,
             'search.log_retention_days' => 180,
             'search.hash_visitor_data' => true,

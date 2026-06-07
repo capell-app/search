@@ -150,6 +150,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
                 db: $app->make(ConnectionResolverInterface::class)->connection(),
                 table: config('capell-search.database.table', 'pages'),
                 columns: config('capell-search.database.columns', ['title', 'excerpt', 'body']),
+                columnWeights: config('capell-search.database.column_weights', []),
                 urlColumn: config('capell-search.database.url_column', 'slug'),
                 typeColumn: config('capell-search.database.type_column', 'type'),
                 titleColumn: config('capell-search.database.title_column', 'title'),
@@ -170,7 +171,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         $configDriver = ResolveSearchSettingAction::run(
             'driver',
             'capell-search.driver',
-            SearchDriver::Database->value,
+            SearchDriver::SiteDiscovery->value,
         );
 
         if ($configDriver instanceof SearchDriver) {
@@ -181,7 +182,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             return $configDriver;
         }
 
-        return SearchDriver::Database->value;
+        return SearchDriver::SiteDiscovery->value;
     }
 
     private function registerModels(): self

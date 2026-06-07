@@ -17,7 +17,7 @@ final class ResolvePromotedSearchResultsAction
     public function handle(string $normalizedQuery): array
     {
         $normalizedQuery = NormalizeSearchQueryAction::run($normalizedQuery);
-        $configuredPromotions = config('capell-search.promoted_results', []);
+        $configuredPromotions = ResolveSearchSettingAction::run('promoted_results', 'capell-search.promoted_results', []);
 
         if ($normalizedQuery === '' || ! is_array($configuredPromotions)) {
             return [];

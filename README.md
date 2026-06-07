@@ -83,7 +83,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Route: GET search by default, named capell-frontend.search.
 - Model: SearchLog.
 - Drivers: DatabaseSearch, SiteDiscoverySearch, and ScoutSearch.
-- Command: PurgeSearchLogsCommand.
+- Commands: `search:purge`, `search:index`, and `search:flush`.
 
 ## Code Map
 
@@ -115,6 +115,8 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 ## Commands
 
 - `search:purge {--days= : Override retention days}` (packages/search/src/Console/Commands/PurgeSearchLogsCommand.php)
+- `search:index {--source= : Only index one configured searchable source key} {--chunk= : Scout import chunk size}` (packages/search/src/Console/Commands/IndexSearchCommand.php)
+- `search:flush {--source= : Only flush one configured searchable source key}` (packages/search/src/Console/Commands/FlushSearchCommand.php)
 
 ## Data And Persistence
 
@@ -138,7 +140,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Adds frontend search route.
 - Adds optional header search render hook.
 - Adds dashboard insights widgets.
-- Adds config keys for driver, route, result count, excerpts, logging, hashing, retention, synonyms, typo corrections, promoted results, and source weighting.
+- Adds config keys for driver, route, result count, excerpts, logging, hashing, retention, synonyms, typo corrections, promoted results, source weighting, and database column weighting.
 
 ## Install And Setup
 
@@ -160,6 +162,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Database driver config must point at searchable columns that exist.
 - The default core `pages` table is not a flat search index. Use a flattened table/view, the Site Discovery URL registry driver, a custom `Search` binding, or Scout for real page content.
 - The Site Discovery driver searches registry metadata and canonical URLs; use Scout or a custom driver when full page body search is required.
+- Scout source packages own their public `toSearchableArray()` payloads, model observer behavior, and external index freshness. Use `search:index` and `search:flush` for explicit maintenance.
 - Minimum query length defaults to 2 characters.
 - Disable logging or hashing according to privacy requirements.
 - Run log purge if retention needs enforcement.

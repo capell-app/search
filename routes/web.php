@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Capell\Search\Http\Controllers\SearchController;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 
 Route::name('capell-frontend.')
@@ -16,5 +17,7 @@ Route::name('capell-frontend.')
             ->name('search.autocomplete');
 
         Route::post(config('capell-search.click_tracking.route_path', 'search/click'), [SearchController::class, 'click'])
+            ->middleware('throttle:' . config('capell-search.click_tracking.rate_limiter', 'capell-search-clicks'))
+            ->withoutMiddleware([VerifyCsrfToken::class])
             ->name('search.click');
     });

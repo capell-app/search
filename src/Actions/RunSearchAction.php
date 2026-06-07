@@ -39,6 +39,7 @@ final readonly class RunSearchAction
         }
 
         $queries = ResolveExpandedSearchQueriesAction::run($normalizedQuery);
+        $queries = $this->expandedQueriesForPage($queries, $data->page);
 
         $results = $this->searchForQueries(
             queries: $queries,
@@ -49,7 +50,28 @@ final readonly class RunSearchAction
             filters: $data->filters,
         );
 
-        return ApplySearchResultEnhancementsAction::run($results, $normalizedQuery);
+        return ApplySearchResultEnhancementsAction::run($results, $normalizedQuery, $data->siteId, $data->languageId);
+    }
+
+    /**
+     * @param  list<string>  $queries
+     * @return list<string>
+     */
+    private function expandedQueriesForPage(array $queries, int $page): array
+    {
+        $primaryQuery = $queries[0] ?? '';
+
+        if ($primaryQuery === '') {
+            return [];
+        }
+
+        if ($page > 1) {
+            return [$primaryQuery];
+        }
+
+        $maxQueries = max(1, (int) config('capell-search.query_expansion.max_queries', 3));
+
+        return array_slice($queries, 0, $maxQueries);
     }
 
     /**

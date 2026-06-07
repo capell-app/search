@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Search\Actions\GenerateSearchClickTokenAction;
 use Capell\Search\Actions\RecordSearchAction;
 use Capell\Search\Actions\RecordSearchResultClickAction;
 use Capell\Search\Data\SearchRequestData;
@@ -9,6 +10,7 @@ use Capell\Search\Models\SearchLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Schema;
 
 beforeEach(function (): void {
@@ -39,11 +41,6 @@ afterEach(function (): void {
 });
 
 test('logs valid searches with normalized query and hashed visitor data', function (): void {
-    $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, server: [
-        'REMOTE_ADDR' => '203.0.113.10',
-        'HTTP_USER_AGENT' => 'Capell Test Browser',
-    ]);
-
     $log = RecordSearchAction::run(
         new SearchRequestData(
             query: '  Laravel   Search  ',
@@ -51,7 +48,8 @@ test('logs valid searches with normalized query and hashed visitor data', functi
             languageId: 20,
         ),
         7,
-        $request,
+        '203.0.113.10',
+        'Capell Test Browser',
     );
 
     expect($log)->toBeInstanceOf(SearchLog::class);
@@ -69,7 +67,6 @@ test('skips blank searches', function (): void {
     $log = RecordSearchAction::run(
         new SearchRequestData(query: '   '),
         0,
-        Request::create('/search'),
     );
 
     expect($log)->toBeNull();
@@ -82,7 +79,6 @@ test('skips searches shorter than the minimum query length', function (): void {
     $log = RecordSearchAction::run(
         new SearchRequestData(query: 'ab'),
         0,
-        Request::create('/search'),
     );
 
     expect($log)->toBeNull();
@@ -95,7 +91,6 @@ test('respects disabled search logging', function (): void {
     $log = RecordSearchAction::run(
         new SearchRequestData(query: 'Laravel Search'),
         1,
-        Request::create('/search'),
     );
 
     expect($log)->toBeNull();
@@ -108,10 +103,8 @@ test('omits visitor hashes when visitor hashing is disabled', function (): void 
     $log = RecordSearchAction::run(
         new SearchRequestData(query: 'Laravel Search'),
         1,
-        Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, server: [
-            'REMOTE_ADDR' => '203.0.113.10',
-            'HTTP_USER_AGENT' => 'Capell Test Browser',
-        ]),
+        '203.0.113.10',
+        'Capell Test Browser',
     );
 
     expect($log)->toBeInstanceOf(SearchLog::class);
@@ -128,4 +121,91 @@ test('records clicked result url on an existing search log', function (): void {
 
     expect($updatedLog->clicked_result_url)->toBe('/search-result');
     expect($log->refresh()->clicked_result_url)->toBe('/search-result');
+});
+
+test('generates click tokens with normalized search context', function (): void {
+    $token = GenerateSearchClickTokenAction::run(new SearchRequestData(
+        query: 'Laravel Search',
+        siteId: 10,
+        languageId: 20,
+    ));
+
+    throw_unless(is_string($token), RuntimeException::class, 'Expected search click token.');
+
+    $payload = json_decode(Crypt::decryptString($token), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($payload)->toMatchArray([
+        'query' => 'laravel search',
+        'site_id' => 10,
+        'language_id' => 20,
+    ])
+        ->and($payload['issued_at'])->toBeInt();
+});
+
+test('skips click tokens for queries too short to log', function (): void {
+    config()->set('capell-search.minimum_query_length', 3);
+
+    expect(GenerateSearchClickTokenAction::run(new SearchRequestData(query: 'ab')))->toBeNull();
+});
+
+test('records click by token when visitor hashes change', function (): void {
+    $log = RecordSearchAction::run(
+        new SearchRequestData(
+            query: 'Laravel Search',
+            siteId: 10,
+            languageId: 20,
+        ),
+        1,
+        '203.0.113.10',
+        'Original Browser',
+    );
+    $token = GenerateSearchClickTokenAction::run(new SearchRequestData(
+        query: 'Laravel Search',
+        siteId: 10,
+        languageId: 20,
+    ));
+
+    throw_unless($log instanceof SearchLog, RuntimeException::class, 'Expected search log.');
+    throw_unless(is_string($token), RuntimeException::class, 'Expected search click token.');
+
+    $request = Request::create('/search/click', Symfony\Component\HttpFoundation\Request::METHOD_POST, [], [], [], [
+        'REMOTE_ADDR' => '203.0.113.99',
+        'HTTP_USER_AGENT' => 'Changed Browser',
+    ]);
+
+    $updatedLog = RecordSearchResultClickAction::run(
+        request: $request,
+        query: 'Laravel Search',
+        url: '/search-result',
+        token: $token,
+    );
+
+    expect($updatedLog?->is($log))->toBeTrue()
+        ->and($log->refresh()->clicked_result_url)->toBe('/search-result');
+});
+
+test('falls back to visitor tuple when click token is invalid', function (): void {
+    $log = RecordSearchAction::run(
+        new SearchRequestData(query: 'Laravel Search'),
+        1,
+        '203.0.113.10',
+        'Capell Test Browser',
+    );
+
+    throw_unless($log instanceof SearchLog, RuntimeException::class, 'Expected search log.');
+
+    $request = Request::create('/search/click', Symfony\Component\HttpFoundation\Request::METHOD_POST, [], [], [], [
+        'REMOTE_ADDR' => '203.0.113.10',
+        'HTTP_USER_AGENT' => 'Capell Test Browser',
+    ]);
+
+    $updatedLog = RecordSearchResultClickAction::run(
+        request: $request,
+        query: 'Laravel Search',
+        url: '/search-result',
+        token: 'not-a-valid-token',
+    );
+
+    expect($updatedLog?->is($log))->toBeTrue()
+        ->and($log->refresh()->clicked_result_url)->toBe('/search-result');
 });

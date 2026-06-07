@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'enabled' => true,
     'show_header_search' => true,
-    'driver' => env('CAPELL_SITE_SEARCH_DRIVER', 'database'), // database, site_discovery, or scout
+    'driver' => env('CAPELL_SITE_SEARCH_DRIVER', 'site_discovery'), // database, site_discovery, or scout
     'route_path' => 'search',
     'page_view' => null,
     'results_per_page' => 10,
@@ -24,9 +24,13 @@ return [
     'filters' => [
         'enabled' => true,
     ],
+    'query_expansion' => [
+        'max_queries' => 3,
+    ],
     'click_tracking' => [
         'enabled' => true,
         'route_path' => 'search/click',
+        'rate_limiter' => 'capell-search-clicks',
         'match_window_minutes' => 30,
     ],
     'keyboard_shortcuts' => [
@@ -45,15 +49,30 @@ return [
             'token',
             'preview',
         ],
+        'allowed_meta_keys' => [
+            'author',
+            'category',
+            'date',
+            'description',
+            'image',
+            'image_url',
+            'published_at',
+            'section',
+            'source',
+            'source_label',
+            'tags',
+            'thumbnail',
+            'thumbnail_url',
+            'updated_at',
+        ],
     ],
     'ranking' => [
         'exact_match_boost' => 25.0,
         'recency_days' => 90,
         'click_boost_weight' => 0.25,
+        'click_counts_cache_seconds' => 60,
     ],
-    'type_labels' => [
-        'page' => 'Page',
-    ],
+    'type_labels' => [],
     'record_search_logs' => true,
     'hash_visitor_data' => true,
     'synonyms' => [
@@ -92,6 +111,11 @@ return [
     'database' => [
         'table' => 'pages',
         'columns' => ['title', 'excerpt', 'body'],
+        'column_weights' => [
+            'title' => 3.0,
+            'excerpt' => 2.0,
+            'body' => 1.0,
+        ],
         'title_column' => 'title',
         'url_column' => 'slug',
         'excerpt_column' => 'excerpt',

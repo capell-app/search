@@ -3,9 +3,12 @@
 ])
 
 <div
-    class="mt-3 overflow-hidden border border-gray-200 bg-white shadow-lg dark:border-white/10 dark:bg-gray-950"
+    class="border-outline/70 bg-surface-lowest mt-3 overflow-hidden rounded-md border shadow-lg"
     data-site-search-results
+    data-site-search-corrected-label="{{ __('capell-search::generic.did_you_mean') }}"
+    data-site-search-query-label="{{ __('capell-search::generic.popular_search') }}"
     data-site-search-suggestions-template="{{ __('capell-search::generic.suggestions_available', ['count' => '__count__']) }}"
+    hidden
 >
     <p
         class="sr-only"
@@ -23,7 +26,7 @@
 
     <a
         href="{{ route('capell-frontend.search') }}"
-        class="border-t border-gray-100 px-3 py-2 text-sm font-medium text-gray-950 transition hover:bg-gray-50 dark:border-white/10 dark:text-white dark:hover:bg-white/5"
+        class="border-outline/50 text-on-surface hover:bg-surface-low border-t px-3 py-2 text-sm font-medium transition"
         data-site-search-all-results
         hidden
     >

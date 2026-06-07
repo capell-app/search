@@ -15,7 +15,8 @@
             "required": true,
             "notes": "Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "A visitor searches seeded public content and sees ranked results and pagination.",
-            "screenshotPath": "packages/search/docs/screenshots/frontend-search-results-page.png"
+            "screenshotPath": "packages/search/docs/screenshots/frontend-search-results-page.png",
+            "darkScreenshotPath": "packages/search/docs/screenshots/frontend-search-results-page-dark.png"
         },
         {
             "id": "header-search-field",
@@ -27,7 +28,8 @@
             "required": true,
             "notes": "Capture with a compatible theme header slot. In a core-only harness, render the package form in a header slot without installing another frontend package.",
             "useCase": "A visitor uses the header search control supplied by the package frontend surface.",
-            "screenshotPath": "packages/search/docs/screenshots/header-search-field.png"
+            "screenshotPath": "packages/search/docs/screenshots/header-search-field.png",
+            "darkScreenshotPath": "packages/search/docs/screenshots/header-search-field-dark.png"
         },
         {
             "id": "top-searches-widget",
@@ -39,7 +41,8 @@
             "required": true,
             "notes": "Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "An administrator reviews top searched terms from seeded query logs.",
-            "screenshotPath": "packages/search/docs/screenshots/top-searches-widget.png"
+            "screenshotPath": "packages/search/docs/screenshots/top-searches-widget.png",
+            "darkScreenshotPath": "packages/search/docs/screenshots/top-searches-widget-dark.png"
         },
         {
             "id": "trending-searches-widget",
@@ -51,7 +54,8 @@
             "required": true,
             "notes": "Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "An administrator reviews trending searches over the configured window.",
-            "screenshotPath": "packages/search/docs/screenshots/trending-searches-widget.png"
+            "screenshotPath": "packages/search/docs/screenshots/trending-searches-widget.png",
+            "darkScreenshotPath": "packages/search/docs/screenshots/trending-searches-widget-dark.png"
         },
         {
             "id": "zero-result-searches-widget",
@@ -63,7 +67,8 @@
             "required": true,
             "notes": "Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "An administrator identifies search terms with no matching content.",
-            "screenshotPath": "packages/search/docs/screenshots/zero-result-searches-widget.png"
+            "screenshotPath": "packages/search/docs/screenshots/zero-result-searches-widget.png",
+            "darkScreenshotPath": "packages/search/docs/screenshots/zero-result-searches-widget-dark.png"
         },
         {
             "id": "search-settings-screen",
@@ -75,7 +80,20 @@
             "required": true,
             "notes": "Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "A site owner configures search settings, logging, retention, and result behavior.",
-            "screenshotPath": "packages/search/docs/screenshots/search-settings-screen.png"
+            "screenshotPath": "packages/search/docs/screenshots/search-settings-screen.png",
+            "darkScreenshotPath": "packages/search/docs/screenshots/search-settings-screen-dark.png"
+        },
+        {
+            "id": "search-curation-annotated",
+            "title": "Annotated search curation settings.",
+            "package": "search",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": null,
+            "required": true,
+            "notes": "Annotated marketplace explainer derived from the Search settings surface to show synonyms, typo corrections, and promoted results.",
+            "useCase": "A site owner understands how Search curation controls query intent and promoted answers.",
+            "screenshotPath": "packages/search/docs/screenshots/search-curation-annotated.png"
         }
     ]
 }

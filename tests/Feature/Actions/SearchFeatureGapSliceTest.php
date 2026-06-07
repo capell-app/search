@@ -3,15 +3,30 @@
 declare(strict_types=1);
 
 use Capell\Search\Actions\ApplySearchResultEnhancementsAction;
+use Capell\Search\Actions\RecordSearchResultClickAction;
 use Capell\Search\Actions\ResolveExpandedSearchQueriesAction;
 use Capell\Search\Actions\RunSearchAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
+use Capell\Search\Models\SearchLog;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+afterEach(function (): void {
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10, 1);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10, 2);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(20, 1);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(20, 2);
+    Schema::dropIfExists('search_logs');
+});
 
 test('expands configured synonyms in both directions', function (): void {
     config()->set('capell-search.synonyms', [
@@ -96,6 +111,119 @@ test('runs expanded synonym queries and deduplicates results by url', function (
     expect(collect($results->items())->pluck('url')->all())->toBe([
         '/cms-hosting',
         '/content-management-hosting',
+    ]);
+});
+
+test('uses primary driver pagination beyond the first expanded search page', function (): void {
+    config()->set('capell-search.synonyms', [
+        'cms' => ['content management system'],
+    ]);
+
+    $search = new class implements Search
+    {
+        /**
+         * @var list<array{query: string, perPage: int, page: int}>
+         */
+        public array $calls = [];
+
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+            ?SearchFilterData $filters = null,
+        ): LengthAwarePaginator {
+            $this->calls[] = [
+                'query' => $query,
+                'perPage' => $perPage,
+                'page' => $page,
+            ];
+
+            return new Paginator(new Collection([
+                new SearchResultData(
+                    title: 'CMS Hosting Page Two',
+                    url: '/cms-hosting-page-two',
+                    excerpt: 'Second page result.',
+                    score: 1.0,
+                ),
+            ]), 42, $perPage, $page);
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return $text;
+        }
+    };
+
+    $results = (new RunSearchAction($search))->handle(new SearchRequestData(
+        query: 'CMS hosting',
+        perPage: 5,
+        page: 2,
+    ));
+
+    expect($search->calls)->toBe([
+        [
+            'query' => 'cms hosting',
+            'perPage' => 5,
+            'page' => 2,
+        ],
+    ])
+        ->and($results->total())->toBe(42)
+        ->and($results->currentPage())->toBe(2)
+        ->and($results->perPage())->toBe(5);
+});
+
+test('caps expanded search query breadth on the first page', function (): void {
+    config()->set('capell-search.query_expansion.max_queries', 2);
+    config()->set('capell-search.synonyms', [
+        'cms' => ['content management system'],
+    ]);
+    config()->set('capell-search.typo_corrections', [
+        'hosting' => 'platform',
+    ]);
+    config()->set('capell-search.typo_terms', [
+        'hosted',
+    ]);
+
+    $search = new class implements Search
+    {
+        /**
+         * @var list<string>
+         */
+        public array $queries = [];
+
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+            ?SearchFilterData $filters = null,
+        ): LengthAwarePaginator {
+            $this->queries[] = $query;
+
+            return new Paginator(new Collection([
+                new SearchResultData(
+                    title: $query,
+                    url: '/' . str_replace(' ', '-', $query),
+                    excerpt: 'Expanded result.',
+                    score: 1.0,
+                ),
+            ]), 1, $perPage, $page);
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return $text;
+        }
+    };
+
+    (new RunSearchAction($search))->handle(new SearchRequestData(query: 'CMS hosting'));
+
+    expect($search->queries)->toBe([
+        'cms hosting',
+        'content management system hosting',
     ]);
 });
 
@@ -237,3 +365,157 @@ test('configured promotions deduplicate search results with the same url', funct
     expect(($enhancedResults->items()[0] ?? null)?->excerpt)->toBe('Plans and billing.');
     expect($enhancedResults->total())->toBe(1);
 });
+
+test('click boosts use cached click aggregates for the current site and language', function (): void {
+    createSearchLogsTableForEnhancementTests();
+    config()->set('capell-search.ranking.click_counts_cache_seconds', 300);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10, 1);
+
+    SearchLog::factory()->count(4)->create([
+        'site_id' => 10,
+        'language_id' => 1,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => '/clicked',
+    ]);
+    SearchLog::factory()->count(6)->create([
+        'site_id' => 20,
+        'language_id' => 1,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => '/clicked',
+    ]);
+    SearchLog::factory()->count(8)->create([
+        'site_id' => 10,
+        'language_id' => 2,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => '/clicked',
+    ]);
+
+    $results = new Paginator(new Collection([
+        new SearchResultData(
+            title: 'Clicked',
+            url: '/clicked',
+            excerpt: 'Clicked result.',
+            score: 1.0,
+        ),
+    ]), 1, 10, 1);
+
+    $aggregateQueries = 0;
+
+    DB::listen(function (QueryExecuted $query) use (&$aggregateQueries): void {
+        if (str_contains($query->sql, 'clicked_result_url') && str_contains($query->sql, 'count(*)')) {
+            $aggregateQueries++;
+        }
+    });
+
+    $firstRun = ApplySearchResultEnhancementsAction::run($results, 'capell', 10, 1);
+    $secondRun = ApplySearchResultEnhancementsAction::run($results, 'capell', 10, 1);
+
+    expect($aggregateQueries)->toBe(1)
+        ->and(($firstRun->items()[0] ?? null)?->score)->toBe(2.0)
+        ->and(($secondRun->items()[0] ?? null)?->score)->toBe(2.0);
+});
+
+test('cached click aggregates preserve language scoped result ranking', function (): void {
+    createSearchLogsTableForEnhancementTests();
+    config()->set('capell-search.ranking.click_counts_cache_seconds', 300);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10, 1);
+
+    SearchLog::factory()->count(5)->create([
+        'site_id' => 10,
+        'language_id' => 1,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => '/clicked',
+    ]);
+    SearchLog::factory()->count(10)->create([
+        'site_id' => 10,
+        'language_id' => 2,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => '/other-language-clicked',
+    ]);
+
+    $results = new Paginator(new Collection([
+        new SearchResultData(
+            title: 'Clicked',
+            url: '/clicked',
+            excerpt: 'Clicked result.',
+            score: 1.0,
+        ),
+        new SearchResultData(
+            title: 'Other Language Clicked',
+            url: '/other-language-clicked',
+            excerpt: 'Other language clicked result.',
+            score: 1.5,
+        ),
+    ]), 2, 10, 1);
+
+    $firstRun = ApplySearchResultEnhancementsAction::run($results, 'capell', 10, 1);
+    $secondRun = ApplySearchResultEnhancementsAction::run($results, 'capell', 10, 1);
+
+    expect((new Collection($firstRun->items()))->pluck('url')->all())->toBe([
+        '/clicked',
+        '/other-language-clicked',
+    ]);
+    expect((new Collection($secondRun->items()))->pluck('url')->all())->toBe([
+        '/clicked',
+        '/other-language-clicked',
+    ]);
+    expect(($secondRun->items()[0] ?? null)?->score)->toBe(2.25)
+        ->and(($secondRun->items()[1] ?? null)?->score)->toBe(1.5);
+});
+
+test('recording a click flushes cached click aggregates', function (): void {
+    createSearchLogsTableForEnhancementTests();
+    config()->set('capell-search.ranking.click_counts_cache_seconds', 300);
+    ApplySearchResultEnhancementsAction::forgetClickCountsCache(10, 1);
+
+    $log = SearchLog::factory()->create([
+        'site_id' => 10,
+        'language_id' => 1,
+        'query' => 'Capell',
+        'normalized_query' => 'capell',
+        'clicked_result_url' => null,
+    ]);
+
+    $results = new Paginator(new Collection([
+        new SearchResultData(
+            title: 'Clicked',
+            url: '/clicked',
+            excerpt: 'Clicked result.',
+            score: 1.0,
+        ),
+    ]), 1, 10, 1);
+
+    $beforeClick = ApplySearchResultEnhancementsAction::run($results, 'capell', 10, 1);
+
+    RecordSearchResultClickAction::run($log, '/clicked');
+
+    $afterClick = ApplySearchResultEnhancementsAction::run($results, 'capell', 10, 1);
+
+    expect(($beforeClick->items()[0] ?? null)?->score)->toBe(1.0)
+        ->and(($afterClick->items()[0] ?? null)?->score)->toBe(1.25);
+});
+
+function createSearchLogsTableForEnhancementTests(): void
+{
+    config()->set('capell-search.logs.table_name', 'search_logs');
+
+    Schema::dropIfExists('search_logs');
+    Schema::create('search_logs', function (Blueprint $table): void {
+        $table->id();
+        $table->foreignId('site_id')->nullable()->index();
+        $table->foreignId('language_id')->nullable()->index();
+        $table->string('query');
+        $table->string('normalized_query')->index();
+        $table->unsignedInteger('results_count')->default(0);
+        $table->string('clicked_result_url')->nullable();
+        $table->string('ip_hash', 64)->nullable();
+        $table->string('user_agent_hash', 64)->nullable();
+        $table->timestamp('searched_at')->index();
+        $table->timestamps();
+    });
+}

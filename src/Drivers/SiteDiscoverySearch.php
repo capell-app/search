@@ -70,7 +70,7 @@ final readonly class SiteDiscoverySearch implements Search
 
     private function matchesFilters(PublicUrlRegistryEntryData $entry, ?SearchFilterData $filters): bool
     {
-        return $filters === null
+        return ! $filters instanceof SearchFilterData
             || $filters->types === []
             || in_array($entry->contentType->value, $filters->types, true);
     }
@@ -109,7 +109,7 @@ final readonly class SiteDiscoverySearch implements Search
 
     private function entryToResult(PublicUrlRegistryEntryData $entry, string $normalizedQuery): SearchResultData
     {
-        $title = $this->titleFromUrl($entry->canonicalUrl);
+        $title = $this->titleFromEntry($entry);
         $searchText = $this->searchText($entry, $title);
 
         return new SearchResultData(
@@ -117,7 +117,6 @@ final readonly class SiteDiscoverySearch implements Search
             url: $entry->canonicalUrl,
             excerpt: Str::limit($this->excerpt($entry), $this->excerptLength),
             type: $entry->contentType->value,
-            typeLabel: null,
             score: $this->score($searchText, $normalizedQuery),
         );
     }
@@ -127,13 +126,22 @@ final readonly class SiteDiscoverySearch implements Search
         return $result->score > 0.0;
     }
 
+    private function titleFromEntry(PublicUrlRegistryEntryData $entry): string
+    {
+        if (is_string($entry->title) && trim($entry->title) !== '') {
+            return trim($entry->title);
+        }
+
+        return $this->titleFromUrl($entry->canonicalUrl);
+    }
+
     private function titleFromUrl(string $url): string
     {
         $path = (string) parse_url($url, PHP_URL_PATH);
         $path = trim($path, '/');
 
         if ($path === '') {
-            return 'Home';
+            return __('capell-search::generic.site_discovery_home_title');
         }
 
         $lastSegment = basename($path);

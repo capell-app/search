@@ -1,14 +1,9 @@
 @props([
+    'clickTrackingToken' => null,
+    'highlightedResults' => null,
     'results',
     'query' => '',
 ])
-
-@php
-    use Capell\Search\Contracts\Search;
-
-    /** @var Search $search */
-    $search = app(Search::class);
-@endphp
 
 <section
     class="site-search-results"
@@ -16,15 +11,15 @@
     data-site-search-click-url="{{ route('capell-frontend.search.click') }}"
 >
     @if ($query === '')
-        <p class="text-gray-600">
+        <p class="text-on-surface-variant">
             {{ __('capell-search::generic.empty_query') }}
         </p>
     @elseif ($results->isEmpty())
-        <p class="text-gray-600">
+        <p class="text-on-surface-variant">
             {{ __('capell-search::generic.no_results', ['query' => $query]) }}
         </p>
     @else
-        <p class="mb-4 text-sm text-gray-500">
+        <p class="text-on-surface-variant mb-4 text-sm">
             {{
                 trans_choice('capell-search::generic.results_count', $results->total(), [
                     'count' => $results->total(),
@@ -37,26 +32,33 @@
             role="list"
         >
             @foreach ($results as $result)
+                @php
+                    $highlightedResult = $highlightedResults?->get($loop->index);
+                @endphp
+
                 <li
-                    class="rounded-lg border border-gray-100 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-950"
+                    class="border-outline/70 bg-surface-lowest rounded-lg border p-4 shadow-sm"
                 >
                     <h2 class="text-lg font-semibold">
                         <a
                             href="{{ $result->url }}"
-                            class="hover:underline"
+                            class="text-on-surface hover:text-primary hover:underline"
                             data-site-search-click
                             data-site-search-query="{{ $query }}"
+                            @if (is_string($clickTrackingToken) && $clickTrackingToken !== '')
+                                data-site-search-token="{{ $clickTrackingToken }}"
+                            @endif
                             data-site-search-type="{{ $result->type }}"
                             data-site-search-position="{{ $loop->iteration }}"
                             data-site-search-surface="results"
                         >
-                            {!! $search->highlight($result->title, $query) !!}
+                            {!! $highlightedResult['title'] ?? e($result->title) !!}
                         </a>
                     </h2>
-                    <p class="mt-1 text-sm text-gray-600">
-                        {!! $search->highlight($result->excerpt, $query) !!}
+                    <p class="text-on-surface-variant mt-1 text-sm">
+                        {!! $highlightedResult['excerpt'] ?? e($result->excerpt) !!}
                     </p>
-                    <p class="mt-2 text-xs text-gray-400 uppercase">
+                    <p class="text-outline-variant mt-2 text-xs uppercase">
                         {{ $result->typeLabel ?? $result->type }}
                     </p>
                 </li>
@@ -67,3 +69,66 @@
         </div>
     @endif
 </section>
+
+@once
+    <script>
+        ;(() => {
+            if (window.capellSearchClickBeaconInitialized) {
+                return
+            }
+
+            window.capellSearchClickBeaconInitialized = true
+
+            document.addEventListener('click', (event) => {
+                const trackedLink = event.target.closest(
+                    '[data-site-search-click]',
+                )
+
+                if (!trackedLink) {
+                    return
+                }
+
+                const trackingContainer = trackedLink.closest(
+                    '[data-site-search-click-url]',
+                )
+                const url = trackingContainer?.getAttribute(
+                    'data-site-search-click-url',
+                )
+
+                if (!url) {
+                    return
+                }
+
+                const body = new FormData()
+                body.set(
+                    'query',
+                    trackedLink.getAttribute('data-site-search-query') || '',
+                )
+                body.set('url', trackedLink.href)
+                body.set(
+                    'token',
+                    trackedLink.getAttribute('data-site-search-token') || '',
+                )
+                body.set(
+                    'type',
+                    trackedLink.getAttribute('data-site-search-type') || '',
+                )
+                body.set(
+                    'position',
+                    trackedLink.getAttribute('data-site-search-position') || '',
+                )
+                body.set(
+                    'surface',
+                    trackedLink.getAttribute('data-site-search-surface') || '',
+                )
+
+                fetch(url, {
+                    method: 'POST',
+                    body,
+                    mode: 'no-cors',
+                    keepalive: true,
+                }).catch(() => {})
+            })
+        })()
+    </script>
+@endonce

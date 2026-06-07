@@ -30,12 +30,19 @@ class DatabaseSearch implements Search
     private const int MAXIMUM_PER_PAGE = 100;
 
     /**
+     * @var array<string, bool>
+     */
+    private static array $fullTextIndexCompatibilityCache = [];
+
+    /**
      * @param  list<string>  $columns  Columns to search against.
+     * @param  array<string, int|float|string>  $columnWeights
      */
     public function __construct(
         private readonly ConnectionInterface $db,
         private readonly string $table = 'pages',
         private readonly array $columns = ['title', 'excerpt', 'body'],
+        private readonly array $columnWeights = [],
         private readonly string $urlColumn = 'slug',
         private readonly string $typeColumn = 'type',
         private readonly string $titleColumn = 'title',
@@ -70,7 +77,7 @@ class DatabaseSearch implements Search
         $availableColumns = $this->db->getSchemaBuilder()->getColumnListing($this->table);
         $columns = array_values(array_intersect($this->columns, $availableColumns));
 
-        if ($columns === []) {
+        if ($columns === [] || $this->requiresMissingPublishedStatusColumn($availableColumns)) {
             return new Paginator([], 0, $perPage, $page);
         }
 
@@ -100,26 +107,29 @@ class DatabaseSearch implements Search
         if ($usesFullText) {
             $builder->select('*')->selectRaw($this->fullTextScoreSql($columns), [$query]);
             $builder->orderByDesc(new Expression('search_score'));
+        } else {
+            $builder->select('*')->selectRaw($this->fallbackScoreSql($columns), $this->fallbackScoreBindings($columns, $likeQuery));
+            $builder->orderByDesc(new Expression('search_score'));
         }
 
         $rows = $builder
             ->forPage($page, $perPage)
             ->get();
 
-        $results = (new Collection($rows))->map(function (object $row) use ($query): SearchResultData {
+        $results = (new Collection($rows))->map(function (object $row) use ($columns, $query): SearchResultData {
             $title = (string) ($row->{$this->titleColumn} ?? '');
             $excerptRaw = (string) ($row->{$this->excerptColumn} ?? $row->{$this->bodyColumn} ?? '');
             $score = isset($row->search_score) && is_numeric($row->search_score)
                 ? (float) $row->search_score
-                : $this->score($title . ' ' . $excerptRaw, $query);
+                : $this->score($row, $columns, $query);
 
             return new SearchResultData(
                 title: $title,
                 url: '/' . ltrim((string) ($row->{$this->urlColumn} ?? ''), '/'),
                 excerpt: $this->truncate($excerptRaw, 200),
                 type: (string) ($row->{$this->typeColumn} ?? 'page'),
-                typeLabel: null,
                 score: $score,
+                typeLabel: null,
                 updatedAt: isset($row->updated_at) ? CarbonImmutable::parse($row->updated_at) : null,
             );
         });
@@ -154,11 +164,37 @@ class DatabaseSearch implements Search
         return str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $query);
     }
 
-    private function score(string $haystack, string $needle): float
+    /**
+     * @param  list<string>  $columns
+     */
+    private function score(object $row, array $columns, string $needle): float
     {
-        $count = substr_count(mb_strtolower($haystack), mb_strtolower($needle));
+        $normalizedNeedle = mb_strtolower($needle);
+        $score = 0.0;
 
-        return (float) $count;
+        foreach ($columns as $column) {
+            $haystack = mb_strtolower((string) ($row->{$column} ?? ''));
+            $count = substr_count($haystack, $normalizedNeedle);
+
+            if ($count === 0) {
+                continue;
+            }
+
+            $score += $count * $this->columnWeight($column);
+        }
+
+        return $score;
+    }
+
+    private function columnWeight(string $column): float
+    {
+        $weight = $this->columnWeights[$column] ?? $this->columnWeights[mb_strtolower($column)] ?? 1.0;
+
+        if (! is_numeric($weight)) {
+            return 1.0;
+        }
+
+        return max(0.0, (float) $weight);
     }
 
     /**
@@ -182,9 +218,17 @@ class DatabaseSearch implements Search
     /**
      * @param  list<string>  $availableColumns
      */
+    private function requiresMissingPublishedStatusColumn(array $availableColumns): bool
+    {
+        return $this->publishedStatus !== null && ! in_array($this->statusColumn, $availableColumns, true);
+    }
+
+    /**
+     * @param  list<string>  $availableColumns
+     */
     private function applySearchFilters(Builder $builder, array $availableColumns, ?SearchFilterData $filters): void
     {
-        if ($filters === null || $filters->types === [] || ! in_array($this->typeColumn, $availableColumns, true)) {
+        if (! $filters instanceof SearchFilterData || $filters->types === [] || ! in_array($this->typeColumn, $availableColumns, true)) {
             return;
         }
 
@@ -202,6 +246,18 @@ class DatabaseSearch implements Search
             return false;
         }
 
+        $cacheKey = implode('|', [
+            spl_object_id($connection),
+            $connection->getDriverName(),
+            $connection->getDatabaseName(),
+            $this->table,
+            implode(',', $columns),
+        ]);
+
+        if (array_key_exists($cacheKey, self::$fullTextIndexCompatibilityCache)) {
+            return self::$fullTextIndexCompatibilityCache[$cacheKey];
+        }
+
         try {
             $databaseName = $connection->getDatabaseName();
             $indexedColumns = $connection->table('information_schema.STATISTICS')
@@ -216,12 +272,38 @@ class DatabaseSearch implements Search
                     ->map(static fn (mixed $column): string => (string) $column)
                     ->all());
 
-            return $indexedColumns->contains(
-                static fn (array $indexColumns): bool => $indexColumns === $columns,
+            return self::$fullTextIndexCompatibilityCache[$cacheKey] = $this->hasCompatibleFullTextIndex(
+                $indexedColumns->values()->all(),
+                $columns,
             );
         } catch (Throwable) {
+            return self::$fullTextIndexCompatibilityCache[$cacheKey] = false;
+        }
+    }
+
+    /**
+     * @param  list<list<string>>  $indexedColumnSets
+     * @param  list<string>  $columns
+     */
+    private function hasCompatibleFullTextIndex(array $indexedColumnSets, array $columns): bool
+    {
+        $searchColumns = collect($columns)
+            ->map(static fn (string $column): string => mb_strtolower($column))
+            ->unique()
+            ->values();
+
+        if ($searchColumns->isEmpty()) {
             return false;
         }
+
+        return collect($indexedColumnSets)->contains(function (array $indexColumns) use ($searchColumns): bool {
+            $normalizedIndexColumns = collect($indexColumns)
+                ->map(static fn (string $column): string => mb_strtolower($column))
+                ->unique()
+                ->values();
+
+            return $searchColumns->diff($normalizedIndexColumns)->isEmpty();
+        });
     }
 
     /**
@@ -243,6 +325,34 @@ class DatabaseSearch implements Search
     /**
      * @param  list<string>  $columns
      */
+    private function fallbackScoreSql(array $columns): string
+    {
+        $sql = collect($columns)
+            ->map(fn (string $column): string => sprintf(
+                "(CASE WHEN %s LIKE ? ESCAPE '!' THEN %s ELSE 0 END)",
+                $this->wrappedColumn($column),
+                $this->columnWeight($column),
+            ))
+            ->implode(' + ');
+
+        return sprintf('%s as search_score', $sql === '' ? '0' : $sql);
+    }
+
+    /**
+     * @param  list<string>  $columns
+     * @return list<string>
+     */
+    private function fallbackScoreBindings(array $columns, string $likeQuery): array
+    {
+        return collect($columns)
+            ->map(static fn (): string => $likeQuery)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  list<string>  $columns
+     */
     private function wrappedColumns(array $columns): string
     {
         $connection = $this->db;
@@ -252,8 +362,19 @@ class DatabaseSearch implements Search
         }
 
         return collect($columns)
-            ->map(fn (string $column): string => $connection->getQueryGrammar()->wrap($column))
+            ->map(fn (string $column): string => $this->wrappedColumn($column))
             ->implode(', ');
+    }
+
+    private function wrappedColumn(string $column): string
+    {
+        $connection = $this->db;
+
+        if (! $connection instanceof Connection) {
+            return $column;
+        }
+
+        return $connection->getQueryGrammar()->wrap($column);
     }
 
     private function fullTextQuery(string $query): string

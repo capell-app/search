@@ -15,7 +15,7 @@ it('builds search settings with driver, logging, and privacy controls', function
     $driverSelect = collect($components)
         ->first(fn (mixed $component): bool => $component instanceof Select && $component->getName() === 'driver');
 
-    expect($schema)->toHaveCount(1)
+    expect($schema)->toHaveCount(2)
         ->and($schema[0])->toBeInstanceOf(Grid::class)
         ->and(searchSettingsComponentNames($schema))->toContain(
             'enabled',
@@ -26,6 +26,17 @@ it('builds search settings with driver, logging, and privacy controls', function
             'log_retention_days',
             'hash_visitor_data',
             'minimum_query_length',
+            'synonyms',
+            'typo_corrections',
+            'typo_terms',
+            'typo_max_distance',
+            'promoted_results',
+            'queries',
+            'title',
+            'url',
+            'excerpt',
+            'type',
+            'score',
         )
         ->and($driverSelect)->toBeInstanceOf(Select::class)
         ->and(array_keys($driverSelect->getOptions()))->toBe(array_map(

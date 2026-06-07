@@ -25,7 +25,7 @@ Uses a Search contract and driver classes so search can start with database quer
 - Route: GET search by default, named capell-frontend.search.
 - Model: SearchLog.
 - Drivers: DatabaseSearch, SiteDiscoverySearch, and ScoutSearch.
-- Command: PurgeSearchLogsCommand.
+- Commands: PurgeSearchLogsCommand, IndexSearchCommand, and FlushSearchCommand.
 
 ## Operational Notes
 
@@ -73,6 +73,7 @@ The header search render hook needs a compatible theme header slot. A core-only 
 - Database driver config must point at searchable columns that exist.
 - The default core `pages` table is not a flat search index. Point the database driver at a flattened table/view, use the Site Discovery URL registry driver, bind a custom `Search` implementation, or use Scout.
 - The Site Discovery driver searches canonical URL registry metadata; use Scout or a custom driver when full page body search is required.
+- Scout source packages own their public `toSearchableArray()` payloads, model observer behavior, and external index freshness. Use `search:index` and `search:flush` for explicit maintenance.
 - Minimum query length defaults to 2 characters.
 - Disable logging or hashing according to privacy requirements.
 - Run log purge if retention needs enforcement.
@@ -101,6 +102,8 @@ The header search render hook needs a compatible theme header slot. A core-only 
 ## Commands
 
 - `search:purge {--days= : Override retention days}` (packages/search/src/Console/Commands/PurgeSearchLogsCommand.php)
+- `search:index {--source= : Only index one configured searchable source key} {--chunk= : Scout import chunk size}` (packages/search/src/Console/Commands/IndexSearchCommand.php)
+- `search:flush {--source= : Only flush one configured searchable source key}` (packages/search/src/Console/Commands/FlushSearchCommand.php)
 
 ## Routes And Config
 

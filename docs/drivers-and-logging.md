@@ -23,6 +23,32 @@ Search exposes a public frontend route and records first-party search behavior w
 
 The Site Discovery driver is the safe default because it searches Capell's canonical public URL registry instead of assuming page content lives in flat database columns. The database driver expects a flat searchable source. Do not point it at a table whose title, body, URL, or type values live only in nested JSON unless the configured columns can be queried directly. For standard Capell pages, use Site Discovery for URL/title search, a flattened index table/view, a custom `Search` implementation, or Scout. When the database driver falls back to `LIKE`, `database.column_weights` controls the generated `search_score`, so a title match can outrank repeated body matches.
 
+## Scout Sources And Freshness
+
+Scout sources are registered through `capell-search.searchables`. Each source must point at an Eloquent model that owns its public `toSearchableArray()` payload and uses Scout's indexing behavior. Search can import or flush configured sources, but source packages remain responsible for model observers, queue configuration, and payload freshness.
+
+```php
+'searchables' => [
+    'articles' => [
+        'label' => 'Articles',
+        'model' => App\Models\Article::class,
+        'type' => 'article',
+        'enabled' => true,
+        'weight' => 1.25,
+        'index' => 'articles',
+    ],
+],
+```
+
+Use the package commands for explicit maintenance:
+
+```bash
+vendor/bin/testbench search:index --source=articles --chunk=500
+vendor/bin/testbench search:flush --source=articles
+```
+
+When a source model changes public visibility, site/language assignment, URL, title, or body payload, that source should either rely on Scout's model observer behavior or dispatch its own searchable/unsearchable update. The Search package's health check proves the configured driver resolves and query logs are writable; it does not contact remote Meili/Typesense services or prove external index freshness.
+
 ## Swap the Search Driver
 
 Bind the contract when a package needs a custom backend.

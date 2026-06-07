@@ -9,8 +9,8 @@ use Capell\Search\Data\SearchResultData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
- * Interface for site search backends. A site can use the default database
- * driver or bind a Scout-backed implementation.
+ * Interface for site search backends. A site can use the default Site Discovery
+ * driver, opt into database or Scout, or bind a custom implementation.
  */
 interface Search
 {

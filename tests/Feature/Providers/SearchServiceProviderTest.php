@@ -14,6 +14,12 @@ use Capell\Search\Settings\SearchSettings;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Illuminate\Database\Eloquent\Model;
 
+test('provider binds site discovery as the default search driver', function (): void {
+    app()->register(SearchServiceProvider::class);
+
+    expect(resolve(Search::class))->toBeInstanceOf(SiteDiscoverySearch::class);
+});
+
 test('provider binds the configured database search driver', function (): void {
     app()->register(SearchServiceProvider::class);
     config()->set('capell-search.driver', SearchDriver::Database->value);
@@ -45,7 +51,7 @@ test('site search settings expose defaults', function (): void {
         ->enabled->toBeTrue()
         ->show_header_search->toBeTrue()
         ->results_per_page->toBe(10)
-        ->driver->toBe(SearchDriver::Database)
+        ->driver->toBe(SearchDriver::SiteDiscovery)
         ->record_search_logs->toBeTrue()
         ->log_retention_days->toBe(180)
         ->hash_visitor_data->toBeTrue()

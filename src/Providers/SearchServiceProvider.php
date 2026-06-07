@@ -170,7 +170,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         $configDriver = ResolveSearchSettingAction::run(
             'driver',
             'capell-search.driver',
-            SearchDriver::Database->value,
+            SearchDriver::SiteDiscovery->value,
         );
 
         if ($configDriver instanceof SearchDriver) {
@@ -181,7 +181,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             return $configDriver;
         }
 
-        return SearchDriver::Database->value;
+        return SearchDriver::SiteDiscovery->value;
     }
 
     private function registerModels(): self

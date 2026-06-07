@@ -17,7 +17,7 @@ final class SearchSettings extends Settings implements SettingsContract
 
     public int $results_per_page = 10;
 
-    public SearchDriver $driver = SearchDriver::Database;
+    public SearchDriver $driver = SearchDriver::SiteDiscovery;
 
     public bool $record_search_logs = true;
 

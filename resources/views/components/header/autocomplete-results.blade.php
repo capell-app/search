@@ -5,6 +5,8 @@
 <div
     class="border-outline/70 bg-surface-lowest mt-3 overflow-hidden rounded-md border shadow-lg"
     data-site-search-results
+    data-site-search-corrected-label="{{ __('capell-search::generic.did_you_mean') }}"
+    data-site-search-query-label="{{ __('capell-search::generic.popular_search') }}"
     data-site-search-suggestions-template="{{ __('capell-search::generic.suggestions_available', ['count' => '__count__']) }}"
     hidden
 >

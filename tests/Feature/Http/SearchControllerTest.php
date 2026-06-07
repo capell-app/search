@@ -9,16 +9,22 @@ use Capell\Search\Http\Controllers\SearchController;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Providers\SearchServiceProvider;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 
 beforeEach(function (): void {
     app()->register(SearchServiceProvider::class);
     config()->set('capell-search.results_per_page', 5);
     config()->set('capell-search.minimum_query_length', 2);
+});
+
+afterEach(function (): void {
+    Schema::dropIfExists('search_logs');
 });
 
 test('autocomplete returns no results for blank or too-short queries', function (string $query): void {
@@ -131,6 +137,74 @@ test('autocomplete returns limited public-safe results without writing search lo
         ])
         ->and($payload['results'][0])->not->toHaveKeys(['id', 'model', 'modelClass', 'adminUrl', 'signedUrl'])
         ->and(SearchLog::query()->count())->toBe(0);
+});
+
+test('autocomplete returns corrected query metadata and popular query suggestions', function (): void {
+    config()->set('capell-search.autocomplete.limit', 5);
+    config()->set('capell-search.typo_corrections', [
+        'capel' => 'capell',
+    ]);
+
+    Schema::dropIfExists('search_logs');
+    Schema::create('search_logs', function (Blueprint $table): void {
+        $table->id();
+        $table->foreignId('site_id')->nullable()->index();
+        $table->foreignId('language_id')->nullable()->index();
+        $table->string('query');
+        $table->string('normalized_query')->index();
+        $table->unsignedInteger('results_count')->default(0);
+        $table->string('clicked_result_url')->nullable();
+        $table->string('ip_hash', 64)->nullable();
+        $table->string('user_agent_hash', 64)->nullable();
+        $table->timestamp('searched_at')->index();
+        $table->timestamps();
+    });
+
+    SearchLog::query()->insert([
+        [
+            'query' => 'Capel migration',
+            'normalized_query' => 'capel migration',
+            'results_count' => 2,
+            'searched_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ],
+        [
+            'query' => 'Capel marketplace',
+            'normalized_query' => 'capel marketplace',
+            'results_count' => 3,
+            'searched_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ],
+    ]);
+
+    app()->instance(Search::class, new class implements Search
+    {
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+            ?SearchFilterData $filters = null,
+        ): LengthAwarePaginator {
+            return new Paginator(new Collection, 0, $perPage, $page);
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return $text;
+        }
+    });
+
+    $request = Request::create('/search/autocomplete', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'capel']);
+    $payload = (new SearchController)->autocomplete($request)->getData(true);
+
+    expect($payload['metadata']['corrected'])->toBe('capell')
+        ->and($payload['querySuggestions'])->toHaveCount(2)
+        ->and($payload['querySuggestions'][0]['query'])->toBe('capel marketplace')
+        ->and($payload['querySuggestions'][0]['url'])->toBe(route('capell-frontend.search', ['q' => 'capel marketplace']));
 });
 
 test('autocomplete route is lightly throttled', function (): void {

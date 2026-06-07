@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\Search\Actions;
 
 use Capell\Search\Contracts\Search;
+use Capell\Search\Data\AutocompleteQuerySuggestionData;
 use Capell\Search\Data\AutocompleteSearchResponseData;
 use Capell\Search\Data\AutocompleteSearchResultData;
 use Capell\Search\Data\SearchFilterData;
@@ -32,9 +33,11 @@ final readonly class RunAutocompleteSearchAction
             2,
         );
         $filters = $this->normalizeSearchFilters->handle($request);
+        $correctedQuery = ResolveCorrectedSearchQueryAction::run((string) $normalizedQuery);
         $metadata = new SearchQueryMetadataData(
             original: $query,
             normalized: (string) $normalizedQuery,
+            corrected: $correctedQuery,
             expanded: $normalizedQuery === '' ? [] : ResolveExpandedSearchQueriesAction::run((string) $normalizedQuery),
             filters: $filters,
         );
@@ -44,6 +47,7 @@ final readonly class RunAutocompleteSearchAction
                 query: $query,
                 minimumLength: $minimumLength,
                 results: [],
+                querySuggestions: [],
                 allResultsUrl: $this->allResultsUrl($query, $filters),
                 metadata: $metadata,
             );
@@ -52,13 +56,15 @@ final readonly class RunAutocompleteSearchAction
         $limit = max(1, min(20, (int) config('capell-search.autocomplete.limit', 6)));
         $site = $request->attributes->get('site');
         $language = $request->attributes->get('language');
+        $siteId = is_object($site) ? (int) data_get($site, 'id') : null;
+        $languageId = is_object($language) ? (int) data_get($language, 'id') : null;
 
         $results = $this->search->search(
             query: (string) $normalizedQuery,
             perPage: $limit,
             page: 1,
-            siteId: is_object($site) ? (int) data_get($site, 'id') : null,
-            languageId: is_object($language) ? (int) data_get($language, 'id') : null,
+            siteId: $siteId,
+            languageId: $languageId,
             filters: $filters,
         );
 
@@ -80,6 +86,13 @@ final readonly class RunAutocompleteSearchAction
                 ))
                 ->values()
                 ->all()),
+            querySuggestions: $this->querySuggestions(
+                query: (string) $normalizedQuery,
+                correctedQuery: $correctedQuery,
+                limit: $limit,
+                siteId: $siteId,
+                languageId: $languageId,
+            ),
             allResultsUrl: $this->allResultsUrl($query, $filters),
             metadata: $metadata,
         );
@@ -98,5 +111,32 @@ final readonly class RunAutocompleteSearchAction
         }
 
         return route('capell-frontend.search', $parameters);
+    }
+
+    /**
+     * @return list<AutocompleteQuerySuggestionData>
+     */
+    private function querySuggestions(
+        string $query,
+        ?string $correctedQuery,
+        int $limit,
+        ?int $siteId,
+        ?int $languageId,
+    ): array {
+        $suggestions = BuildAutocompleteQuerySuggestionsAction::run(
+            query: $query,
+            limit: $limit,
+            siteId: $siteId,
+            languageId: $languageId,
+        );
+
+        if ($correctedQuery === null || $correctedQuery === $query) {
+            return $suggestions;
+        }
+
+        return array_values(array_filter(
+            $suggestions,
+            static fn (AutocompleteQuerySuggestionData $suggestion): bool => $suggestion->query !== $correctedQuery,
+        ));
     }
 }

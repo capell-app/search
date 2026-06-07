@@ -352,6 +352,45 @@
                 return item
             }
 
+            const querySuggestionItem = (suggestion, index, listId, label) => {
+                const item = document.createElement('li')
+                const link = document.createElement('a')
+                const title = document.createElement('span')
+                const meta = document.createElement('span')
+
+                item.id = `${listId}-option-${index}`
+                item.setAttribute('role', 'option')
+                item.setAttribute('data-site-search-result', '')
+                item.className = 'border-outline/50 border-b last:border-b-0'
+
+                link.href = suggestion.url
+                link.className =
+                    'hover:bg-surface-low grid gap-1 p-3 text-left transition'
+
+                title.className = 'text-on-surface text-sm font-medium'
+                title.textContent = suggestion.query
+
+                meta.className =
+                    'text-outline-variant text-xs font-medium uppercase tracking-wide'
+                meta.textContent = label
+
+                link.append(title, meta)
+                item.append(link)
+
+                return item
+            }
+
+            const searchUrlForQuery = (payload, input, query) => {
+                const url = new URL(
+                    payload.allResultsUrl || input.form?.action || '/search',
+                    window.location.origin,
+                )
+
+                url.searchParams.set('q', query)
+
+                return url.toString()
+            }
+
             const renderResults = (dialog, payload) => {
                 const input = dialog.querySelector(selectors.input)
                 const list = dialog.querySelector(selectors.list)
@@ -363,34 +402,81 @@
                 const results = Array.isArray(payload.results)
                     ? payload.results
                     : []
+                const querySuggestions = Array.isArray(payload.querySuggestions)
+                    ? payload.querySuggestions
+                    : []
+                const correctedQuery =
+                    typeof payload.metadata?.corrected === 'string'
+                        ? payload.metadata.corrected
+                        : null
+                const correctedSuggestion =
+                    correctedQuery &&
+                    correctedQuery !== payload.metadata?.normalized
+                        ? {
+                              query: correctedQuery,
+                              url: searchUrlForQuery(
+                                  payload,
+                                  input,
+                                  correctedQuery,
+                              ),
+                          }
+                        : null
                 const state = stateFor(dialog)
                 const suggestionsTemplate =
                     resultsRegion?.getAttribute(
                         'data-site-search-suggestions-template',
                     ) || '__count__ suggestions available.'
+                const correctedLabel =
+                    resultsRegion?.getAttribute(
+                        'data-site-search-corrected-label',
+                    ) || 'Did you mean'
+                const querySuggestionLabel =
+                    resultsRegion?.getAttribute(
+                        'data-site-search-query-label',
+                    ) || 'Popular search'
+                const suggestionItems = [
+                    ...(correctedSuggestion ? [correctedSuggestion] : []),
+                    ...querySuggestions,
+                ]
+                const allItems = [...suggestionItems, ...results]
 
-                state.results = results
+                state.results = allItems
                 list.replaceChildren(
+                    ...suggestionItems.map((suggestion, index) =>
+                        querySuggestionItem(
+                            suggestion,
+                            index,
+                            list.id,
+                            index === 0 && correctedSuggestion
+                                ? correctedLabel
+                                : querySuggestionLabel,
+                        ),
+                    ),
                     ...results.map((result, index) =>
-                        resultItem(dialog, result, index, list.id),
+                        resultItem(
+                            dialog,
+                            result,
+                            suggestionItems.length + index,
+                            list.id,
+                        ),
                     ),
                 )
-                list.hidden = results.length === 0
-                allResults.hidden = results.length === 0
+                list.hidden = allItems.length === 0
+                allResults.hidden = allItems.length === 0
                 if (resultsRegion) {
-                    resultsRegion.hidden = results.length === 0
+                    resultsRegion.hidden = allItems.length === 0
                 }
                 allResults.href =
                     payload.allResultsUrl || input.form?.action || '/search'
                 input.setAttribute(
                     'aria-expanded',
-                    results.length > 0 ? 'true' : 'false',
+                    allItems.length > 0 ? 'true' : 'false',
                 )
                 status.textContent =
-                    results.length > 0
+                    allItems.length > 0
                         ? suggestionsTemplate.replace(
                               '__count__',
-                              results.length,
+                              allItems.length,
                           )
                         : ''
                 setActiveResult(dialog, -1)

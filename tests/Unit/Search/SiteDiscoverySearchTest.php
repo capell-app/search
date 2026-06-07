@@ -96,6 +96,25 @@ test('site discovery search translates the root url title', function (): void {
         ->and($firstResult?->title)->toBe('Homepage');
 });
 
+test('site discovery search prefers registry titles over slug-derived titles', function (): void {
+    $search = new SiteDiscoverySearch(new Collection([
+        new PublicUrlRegistryEntryData(
+            canonicalUrl: 'https://example.com/fr/services/hebergement-cms',
+            sourcePackage: 'capell-app/core',
+            siteKey: 1,
+            languageKey: 2,
+            languageCode: 'fr',
+            title: 'Hébergement CMS',
+        ),
+    ]));
+
+    $results = $search->search('hébergement');
+    $firstResult = $results->items()[0] ?? null;
+
+    expect($results->total())->toBe(1)
+        ->and($firstResult?->title)->toBe('Hébergement CMS');
+});
+
 test('site discovery search paginates and highlights safely', function (): void {
     $search = new SiteDiscoverySearch(new Collection([
         new PublicUrlRegistryEntryData(

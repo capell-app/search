@@ -109,7 +109,7 @@ final readonly class SiteDiscoverySearch implements Search
 
     private function entryToResult(PublicUrlRegistryEntryData $entry, string $normalizedQuery): SearchResultData
     {
-        $title = $this->titleFromUrl($entry->canonicalUrl);
+        $title = $this->titleFromEntry($entry);
         $searchText = $this->searchText($entry, $title);
 
         return new SearchResultData(
@@ -124,6 +124,15 @@ final readonly class SiteDiscoverySearch implements Search
     private function matchesResult(SearchResultData $result): bool
     {
         return $result->score > 0.0;
+    }
+
+    private function titleFromEntry(PublicUrlRegistryEntryData $entry): string
+    {
+        if (is_string($entry->title) && trim($entry->title) !== '') {
+            return trim($entry->title);
+        }
+
+        return $this->titleFromUrl($entry->canonicalUrl);
     }
 
     private function titleFromUrl(string $url): string

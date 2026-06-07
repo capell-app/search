@@ -24,6 +24,9 @@ return [
     'filters' => [
         'enabled' => true,
     ],
+    'query_expansion' => [
+        'max_queries' => 3,
+    ],
     'click_tracking' => [
         'enabled' => true,
         'route_path' => 'search/click',

@@ -114,6 +114,119 @@ test('runs expanded synonym queries and deduplicates results by url', function (
     ]);
 });
 
+test('uses primary driver pagination beyond the first expanded search page', function (): void {
+    config()->set('capell-search.synonyms', [
+        'cms' => ['content management system'],
+    ]);
+
+    $search = new class implements Search
+    {
+        /**
+         * @var list<array{query: string, perPage: int, page: int}>
+         */
+        public array $calls = [];
+
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+            ?SearchFilterData $filters = null,
+        ): LengthAwarePaginator {
+            $this->calls[] = [
+                'query' => $query,
+                'perPage' => $perPage,
+                'page' => $page,
+            ];
+
+            return new Paginator(new Collection([
+                new SearchResultData(
+                    title: 'CMS Hosting Page Two',
+                    url: '/cms-hosting-page-two',
+                    excerpt: 'Second page result.',
+                    score: 1.0,
+                ),
+            ]), 42, $perPage, $page);
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return $text;
+        }
+    };
+
+    $results = (new RunSearchAction($search))->handle(new SearchRequestData(
+        query: 'CMS hosting',
+        perPage: 5,
+        page: 2,
+    ));
+
+    expect($search->calls)->toBe([
+        [
+            'query' => 'cms hosting',
+            'perPage' => 5,
+            'page' => 2,
+        ],
+    ])
+        ->and($results->total())->toBe(42)
+        ->and($results->currentPage())->toBe(2)
+        ->and($results->perPage())->toBe(5);
+});
+
+test('caps expanded search query breadth on the first page', function (): void {
+    config()->set('capell-search.query_expansion.max_queries', 2);
+    config()->set('capell-search.synonyms', [
+        'cms' => ['content management system'],
+    ]);
+    config()->set('capell-search.typo_corrections', [
+        'hosting' => 'platform',
+    ]);
+    config()->set('capell-search.typo_terms', [
+        'hosted',
+    ]);
+
+    $search = new class implements Search
+    {
+        /**
+         * @var list<string>
+         */
+        public array $queries = [];
+
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+            ?SearchFilterData $filters = null,
+        ): LengthAwarePaginator {
+            $this->queries[] = $query;
+
+            return new Paginator(new Collection([
+                new SearchResultData(
+                    title: $query,
+                    url: '/' . str_replace(' ', '-', $query),
+                    excerpt: 'Expanded result.',
+                    score: 1.0,
+                ),
+            ]), 1, $perPage, $page);
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return $text;
+        }
+    };
+
+    (new RunSearchAction($search))->handle(new SearchRequestData(query: 'CMS hosting'));
+
+    expect($search->queries)->toBe([
+        'cms hosting',
+        'content management system hosting',
+    ]);
+});
+
 test('expands explicit and dictionary typo corrections', function (): void {
     config()->set('capell-search.typo_corrections', [
         'capel' => 'capell',

@@ -1,14 +1,8 @@
 @props([
+    'highlightedResults' => null,
     'results',
     'query' => '',
 ])
-
-@php
-    use Capell\Search\Contracts\Search;
-
-    /** @var Search $search */
-    $search = app(Search::class);
-@endphp
 
 <section
     class="site-search-results"
@@ -37,6 +31,10 @@
             role="list"
         >
             @foreach ($results as $result)
+                @php
+                    $highlightedResult = $highlightedResults?->get($loop->index);
+                @endphp
+
                 <li
                     class="border-outline/70 bg-surface-lowest rounded-lg border p-4 shadow-sm"
                 >
@@ -50,11 +48,11 @@
                             data-site-search-position="{{ $loop->iteration }}"
                             data-site-search-surface="results"
                         >
-                            {!! $search->highlight($result->title, $query) !!}
+                            {!! $highlightedResult['title'] ?? e($result->title) !!}
                         </a>
                     </h2>
                     <p class="text-on-surface-variant mt-1 text-sm">
-                        {!! $search->highlight($result->excerpt, $query) !!}
+                        {!! $highlightedResult['excerpt'] ?? e($result->excerpt) !!}
                     </p>
                     <p class="text-outline-variant mt-2 text-xs uppercase">
                         {{ $result->typeLabel ?? $result->type }}

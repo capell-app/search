@@ -30,7 +30,11 @@
             $containerWidth->getContainerClass(),
         ])
     >
-        @include('capell-search::pages.search', ['query' => $query, 'results' => $results])
+        @include('capell-search::pages.search', [
+            'highlightedResults' => $highlightedResults ?? null,
+            'query' => $query,
+            'results' => $results,
+        ])
     </main>
 
     @if (! isset($theme['meta']['footer']) || $theme['meta']['footer'] !== false)

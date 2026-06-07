@@ -16,11 +16,14 @@ use Capell\Search\Actions\RecordSearchResultClickAction;
 use Capell\Search\Actions\ResolveSearchSettingAction;
 use Capell\Search\Actions\RunAutocompleteSearchAction;
 use Capell\Search\Actions\RunSearchAction;
+use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchRequestData;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 use Throwable;
 
@@ -44,6 +47,7 @@ final class SearchController
         );
 
         $results = RunSearchAction::run($data);
+        $highlightedResults = $this->highlightedResults(app(Search::class), $results, $query);
 
         RecordSearchAction::dispatchAfterResponse(
             $data,
@@ -56,18 +60,24 @@ final class SearchController
 
         if ($pageView !== null) {
             return view($pageView, [
+                'highlightedResults' => $highlightedResults,
                 'query' => $query,
                 'results' => $results,
             ]);
         }
 
-        $content = view('capell-search::pages.search', ['query' => $query, 'results' => $results]);
+        $content = view('capell-search::pages.search', [
+            'highlightedResults' => $highlightedResults,
+            'query' => $query,
+            'results' => $results,
+        ]);
 
         if (! $this->canRenderFrontendShell()) {
             return $content;
         }
 
         $slot = view('capell-search::layouts.frontend', [
+            'highlightedResults' => $highlightedResults,
             'query' => $query,
             'results' => $results,
         ]);
@@ -118,6 +128,19 @@ final class SearchController
             languageId: is_object($language) ? (int) data_get($language, 'id') : null,
             filters: NormalizeSearchFiltersAction::run($request),
         );
+    }
+
+    /**
+     * @return Collection<int, array{title: string, excerpt: string}>
+     */
+    private function highlightedResults(Search $search, LengthAwarePaginator $results, string $query): Collection
+    {
+        return collect($results->items())
+            ->map(static fn (mixed $result): array => [
+                'title' => $search->highlight((string) data_get($result, 'title', ''), $query),
+                'excerpt' => $search->highlight((string) data_get($result, 'excerpt', ''), $query),
+            ])
+            ->values();
     }
 
     /**

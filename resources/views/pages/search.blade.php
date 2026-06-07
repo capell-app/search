@@ -13,6 +13,7 @@
     <x-capell-search::form :query="$query" />
 
     <x-capell-search::results
+        :highlighted-results="$highlightedResults ?? null"
         :query="$query"
         :results="$results"
     />

@@ -37,7 +37,7 @@ test('autocomplete returns no results for blank or too-short queries', function 
 
         public function highlight(string $text, string $query): string
         {
-            return $text;
+            return str_replace('Search', '<mark>Search</mark>', e($text));
         }
     });
 
@@ -97,7 +97,7 @@ test('autocomplete returns limited public-safe results without writing search lo
 
         public function highlight(string $text, string $query): string
         {
-            return $text;
+            return str_replace('Search', '<mark>Search</mark>', e($text));
         }
     });
 
@@ -250,7 +250,7 @@ test('controller passes normalized valid searches to the site search service', f
 
         public function highlight(string $text, string $query): string
         {
-            return $text;
+            return str_replace('Search', '<mark>Search</mark>', e($text));
         }
     });
 
@@ -261,6 +261,11 @@ test('controller passes normalized valid searches to the site search service', f
     expect($view->getData()['results']->total())->toBe(1);
     expect($view->getData()['results']->currentPage())->toBe(2);
     expect($view->getData()['results']->perPage())->toBe(5);
+    expect($view->getData()['highlightedResults']->first())->toBe([
+        'title' => 'Laravel <mark>Search</mark>',
+        'excerpt' => '<mark>Search</mark> result content',
+    ]);
+    expect($view->render())->toContain('Laravel <mark>Search</mark>');
 });
 
 test('controller defers search log writes until after the response', function (): void {

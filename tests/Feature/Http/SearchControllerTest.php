@@ -54,11 +54,21 @@ test('autocomplete returns no results for blank or too-short queries', function 
 
 test('autocomplete returns limited public-safe results without writing search logs', function (): void {
     config()->set('capell-search.autocomplete.limit', 1);
+    config()->set('capell-search.promoted_results', [
+        [
+            'query' => 'capell',
+            'title' => 'Promoted Capell result',
+            'url' => '/promoted-capell',
+            'excerpt' => 'This should not be injected into autocomplete.',
+            'type' => 'page',
+        ],
+    ]);
     config()->set('capell-search.type_labels', [
         'marketing_content' => 'Marketing',
     ]);
 
     $recordedSearch = new stdClass;
+    $recordedSearch->query = null;
     $recordedSearch->perPage = null;
     $recordedSearch->page = null;
 
@@ -74,6 +84,7 @@ test('autocomplete returns limited public-safe results without writing search lo
             ?int $languageId = null,
             ?SearchFilterData $filters = null,
         ): LengthAwarePaginator {
+            $this->recordedSearch->query = $query;
             $this->recordedSearch->perPage = $perPage;
             $this->recordedSearch->page = $page;
 
@@ -105,7 +116,8 @@ test('autocomplete returns limited public-safe results without writing search lo
     $response = (new SearchController)->autocomplete($request);
     $payload = $response->getData(true);
 
-    expect($recordedSearch->perPage)->toBe(1)
+    expect($recordedSearch->query)->toBe('capell')
+        ->and($recordedSearch->perPage)->toBe(1)
         ->and($recordedSearch->page)->toBe(1)
         ->and($payload)->toHaveKeys(['query', 'minimumLength', 'results', 'allResultsUrl'])
         ->and($payload['results'])->toHaveCount(1)

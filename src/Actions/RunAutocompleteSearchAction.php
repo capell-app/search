@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Capell\Search\Actions;
 
+use Capell\Search\Contracts\Search;
 use Capell\Search\Data\AutocompleteSearchResponseData;
 use Capell\Search\Data\AutocompleteSearchResultData;
 use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchQueryMetadataData;
-use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
 use Illuminate\Http\Request;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -17,7 +17,10 @@ final readonly class RunAutocompleteSearchAction
 {
     use AsAction;
 
-    public function __construct(private NormalizeSearchFiltersAction $normalizeSearchFilters) {}
+    public function __construct(
+        private NormalizeSearchFiltersAction $normalizeSearchFilters,
+        private Search $search,
+    ) {}
 
     public function handle(Request $request): AutocompleteSearchResponseData
     {
@@ -50,14 +53,14 @@ final readonly class RunAutocompleteSearchAction
         $site = $request->attributes->get('site');
         $language = $request->attributes->get('language');
 
-        $results = RunSearchAction::run(new SearchRequestData(
-            query: $query,
-            page: 1,
+        $results = $this->search->search(
+            query: (string) $normalizedQuery,
             perPage: $limit,
+            page: 1,
             siteId: is_object($site) ? (int) data_get($site, 'id') : null,
             languageId: is_object($language) ? (int) data_get($language, 'id') : null,
             filters: $filters,
-        ));
+        );
 
         /** @var list<SearchResultData> $items */
         $items = $results->items();
@@ -67,7 +70,14 @@ final readonly class RunAutocompleteSearchAction
             minimumLength: $minimumLength,
             results: array_values(collect($items)
                 ->take($limit)
-                ->map(static fn (SearchResultData $result): AutocompleteSearchResultData => AutocompleteSearchResultData::fromSearchResult($result))
+                ->map(fn (SearchResultData $result): AutocompleteSearchResultData => new AutocompleteSearchResultData(
+                    title: $result->title,
+                    url: $result->url,
+                    excerpt: $result->excerpt,
+                    type: $result->type,
+                    typeLabel: $result->typeLabel ?? $this->typeLabel($result->type),
+                    score: $result->score,
+                ))
                 ->values()
                 ->all()),
             allResultsUrl: $this->allResultsUrl($query, $filters),
@@ -88,5 +98,16 @@ final readonly class RunAutocompleteSearchAction
         }
 
         return route('capell-frontend.search', $parameters);
+    }
+
+    private function typeLabel(string $type): string
+    {
+        $configuredLabels = config('capell-search.type_labels', []);
+
+        if (is_array($configuredLabels) && is_string($configuredLabels[$type] ?? null)) {
+            return $configuredLabels[$type];
+        }
+
+        return str($type)->replace(['_', '-'], ' ')->headline()->toString();
     }
 }

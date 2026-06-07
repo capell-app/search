@@ -53,9 +53,7 @@ return [
         'click_boost_weight' => 0.25,
         'click_counts_cache_seconds' => 60,
     ],
-    'type_labels' => [
-        'page' => 'Page',
-    ],
+    'type_labels' => [],
     'record_search_logs' => true,
     'hash_visitor_data' => true,
     'synonyms' => [

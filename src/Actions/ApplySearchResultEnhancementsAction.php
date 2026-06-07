@@ -156,7 +156,7 @@ final class ApplySearchResultEnhancementsAction
      */
     private function applyTypeLabel(SearchResultData $result, array $typeLabels): SearchResultData
     {
-        $label = $typeLabels[$result->type] ?? str($result->type)->replace(['_', '-'], ' ')->headline()->toString();
+        $label = ResolveSearchResultTypeLabelAction::run($result->type, $typeLabels);
 
         return new SearchResultData(
             title: $result->title,

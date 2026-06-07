@@ -75,7 +75,7 @@ final readonly class RunAutocompleteSearchAction
                     url: $result->url,
                     excerpt: $result->excerpt,
                     type: $result->type,
-                    typeLabel: $result->typeLabel ?? $this->typeLabel($result->type),
+                    typeLabel: $result->typeLabel ?? ResolveSearchResultTypeLabelAction::run($result->type),
                     score: $result->score,
                 ))
                 ->values()
@@ -98,16 +98,5 @@ final readonly class RunAutocompleteSearchAction
         }
 
         return route('capell-frontend.search', $parameters);
-    }
-
-    private function typeLabel(string $type): string
-    {
-        $configuredLabels = config('capell-search.type_labels', []);
-
-        if (is_array($configuredLabels) && is_string($configuredLabels[$type] ?? null)) {
-            return $configuredLabels[$type];
-        }
-
-        return str($type)->replace(['_', '-'], ' ')->headline()->toString();
     }
 }

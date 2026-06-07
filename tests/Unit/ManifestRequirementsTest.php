@@ -6,6 +6,7 @@ use Capell\Core\Contracts\Extensions\RegistersExtensionRoute;
 use Capell\Core\Contracts\Extensions\RegistersExtensionWidget;
 use Capell\Core\Contracts\Extensions\RunsScheduledExtensionJob;
 use Capell\Search\Actions\ApplySearchResultEnhancementsAction;
+use Capell\Search\Actions\BuildTopClickedResultsQueryAction;
 use Capell\Search\Actions\BuildTopSearchesQueryAction;
 use Capell\Search\Actions\BuildTrendingSearchesQueryAction;
 use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
@@ -93,6 +94,7 @@ it('declares implemented search gap features contributions and actions', functio
             'frequency' => 'monthly',
         ])
         ->and(data_get($manifest, 'actions'))->toHaveKey('applySearchResultEnhancements', ApplySearchResultEnhancementsAction::class)
+        ->and(data_get($manifest, 'actions'))->toHaveKey('buildTopClickedResultsQuery', BuildTopClickedResultsQueryAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('buildTopSearchesQuery', BuildTopSearchesQueryAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('buildTrendingSearchesQuery', BuildTrendingSearchesQueryAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('buildZeroResultSearchesQuery', BuildZeroResultSearchesQueryAction::class)

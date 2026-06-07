@@ -100,6 +100,7 @@
     },
     "actions": {
         "applySearchResultEnhancements": "Capell\\Search\\Actions\\ApplySearchResultEnhancementsAction",
+        "buildTopClickedResultsQuery": "Capell\\Search\\Actions\\BuildTopClickedResultsQueryAction",
         "buildTopSearchesQuery": "Capell\\Search\\Actions\\BuildTopSearchesQueryAction",
         "buildTrendingSearchesQuery": "Capell\\Search\\Actions\\BuildTrendingSearchesQueryAction",
         "buildZeroResultSearchesQuery": "Capell\\Search\\Actions\\BuildZeroResultSearchesQueryAction",

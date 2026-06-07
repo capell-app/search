@@ -96,6 +96,8 @@
         "setup": null,
         "demo": null,
         "doctor": null,
+        "index": "search:index",
+        "flush": "search:flush",
         "purge": "search:purge"
     },
     "actions": {
@@ -104,6 +106,8 @@
         "buildTopSearchesQuery": "Capell\\Search\\Actions\\BuildTopSearchesQueryAction",
         "buildTrendingSearchesQuery": "Capell\\Search\\Actions\\BuildTrendingSearchesQueryAction",
         "buildZeroResultSearchesQuery": "Capell\\Search\\Actions\\BuildZeroResultSearchesQueryAction",
+        "flushScoutSearchSources": "Capell\\Search\\Actions\\FlushScoutSearchSourcesAction",
+        "indexScoutSearchSources": "Capell\\Search\\Actions\\IndexScoutSearchSourcesAction",
         "normalizeSearchQuery": "Capell\\Search\\Actions\\NormalizeSearchQueryAction",
         "purgeSearchLogs": "Capell\\Search\\Actions\\PurgeSearchLogsAction",
         "recordSearch": "Capell\\Search\\Actions\\RecordSearchAction",

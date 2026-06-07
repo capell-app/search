@@ -11,6 +11,8 @@ use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Facades\CapellCore;
 use Capell\Search\Actions\BuildTopSearchesQueryAction;
 use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
+use Capell\Search\Console\Commands\FlushSearchCommand;
+use Capell\Search\Console\Commands\IndexSearchCommand;
 use Capell\Search\Console\Commands\PurgeSearchLogsCommand;
 use Capell\Search\Data\SearchInsightsWindowData;
 use Capell\Search\Filament\Settings\Contributors\SearchDashboardSettingsContributor;
@@ -83,7 +85,19 @@ final class AdminServiceProvider extends ServiceProvider
             return $this;
         }
 
-        $this->commands([PurgeSearchLogsCommand::class]);
+        $commands = [
+            PurgeSearchLogsCommand::class,
+        ];
+
+        if (class_exists(IndexSearchCommand::class)) {
+            $commands[] = IndexSearchCommand::class;
+        }
+
+        if (class_exists(FlushSearchCommand::class)) {
+            $commands[] = FlushSearchCommand::class;
+        }
+
+        $this->commands($commands);
 
         return $this;
     }

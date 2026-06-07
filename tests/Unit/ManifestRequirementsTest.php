@@ -10,6 +10,8 @@ use Capell\Search\Actions\BuildTopClickedResultsQueryAction;
 use Capell\Search\Actions\BuildTopSearchesQueryAction;
 use Capell\Search\Actions\BuildTrendingSearchesQueryAction;
 use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
+use Capell\Search\Actions\FlushScoutSearchSourcesAction;
+use Capell\Search\Actions\IndexScoutSearchSourcesAction;
 use Capell\Search\Actions\ResolveExpandedSearchQueriesAction;
 use Capell\Search\Actions\ResolvePromotedSearchResultsAction;
 use Capell\Search\Actions\RunSearchAction;
@@ -51,6 +53,8 @@ it('declares implemented search gap features contributions and actions', functio
         ->and(data_get($manifest, 'marketplace.summary'))->toContain('Production-grade site search')
         ->and($screenshotPaths)->each(fn (Expectation $path): Expectation => $path->toBeFile())
         ->and(data_get($manifest, 'dependencies.supports'))->toContain('capell-app/site-discovery')
+        ->and(data_get($manifest, 'commands.flush'))->toBe('search:flush')
+        ->and(data_get($manifest, 'commands.index'))->toBe('search:index')
         ->and(data_get($manifest, 'commands.purge'))->toBe('search:purge')
         ->and(data_get($manifest, 'settings'))->toContain(SearchSettings::class)
         ->and(data_get($manifest, 'contributes'))->toContain([
@@ -98,6 +102,8 @@ it('declares implemented search gap features contributions and actions', functio
         ->and(data_get($manifest, 'actions'))->toHaveKey('buildTopSearchesQuery', BuildTopSearchesQueryAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('buildTrendingSearchesQuery', BuildTrendingSearchesQueryAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('buildZeroResultSearchesQuery', BuildZeroResultSearchesQueryAction::class)
+        ->and(data_get($manifest, 'actions'))->toHaveKey('flushScoutSearchSources', FlushScoutSearchSourcesAction::class)
+        ->and(data_get($manifest, 'actions'))->toHaveKey('indexScoutSearchSources', IndexScoutSearchSourcesAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('resolveExpandedSearchQueries', ResolveExpandedSearchQueriesAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('resolvePromotedSearchResults', ResolvePromotedSearchResultsAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('runSearch', RunSearchAction::class)

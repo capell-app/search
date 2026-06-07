@@ -289,6 +289,37 @@ test('click tracking endpoint records result clicks by token', function (): void
     expect($log->refresh()->clicked_result_url)->toBe('/laravel-search');
 });
 
+test('click tracking endpoint enforces its configured rate limiter', function (): void {
+    RateLimiter::for('capell-search-clicks', static fn (): Limit => Limit::perMinute(1)->by('search-click-test'));
+
+    Schema::dropIfExists('search_logs');
+    Schema::create('search_logs', function (Blueprint $table): void {
+        $table->id();
+        $table->foreignId('site_id')->nullable()->index();
+        $table->foreignId('language_id')->nullable()->index();
+        $table->string('query');
+        $table->string('normalized_query')->index();
+        $table->unsignedInteger('results_count')->default(0);
+        $table->string('clicked_result_url')->nullable();
+        $table->string('ip_hash', 64)->nullable();
+        $table->string('user_agent_hash', 64)->nullable();
+        $table->timestamp('searched_at')->index();
+        $table->timestamps();
+    });
+
+    Route::post('/_search-click-rate-limit-test', [SearchController::class, 'click'])
+        ->middleware('throttle:capell-search-clicks')
+        ->withoutMiddleware([VerifyCsrfToken::class]);
+
+    $payload = [
+        'query' => 'Laravel Search',
+        'url' => '/laravel-search',
+    ];
+
+    $this->post('/_search-click-rate-limit-test', $payload)->assertNoContent();
+    $this->post('/_search-click-rate-limit-test', $payload)->assertTooManyRequests();
+});
+
 test('controller uses configured page view when it exists', function (): void {
     config()->set('capell-search.page_view', 'capell-search::components.form');
 

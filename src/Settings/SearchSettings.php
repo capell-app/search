@@ -30,6 +30,16 @@ final class SearchSettings extends Settings implements SettingsContract
     /** @phpstan-var array<string, array<string, bool>> */
     public array $sources = [];
 
+    public array $synonyms = [];
+
+    public array $typo_corrections = [];
+
+    public array $typo_terms = [];
+
+    public int $typo_max_distance = 1;
+
+    public array $promoted_results = [];
+
     public static function group(): string
     {
         return 'search';

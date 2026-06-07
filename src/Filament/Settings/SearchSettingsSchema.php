@@ -9,10 +9,15 @@ use Capell\Admin\Filament\Support\HelperText;
 use Capell\Search\Data\SearchableSourceData;
 use Capell\Search\Enums\SearchDriver;
 use Capell\Search\Support\SearchableSourceRegistry;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 final class SearchSettingsSchema implements HasSchema
@@ -63,6 +68,62 @@ final class SearchSettingsSchema implements HasSchema
                         ->minValue(1)
                         ->maxValue(10),
                     ...self::searchableSourceToggles(),
+                ]),
+            Section::make(__('capell-search::settings.curation'))
+                ->description(__('capell-search::settings.curation_helper'))
+                ->columnSpanFull()
+                ->schema([
+                    KeyValue::make('synonyms')
+                        ->label(__('capell-search::settings.synonyms'))
+                        ->helperText(__('capell-search::settings.synonyms_helper'))
+                        ->keyLabel(__('capell-search::settings.synonym_term'))
+                        ->valueLabel(__('capell-search::settings.synonym_aliases'))
+                        ->columnSpanFull(),
+                    KeyValue::make('typo_corrections')
+                        ->label(__('capell-search::settings.typo_corrections'))
+                        ->helperText(__('capell-search::settings.typo_corrections_helper'))
+                        ->keyLabel(__('capell-search::settings.typo_misspelling'))
+                        ->valueLabel(__('capell-search::settings.typo_correction'))
+                        ->columnSpanFull(),
+                    TagsInput::make('typo_terms')
+                        ->label(__('capell-search::settings.typo_terms'))
+                        ->helperText(__('capell-search::settings.typo_terms_helper'))
+                        ->columnSpanFull(),
+                    TextInput::make('typo_max_distance')
+                        ->label(__('capell-search::settings.typo_max_distance'))
+                        ->helperText(__('capell-search::settings.typo_max_distance_helper'))
+                        ->integer()
+                        ->minValue(0)
+                        ->maxValue(3),
+                    Repeater::make('promoted_results')
+                        ->label(__('capell-search::settings.promoted_results'))
+                        ->helperText(__('capell-search::settings.promoted_results_helper'))
+                        ->schema([
+                            TagsInput::make('queries')
+                                ->label(__('capell-search::settings.promoted_queries'))
+                                ->required(),
+                            TextInput::make('title')
+                                ->label(__('capell-search::settings.promoted_title'))
+                                ->required(),
+                            TextInput::make('url')
+                                ->label(__('capell-search::settings.promoted_url'))
+                                ->required(),
+                            Textarea::make('excerpt')
+                                ->label(__('capell-search::settings.promoted_excerpt'))
+                                ->rows(2)
+                                ->columnSpanFull(),
+                            TextInput::make('type')
+                                ->label(__('capell-search::settings.promoted_type'))
+                                ->default('page'),
+                            TextInput::make('score')
+                                ->label(__('capell-search::settings.promoted_score'))
+                                ->numeric()
+                                ->default(1000.0),
+                        ])
+                        ->defaultItems(0)
+                        ->collapsible()
+                        ->columns(2)
+                        ->columnSpanFull(),
                 ]),
         ];
     }

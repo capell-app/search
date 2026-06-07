@@ -30,7 +30,7 @@ final class ResolveCorrectedSearchQueryAction
      */
     private function explicitTypoCorrections(string $query): array
     {
-        $configuredCorrections = config('capell-search.typo_corrections', []);
+        $configuredCorrections = ResolveSearchSettingAction::run('typo_corrections', 'capell-search.typo_corrections', []);
 
         if (! is_array($configuredCorrections)) {
             return [];
@@ -108,7 +108,7 @@ final class ResolveCorrectedSearchQueryAction
      */
     private function typoTerms(): array
     {
-        $configuredTerms = config('capell-search.typo_terms', []);
+        $configuredTerms = ResolveSearchSettingAction::run('typo_terms', 'capell-search.typo_terms', []);
 
         if (! is_array($configuredTerms)) {
             return [];
@@ -125,7 +125,7 @@ final class ResolveCorrectedSearchQueryAction
 
     private function typoMaxDistance(): int
     {
-        $configuredDistance = config('capell-search.typo_max_distance', 1);
+        $configuredDistance = ResolveSearchSettingAction::run('typo_max_distance', 'capell-search.typo_max_distance', 1);
 
         return is_numeric($configuredDistance) ? max(0, min(3, (int) $configuredDistance)) : 1;
     }

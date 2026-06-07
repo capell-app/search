@@ -1,4 +1,5 @@
 @props([
+    'clickTrackingToken' => null,
     'highlightedResults' => null,
     'results',
     'query' => '',
@@ -44,6 +45,9 @@
                             class="text-on-surface hover:text-primary hover:underline"
                             data-site-search-click
                             data-site-search-query="{{ $query }}"
+                            @if (is_string($clickTrackingToken) && $clickTrackingToken !== '')
+                                data-site-search-token="{{ $clickTrackingToken }}"
+                            @endif
                             data-site-search-type="{{ $result->type }}"
                             data-site-search-position="{{ $loop->iteration }}"
                             data-site-search-surface="results"
@@ -101,6 +105,10 @@
                     trackedLink.getAttribute('data-site-search-query') || '',
                 )
                 body.set('url', trackedLink.href)
+                body.set(
+                    'token',
+                    trackedLink.getAttribute('data-site-search-token') || '',
+                )
                 body.set(
                     'type',
                     trackedLink.getAttribute('data-site-search-type') || '',

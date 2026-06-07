@@ -233,6 +233,7 @@ test('header click beacon does not require a csrf token', function (): void {
 
 test('result click beacon does not require a csrf token', function (): void {
     $html = view('capell-search::components.results', [
+        'clickTrackingToken' => 'opaque-token',
         'query' => '',
         'results' => new Paginator(new Collection, 0, 5, 1),
     ])->render();
@@ -240,6 +241,7 @@ test('result click beacon does not require a csrf token', function (): void {
     expect($html)
         ->toContain('window.capellSearchClickBeaconInitialized')
         ->toContain("mode: 'no-cors'")
+        ->toContain("body.set(\n                    'token',")
         ->not()->toContain('csrf-token')
         ->not()->toContain('X-CSRF-TOKEN');
 });

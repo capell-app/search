@@ -11,6 +11,7 @@ use Capell\Core\Models\Site;
 use Capell\Core\Models\Theme;
 use Capell\Frontend\Facades\Frontend;
 use Capell\Search\Actions\BuildSearchFacetGroupsAction;
+use Capell\Search\Actions\GenerateSearchClickTokenAction;
 use Capell\Search\Actions\NormalizeSearchFiltersAction;
 use Capell\Search\Actions\RecordSearchAction;
 use Capell\Search\Actions\RecordSearchResultClickAction;
@@ -50,6 +51,7 @@ final class SearchController
 
         $results = RunSearchAction::run($data);
         $highlightedResults = $this->highlightedResults(app(Search::class), $results, $query);
+        $clickTrackingToken = GenerateSearchClickTokenAction::run($data);
         $facetGroups = BuildSearchFacetGroupsAction::run(
             request: $request,
             query: $query,
@@ -71,6 +73,7 @@ final class SearchController
             return view($pageView, [
                 'highlightedResults' => $highlightedResults,
                 'facetGroups' => $facetGroups,
+                'clickTrackingToken' => $clickTrackingToken,
                 'query' => $query,
                 'results' => $results,
             ]);
@@ -79,6 +82,7 @@ final class SearchController
         $content = view('capell-search::pages.search', [
             'highlightedResults' => $highlightedResults,
             'facetGroups' => $facetGroups,
+            'clickTrackingToken' => $clickTrackingToken,
             'query' => $query,
             'results' => $results,
         ]);
@@ -90,6 +94,7 @@ final class SearchController
         $slot = view('capell-search::layouts.frontend', [
             'highlightedResults' => $highlightedResults,
             'facetGroups' => $facetGroups,
+            'clickTrackingToken' => $clickTrackingToken,
             'query' => $query,
             'results' => $results,
         ]);
@@ -119,6 +124,7 @@ final class SearchController
             request: $request,
             query: (string) $request->string('query'),
             url: (string) $request->string('url'),
+            token: $request->string('token')->toString() ?: null,
             type: $request->string('type')->toString() ?: null,
             position: $request->integer('position') ?: null,
             surface: $request->string('surface')->toString() ?: null,

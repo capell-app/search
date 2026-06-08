@@ -24,11 +24,12 @@ final readonly class FlushScoutSearchSourcesAction
     public function handle(?string $sourceKey = null): array
     {
         return array_values($this->sources($sourceKey)
-            ->filter(static fn (SearchableSourceData $source): bool => is_callable([$source->modelClass, 'removeAllFromSearch']))
+            ->filter(static fn (SearchableSourceData $source): bool => method_exists($source->modelClass, 'removeAllFromSearch')
+                && is_callable([$source->modelClass, 'removeAllFromSearch']))
             ->map(function (SearchableSourceData $source): string {
                 $callback = [$source->modelClass, 'removeAllFromSearch'];
 
-                if (is_callable($callback)) {
+                if (method_exists($source->modelClass, 'removeAllFromSearch') && is_callable($callback)) {
                     $callback();
                 }
 

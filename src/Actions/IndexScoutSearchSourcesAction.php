@@ -24,11 +24,12 @@ final readonly class IndexScoutSearchSourcesAction
     public function handle(?string $sourceKey = null, ?int $chunk = null): array
     {
         return array_values($this->sources($sourceKey)
-            ->filter(static fn (SearchableSourceData $source): bool => is_callable([$source->modelClass, 'makeAllSearchable']))
+            ->filter(static fn (SearchableSourceData $source): bool => method_exists($source->modelClass, 'makeAllSearchable')
+                && is_callable([$source->modelClass, 'makeAllSearchable']))
             ->map(function (SearchableSourceData $source) use ($chunk): string {
                 $callback = [$source->modelClass, 'makeAllSearchable'];
 
-                if (is_callable($callback)) {
+                if (method_exists($source->modelClass, 'makeAllSearchable') && is_callable($callback)) {
                     $callback($chunk);
                 }
 

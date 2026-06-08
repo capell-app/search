@@ -79,7 +79,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
     public function searchDriverCheck(): DoctorCheckResultData
     {
         try {
-            $driver = app(Search::class);
+            $driver = resolve(Search::class);
             $driverResolves = $driver instanceof Search;
         } catch (Throwable) {
             $driverResolves = false;

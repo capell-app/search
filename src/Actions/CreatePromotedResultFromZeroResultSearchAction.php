@@ -62,6 +62,7 @@ final class CreatePromotedResultFromZeroResultSearchAction
             $promotionUrl = $promotion['url'] ?? null;
             $queries = $promotion['queries'] ?? $promotion['query'] ?? [];
             $queries = is_array($queries) ? $queries : [$queries];
+
             $normalizedQueries = array_map(
                 static fn (mixed $item): string => is_scalar($item) ? NormalizeSearchQueryAction::run((string) $item) : '',
                 $queries,

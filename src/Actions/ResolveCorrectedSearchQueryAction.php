@@ -49,8 +49,10 @@ final class ResolveCorrectedSearchQueryAction
 
             $misspelling = NormalizeSearchQueryAction::run($misspelling);
             $correction = NormalizeSearchQueryAction::run((string) $correction);
-
-            if ($misspelling === '' || $correction === '') {
+            if ($misspelling === '') {
+                continue;
+            }
+            if ($correction === '') {
                 continue;
             }
 
@@ -144,8 +146,10 @@ final class ResolveCorrectedSearchQueryAction
             }
 
             $distance = levenshtein($token, $term);
-
-            if ($distance > $maxDistance || $distance >= $nearestDistance) {
+            if ($distance > $maxDistance) {
+                continue;
+            }
+            if ($distance >= $nearestDistance) {
                 continue;
             }
 

@@ -37,15 +37,15 @@ final class SearchAdditionalCoverageScoutBuilder
             ->map(static fn (array $record): SearchAdditionalCoverageScoutRecord => new SearchAdditionalCoverageScoutRecord($record))
             ->values();
 
-        $total = (int) ($records->max(static function (SearchAdditionalCoverageScoutRecord $record) use ($records): int {
+        $total = $records->max(static function (SearchAdditionalCoverageScoutRecord $record) use ($records): int {
             $attributes = $record->toArray();
 
             return is_numeric($attributes['__engine_total'] ?? null)
                 ? (int) $attributes['__engine_total']
                 : $records->count();
-        }) ?? 0);
+        });
 
-        return new LengthAwarePaginator($records->all(), $total, $perPage, $page);
+        return new LengthAwarePaginator($records->all(), is_numeric($total) ? (int) $total : 0, $perPage, $page);
     }
 
     /**

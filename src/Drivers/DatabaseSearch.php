@@ -267,13 +267,14 @@ class DatabaseSearch implements Search
                 ->orderBy('SEQ_IN_INDEX')
                 ->get(['INDEX_NAME', 'COLUMN_NAME'])
                 ->groupBy('INDEX_NAME')
-                ->map(static fn (Collection $indexColumns): array => $indexColumns
+                ->map(static fn (Collection $indexColumns): array => array_values($indexColumns
                     ->pluck('COLUMN_NAME')
-                    ->map(static fn (mixed $column): string => (string) $column)
-                    ->all());
+                    ->map(static fn (mixed $column): string => is_scalar($column) ? (string) $column : '')
+                    ->filter(static fn (string $column): bool => $column !== '')
+                    ->all()));
 
             return self::$fullTextIndexCompatibilityCache[$cacheKey] = $this->hasCompatibleFullTextIndex(
-                $indexedColumns->values()->all(),
+                array_values($indexedColumns->values()->all()),
                 $columns,
             );
         } catch (Throwable) {
@@ -344,10 +345,10 @@ class DatabaseSearch implements Search
      */
     private function fallbackScoreBindings(array $columns, string $likeQuery): array
     {
-        return collect($columns)
+        return array_values(collect($columns)
             ->map(static fn (): string => $likeQuery)
             ->values()
-            ->all();
+            ->all());
     }
 
     /**

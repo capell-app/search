@@ -14,6 +14,9 @@ use Capell\Search\Data\SearchResultData;
 use Illuminate\Http\Request;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static AutocompleteSearchResponseData run(Request $request)
+ */
 final readonly class RunAutocompleteSearchAction
 {
     use AsAction;
@@ -27,7 +30,7 @@ final readonly class RunAutocompleteSearchAction
     {
         $query = (string) $request->query('q', '');
         $normalizedQuery = NormalizeSearchQueryAction::run($query);
-        $minimumLength = (int) ResolveSearchSettingAction::run(
+        $minimumLength = $this->integerSetting(
             'minimum_query_length',
             'capell-search.minimum_query_length',
             2,
@@ -53,11 +56,11 @@ final readonly class RunAutocompleteSearchAction
             );
         }
 
-        $limit = max(1, min(20, (int) config('capell-search.autocomplete.limit', 6)));
+        $limit = max(1, min(20, $this->integerConfig('capell-search.autocomplete.limit', 6)));
         $site = $request->attributes->get('site');
         $language = $request->attributes->get('language');
-        $siteId = is_object($site) ? (int) data_get($site, 'id') : null;
-        $languageId = is_object($language) ? (int) data_get($language, 'id') : null;
+        $siteId = is_object($site) ? $this->integerOrNull(data_get($site, 'id')) : null;
+        $languageId = is_object($language) ? $this->integerOrNull(data_get($language, 'id')) : null;
 
         $results = $this->search->search(
             query: (string) $normalizedQuery,
@@ -138,5 +141,24 @@ final readonly class RunAutocompleteSearchAction
             $suggestions,
             static fn (AutocompleteQuerySuggestionData $suggestion): bool => $suggestion->query !== $correctedQuery,
         ));
+    }
+
+    private function integerSetting(string $settingKey, string $configKey, int $fallback): int
+    {
+        $value = ResolveSearchSettingAction::run($settingKey, $configKey, $fallback);
+
+        return is_numeric($value) ? (int) $value : $fallback;
+    }
+
+    private function integerConfig(string $key, int $fallback): int
+    {
+        $value = config($key, $fallback);
+
+        return is_numeric($value) ? (int) $value : $fallback;
+    }
+
+    private function integerOrNull(mixed $value): ?int
+    {
+        return is_numeric($value) ? (int) $value : null;
     }
 }

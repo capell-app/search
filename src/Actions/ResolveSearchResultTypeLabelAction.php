@@ -6,6 +6,9 @@ namespace Capell\Search\Actions;
 
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static string run(string $type, array<string, string>|null $configuredLabels = null)
+ */
 final class ResolveSearchResultTypeLabelAction
 {
     use AsAction;

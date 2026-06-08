@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Capell\Search\Tests\Fixtures;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 final class SearchMaintenanceScoutModel extends Model
 {
-    use HasFactory;
-
     public static ?int $indexedChunk = null;
 
     public static int $indexCalls = 0;

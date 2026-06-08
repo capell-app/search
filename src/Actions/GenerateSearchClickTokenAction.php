@@ -8,6 +8,9 @@ use Capell\Search\Data\SearchRequestData;
 use Illuminate\Support\Facades\Crypt;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static ?string run(SearchRequestData $data)
+ */
 final class GenerateSearchClickTokenAction
 {
     use AsAction;
@@ -15,7 +18,7 @@ final class GenerateSearchClickTokenAction
     public function handle(SearchRequestData $data): ?string
     {
         $normalizedQuery = NormalizeSearchQueryAction::run($data->query);
-        $minimumLength = (int) ResolveSearchSettingAction::run(
+        $minimumLength = $this->integerSetting(
             'minimum_query_length',
             'capell-search.minimum_query_length',
             2,
@@ -31,5 +34,12 @@ final class GenerateSearchClickTokenAction
             'language_id' => $data->languageId,
             'issued_at' => now()->timestamp,
         ], JSON_THROW_ON_ERROR));
+    }
+
+    private function integerSetting(string $settingKey, string $configKey, int $fallback): int
+    {
+        $value = ResolveSearchSettingAction::run($settingKey, $configKey, $fallback);
+
+        return is_numeric($value) ? (int) $value : $fallback;
     }
 }

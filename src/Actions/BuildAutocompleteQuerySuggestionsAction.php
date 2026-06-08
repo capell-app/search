@@ -9,6 +9,9 @@ use Capell\Search\Models\SearchLog;
 use Illuminate\Support\Facades\Schema;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static list<AutocompleteQuerySuggestionData> run(string $query, int $limit = 5, ?int $siteId = null, ?int $languageId = null)
+ */
 final class BuildAutocompleteQuerySuggestionsAction
 {
     use AsAction;
@@ -52,14 +55,15 @@ final class BuildAutocompleteQuerySuggestionsAction
             $queryBuilder->where('language_id', $languageId);
         }
 
-        return $queryBuilder
+        return array_values($queryBuilder
             ->get()
             ->map(fn (object $row): AutocompleteQuerySuggestionData => new AutocompleteQuerySuggestionData(
                 query: (string) $row->normalized_query,
                 searches: (int) $row->searches,
                 url: route('capell-frontend.search', ['q' => (string) $row->normalized_query]),
             ))
-            ->all();
+            ->values()
+            ->all());
     }
 
     private function escapeLike(string $query): string

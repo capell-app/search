@@ -6,6 +6,9 @@ namespace Capell\Search\Actions;
 
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static ?string run(string $query)
+ */
 final class ResolveCorrectedSearchQueryAction
 {
     use AsAction;

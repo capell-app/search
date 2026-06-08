@@ -6,6 +6,9 @@ namespace Capell\Search\Actions;
 
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static list<string> run(string $normalizedQuery)
+ */
 final class ResolveExpandedSearchQueriesAction
 {
     use AsAction;

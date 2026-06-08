@@ -150,7 +150,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
                 db: $app->make(ConnectionResolverInterface::class)->connection(),
                 table: config('capell-search.database.table', 'pages'),
                 columns: config('capell-search.database.columns', ['title', 'excerpt', 'body']),
-                columnWeights: config('capell-search.database.column_weights', []),
+                columnWeights: $this->columnWeights(config('capell-search.database.column_weights', [])),
                 urlColumn: config('capell-search.database.url_column', 'slug'),
                 typeColumn: config('capell-search.database.type_column', 'type'),
                 titleColumn: config('capell-search.database.title_column', 'title'),
@@ -164,6 +164,30 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         });
 
         return $this;
+    }
+
+    /**
+     * @return array<string, float|int|string>
+     */
+    private function columnWeights(mixed $columnWeights): array
+    {
+        if (! is_array($columnWeights)) {
+            return [];
+        }
+
+        $weights = [];
+
+        foreach ($columnWeights as $column => $weight) {
+            if (! is_string($column)) {
+                continue;
+            }
+
+            if (is_float($weight) || is_int($weight) || is_string($weight)) {
+                $weights[$column] = $weight;
+            }
+        }
+
+        return $weights;
     }
 
     private function resolveDriver(): string

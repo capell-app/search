@@ -9,6 +9,9 @@ use Capell\Search\Models\SearchLog;
 use Illuminate\Support\Facades\Schema as SchemaFacade;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static ?SearchLog run(SearchRequestData $data, int $resultsCount, ?string $ipAddress = null, ?string $userAgent = null)
+ */
 final class RecordSearchAction
 {
     use AsAction;

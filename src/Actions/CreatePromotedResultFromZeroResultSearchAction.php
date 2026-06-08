@@ -8,6 +8,9 @@ use Capell\Search\Settings\SearchSettings;
 use Lorisleiva\Actions\Concerns\AsAction;
 use Throwable;
 
+/**
+ * @method static list<array<string, mixed>> run(string $zeroResultQuery, string $title, string $url, string $excerpt = '', string $type = 'page', float $score = 1000.0)
+ */
 final class CreatePromotedResultFromZeroResultSearchAction
 {
     use AsAction;
@@ -28,11 +31,11 @@ final class CreatePromotedResultFromZeroResultSearchAction
         $url = trim($url);
 
         if ($query === '' || $title === '' || $url === '') {
-            return $this->settings()->promoted_results;
+            return $this->promotedResults($this->settings()->promoted_results);
         }
 
         $settings = $this->settings();
-        $promotedResults = $this->withoutDuplicatePromotion($settings->promoted_results, $query, $url);
+        $promotedResults = $this->withoutDuplicatePromotion($this->promotedResults($settings->promoted_results), $query, $url);
         $promotedResults[] = [
             'queries' => [$query],
             'title' => $title,
@@ -45,20 +48,18 @@ final class CreatePromotedResultFromZeroResultSearchAction
         $settings->promoted_results = array_values($promotedResults);
         $this->save($settings);
 
-        return $settings->promoted_results;
+        return $this->promotedResults($settings->promoted_results);
     }
 
     /**
-     * @param  array<int, mixed>  $promotedResults
+     * @param  list<array<string, mixed>>  $promotedResults
      * @return list<array<string, mixed>>
      */
     private function withoutDuplicatePromotion(array $promotedResults, string $query, string $url): array
     {
-        return array_values(array_filter($promotedResults, static function (mixed $promotion) use ($query, $url): bool {
-            if (! is_array($promotion)) {
-                return false;
-            }
+        $filtered = [];
 
+        foreach ($promotedResults as $promotion) {
             $promotionUrl = $promotion['url'] ?? null;
             $queries = $promotion['queries'] ?? $promotion['query'] ?? [];
             $queries = is_array($queries) ? $queries : [$queries];
@@ -68,8 +69,48 @@ final class CreatePromotedResultFromZeroResultSearchAction
                 $queries,
             );
 
-            return $promotionUrl !== $url || ! in_array($query, $normalizedQueries, true);
-        }));
+            if ($promotionUrl !== $url || ! in_array($query, $normalizedQueries, true)) {
+                $filtered[] = $promotion;
+            }
+        }
+
+        return $filtered;
+    }
+
+    /**
+     * @param  array<mixed>  $promotedResults
+     * @return list<array<string, mixed>>
+     */
+    private function promotedResults(array $promotedResults): array
+    {
+        $results = [];
+
+        foreach ($promotedResults as $promotion) {
+            if (! is_array($promotion)) {
+                continue;
+            }
+
+            $results[] = $this->stringKeyedArray($promotion);
+        }
+
+        return $results;
+    }
+
+    /**
+     * @param  array<mixed>  $values
+     * @return array<string, mixed>
+     */
+    private function stringKeyedArray(array $values): array
+    {
+        $result = [];
+
+        foreach ($values as $key => $value) {
+            if (is_string($key)) {
+                $result[$key] = $value;
+            }
+        }
+
+        return $result;
     }
 
     private function settings(): SearchSettings

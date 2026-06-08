@@ -23,6 +23,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
@@ -133,14 +134,15 @@ test('autocomplete returns limited public-safe results without writing search lo
 
     $request = Request::create('/search/autocomplete', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Capell']);
     $response = (new SearchController)->autocomplete($request);
-    $payload = $response->getData(true);
+    $payload = searchControllerJsonPayload($response);
+    $results = searchControllerPayloadResults($payload);
 
     expect($recordedSearch->query)->toBe('capell')
         ->and($recordedSearch->perPage)->toBe(1)
         ->and($recordedSearch->page)->toBe(1)
         ->and($payload)->toHaveKeys(['query', 'minimumLength', 'results', 'allResultsUrl'])
-        ->and($payload['results'])->toHaveCount(1)
-        ->and($payload['results'][0])->toBe([
+        ->and($results)->toHaveCount(1)
+        ->and($results[0])->toBe([
             'title' => 'Capell CMS',
             'url' => '/capell-cms',
             'excerpt' => 'Capell CMS result',
@@ -148,7 +150,7 @@ test('autocomplete returns limited public-safe results without writing search lo
             'typeLabel' => 'Marketing',
             'score' => 4,
         ])
-        ->and($payload['results'][0])->not->toHaveKeys(['id', 'model', 'modelClass', 'adminUrl', 'signedUrl'])
+        ->and($results[0])->not->toHaveKeys(['id', 'model', 'modelClass', 'adminUrl', 'signedUrl'])
         ->and(SearchLog::query()->count())->toBe(0);
 });
 
@@ -212,12 +214,14 @@ test('autocomplete returns corrected query metadata and popular query suggestion
     });
 
     $request = Request::create('/search/autocomplete', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'capel']);
-    $payload = (new SearchController)->autocomplete($request)->getData(true);
+    $payload = searchControllerJsonPayload((new SearchController)->autocomplete($request));
+    $metadata = searchControllerPayloadArray($payload, 'metadata');
+    $suggestions = searchControllerPayloadSuggestions($payload);
 
-    expect($payload['metadata']['corrected'])->toBe('capell')
-        ->and($payload['querySuggestions'])->toHaveCount(2)
-        ->and($payload['querySuggestions'][0]['query'])->toBe('capel marketplace')
-        ->and($payload['querySuggestions'][0]['url'])->toBe(route('capell-frontend.search', ['q' => 'capel marketplace']));
+    expect($metadata['corrected'] ?? null)->toBe('capell')
+        ->and($suggestions)->toHaveCount(2)
+        ->and($suggestions[0]['query'] ?? null)->toBe('capel marketplace')
+        ->and($suggestions[0]['url'] ?? null)->toBe(route('capell-frontend.search', ['q' => 'capel marketplace']));
 });
 
 test('autocomplete route is lightly throttled', function (): void {
@@ -665,3 +669,79 @@ test('public search markup does not expose package identifiers', function (): vo
         ->not()->toContain('package')
         ->not()->toContain('editor');
 });
+
+/**
+ * @return array<string, mixed>
+ */
+function searchControllerJsonPayload(JsonResponse $response): array
+{
+    $payload = $response->getData(true);
+
+    return is_array($payload) ? searchControllerStringKeyedArray($payload) : [];
+}
+
+/**
+ * @param  array<string, mixed>  $payload
+ * @return array<string, mixed>
+ */
+function searchControllerPayloadArray(array $payload, string $key): array
+{
+    $value = $payload[$key] ?? null;
+
+    return is_array($value) ? searchControllerStringKeyedArray($value) : [];
+}
+
+/**
+ * @param  array<string, mixed>  $payload
+ * @return list<array<string, mixed>>
+ */
+function searchControllerPayloadResults(array $payload): array
+{
+    return searchControllerListOfStringKeyedArrays($payload['results'] ?? []);
+}
+
+/**
+ * @param  array<string, mixed>  $payload
+ * @return list<array<string, mixed>>
+ */
+function searchControllerPayloadSuggestions(array $payload): array
+{
+    return searchControllerListOfStringKeyedArrays($payload['querySuggestions'] ?? []);
+}
+
+/**
+ * @return list<array<string, mixed>>
+ */
+function searchControllerListOfStringKeyedArrays(mixed $items): array
+{
+    if (! is_array($items)) {
+        return [];
+    }
+
+    $results = [];
+
+    foreach ($items as $item) {
+        if (is_array($item)) {
+            $results[] = searchControllerStringKeyedArray($item);
+        }
+    }
+
+    return $results;
+}
+
+/**
+ * @param  array<mixed>  $values
+ * @return array<string, mixed>
+ */
+function searchControllerStringKeyedArray(array $values): array
+{
+    $result = [];
+
+    foreach ($values as $key => $value) {
+        if (is_string($key)) {
+            $result[$key] = $value;
+        }
+    }
+
+    return $result;
+}

@@ -9,6 +9,9 @@ use Capell\Search\Support\SearchableSourceRegistry;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static list<string> run(?string $sourceKey = null, ?int $chunk = null)
+ */
 final readonly class IndexScoutSearchSourcesAction
 {
     use AsAction;
@@ -20,15 +23,19 @@ final readonly class IndexScoutSearchSourcesAction
      */
     public function handle(?string $sourceKey = null, ?int $chunk = null): array
     {
-        return $this->sources($sourceKey)
-            ->filter(static fn (SearchableSourceData $source): bool => method_exists($source->modelClass, 'makeAllSearchable'))
+        return array_values($this->sources($sourceKey)
+            ->filter(static fn (SearchableSourceData $source): bool => is_callable([$source->modelClass, 'makeAllSearchable']))
             ->map(function (SearchableSourceData $source) use ($chunk): string {
-                call_user_func([$source->modelClass, 'makeAllSearchable'], $chunk);
+                $callback = [$source->modelClass, 'makeAllSearchable'];
+
+                if (is_callable($callback)) {
+                    $callback($chunk);
+                }
 
                 return $source->key;
             })
             ->values()
-            ->all();
+            ->all());
     }
 
     /**

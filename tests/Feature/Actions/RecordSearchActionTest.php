@@ -52,7 +52,8 @@ test('logs valid searches with normalized query and hashed visitor data', functi
         'Capell Test Browser',
     );
 
-    expect($log)->toBeInstanceOf(SearchLog::class);
+    $log = searchLogResult($log);
+
     expect($log->site_id)->toBe(10);
     expect($log->language_id)->toBe(20);
     expect($log->query)->toBe('  Laravel   Search  ');
@@ -107,7 +108,8 @@ test('omits visitor hashes when visitor hashing is disabled', function (): void 
         'Capell Test Browser',
     );
 
-    expect($log)->toBeInstanceOf(SearchLog::class);
+    $log = searchLogResult($log);
+
     expect($log->ip_hash)->toBeNull();
     expect($log->user_agent_hash)->toBeNull();
 });
@@ -118,6 +120,7 @@ test('records clicked result url on an existing search log', function (): void {
     ]);
 
     $updatedLog = RecordSearchResultClickAction::run($log, '/search-result');
+    $updatedLog = searchLogResult($updatedLog);
 
     expect($updatedLog->clicked_result_url)->toBe('/search-result');
     expect($log->refresh()->clicked_result_url)->toBe('/search-result');
@@ -132,7 +135,7 @@ test('generates click tokens with normalized search context', function (): void 
 
     throw_unless(is_string($token), RuntimeException::class, 'Expected search click token.');
 
-    $payload = json_decode(Crypt::decryptString($token), true, flags: JSON_THROW_ON_ERROR);
+    $payload = searchClickTokenPayload($token);
 
     expect($payload)->toMatchArray([
         'query' => 'laravel search',
@@ -183,6 +186,37 @@ test('records click by token when visitor hashes change', function (): void {
     expect($updatedLog?->is($log))->toBeTrue()
         ->and($log->refresh()->clicked_result_url)->toBe('/search-result');
 });
+
+/**
+ * @return array{query: string, site_id: int|null, language_id: int|null, issued_at: int}
+ */
+function searchClickTokenPayload(string $token): array
+{
+    $payload = json_decode(Crypt::decryptString($token), true, flags: JSON_THROW_ON_ERROR);
+
+    if (! is_array($payload)) {
+        return [
+            'query' => '',
+            'site_id' => null,
+            'language_id' => null,
+            'issued_at' => 0,
+        ];
+    }
+
+    return [
+        'query' => is_string($payload['query'] ?? null) ? $payload['query'] : '',
+        'site_id' => is_numeric($payload['site_id'] ?? null) ? (int) $payload['site_id'] : null,
+        'language_id' => is_numeric($payload['language_id'] ?? null) ? (int) $payload['language_id'] : null,
+        'issued_at' => is_int($payload['issued_at'] ?? null) ? $payload['issued_at'] : 0,
+    ];
+}
+
+function searchLogResult(?SearchLog $log): SearchLog
+{
+    throw_unless($log instanceof SearchLog, RuntimeException::class, 'Expected search log.');
+
+    return $log;
+}
 
 test('falls back to visitor tuple when click token is invalid', function (): void {
     $log = RecordSearchAction::run(

@@ -20,7 +20,11 @@
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "supports": ["capell-app/site-discovery"],
+        "supports": [
+            "capell-app/seo-suite",
+            "capell-app/site-discovery",
+            "capell-app/url-manager"
+        ],
         "conflicts": []
     },
     "providers": {

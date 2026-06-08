@@ -52,6 +52,7 @@ final class ResolveCorrectedSearchQueryAction
             if ($misspelling === '') {
                 continue;
             }
+
             if ($correction === '') {
                 continue;
             }
@@ -149,6 +150,7 @@ final class ResolveCorrectedSearchQueryAction
             if ($distance > $maxDistance) {
                 continue;
             }
+
             if ($distance >= $nearestDistance) {
                 continue;
             }

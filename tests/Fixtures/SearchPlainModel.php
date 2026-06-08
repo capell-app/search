@@ -10,5 +10,6 @@ use Illuminate\Database\Eloquent\Model;
 final class SearchPlainModel extends Model
 {
     use HasFactory;
+
     //
 }

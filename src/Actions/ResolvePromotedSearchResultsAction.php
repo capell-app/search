@@ -7,6 +7,9 @@ namespace Capell\Search\Actions;
 use Capell\Search\Data\PromotedSearchResultData;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static list<PromotedSearchResultData> run(string $normalizedQuery)
+ */
 final class ResolvePromotedSearchResultsAction
 {
     use AsAction;

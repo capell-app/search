@@ -7,6 +7,7 @@ use Capell\Search\Drivers\SiteDiscoverySearch;
 use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
 use Capell\SiteDiscovery\Enums\PublicUrlContentType;
 use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
+use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Support\Collection;
 
 test('site discovery search returns indexable public registry URLs', function (): void {
@@ -76,7 +77,7 @@ test('site discovery search matches route package and content type metadata', fu
 });
 
 test('site discovery search translates the root url title', function (): void {
-    app('translator')->addLines([
+    resolve(Translator::class)->addLines([
         'generic.site_discovery_home_title' => 'Homepage',
     ], 'en', 'capell-search');
 

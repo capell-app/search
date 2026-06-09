@@ -13,6 +13,9 @@ use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static LengthAwarePaginator<int, SearchResultData> run(SearchRequestData $data)
+ */
 final readonly class RunSearchAction
 {
     use AsAction;
@@ -25,7 +28,7 @@ final readonly class RunSearchAction
     public function handle(SearchRequestData $data): LengthAwarePaginator
     {
         $normalizedQuery = NormalizeSearchQueryAction::run($data->query);
-        $minimumLength = (int) ResolveSearchSettingAction::run(
+        $minimumLength = $this->integerSetting(
             'minimum_query_length',
             'capell-search.minimum_query_length',
             2,
@@ -69,9 +72,23 @@ final readonly class RunSearchAction
             return [$primaryQuery];
         }
 
-        $maxQueries = max(1, (int) config('capell-search.query_expansion.max_queries', 3));
+        $maxQueries = max(1, $this->integerConfig('capell-search.query_expansion.max_queries', 3));
 
         return array_slice($queries, 0, $maxQueries);
+    }
+
+    private function integerSetting(string $settingKey, string $configKey, int $fallback): int
+    {
+        $value = ResolveSearchSettingAction::run($settingKey, $configKey, $fallback);
+
+        return is_numeric($value) ? (int) $value : $fallback;
+    }
+
+    private function integerConfig(string $key, int $fallback): int
+    {
+        $value = config($key, $fallback);
+
+        return is_numeric($value) ? (int) $value : $fallback;
     }
 
     /**

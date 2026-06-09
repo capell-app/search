@@ -38,6 +38,9 @@
             "providers": [
                 "Capell\\Search\\Providers\\SearchServiceProvider"
             ]
+        },
+        "branch-alias": {
+            "dev-main": "4.x-dev"
         }
     },
     "config": {

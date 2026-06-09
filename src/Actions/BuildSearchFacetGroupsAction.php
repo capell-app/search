@@ -14,6 +14,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static list<SearchFacetGroupData> run(Request $request, string $query, SearchFilterData $filters, ?int $siteId = null, ?int $languageId = null)
+ */
 final readonly class BuildSearchFacetGroupsAction
 {
     use AsAction;
@@ -34,7 +37,7 @@ final readonly class BuildSearchFacetGroupsAction
         ?int $languageId = null,
     ): array {
         $normalizedQuery = NormalizeSearchQueryAction::run($query);
-        $minimumLength = (int) ResolveSearchSettingAction::run('minimum_query_length', 'capell-search.minimum_query_length', 2);
+        $minimumLength = $this->integerSetting('minimum_query_length', 'capell-search.minimum_query_length', 2);
 
         if (! (bool) config('capell-search.filters.enabled', true) || $normalizedQuery === '' || mb_strlen($normalizedQuery) < $minimumLength) {
             return [];
@@ -92,6 +95,13 @@ final readonly class BuildSearchFacetGroupsAction
             label: __('capell-search::generic.filter_by_type'),
             options: $options,
         );
+    }
+
+    private function integerSetting(string $settingKey, string $configKey, int $fallback): int
+    {
+        $value = ResolveSearchSettingAction::run($settingKey, $configKey, $fallback);
+
+        return is_numeric($value) ? (int) $value : $fallback;
     }
 
     /**

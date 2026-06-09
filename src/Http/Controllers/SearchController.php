@@ -21,6 +21,7 @@ use Capell\Search\Actions\RunSearchAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchRequestData;
+use Capell\Search\Data\SearchResultData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -50,7 +51,7 @@ final class SearchController
         );
 
         $results = RunSearchAction::run($data);
-        $highlightedResults = $this->highlightedResults(app(Search::class), $results, $query);
+        $highlightedResults = $this->highlightedResults(resolve(Search::class), $results, $query);
         $clickTrackingToken = GenerateSearchClickTokenAction::run($data);
         $facetGroups = BuildSearchFacetGroupsAction::run(
             request: $request,
@@ -149,14 +150,15 @@ final class SearchController
     }
 
     /**
+     * @param  LengthAwarePaginator<int, SearchResultData>  $results
      * @return Collection<int, array{title: string, excerpt: string}>
      */
     private function highlightedResults(Search $search, LengthAwarePaginator $results, string $query): Collection
     {
         return collect($results->items())
-            ->map(static fn (mixed $result): array => [
-                'title' => $search->highlight((string) data_get($result, 'title', ''), $query),
-                'excerpt' => $search->highlight((string) data_get($result, 'excerpt', ''), $query),
+            ->map(static fn (SearchResultData $result): array => [
+                'title' => $search->highlight($result->title, $query),
+                'excerpt' => $search->highlight($result->excerpt, $query),
             ])
             ->values();
     }

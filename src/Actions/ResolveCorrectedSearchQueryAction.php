@@ -6,6 +6,9 @@ namespace Capell\Search\Actions;
 
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static ?string run(string $query)
+ */
 final class ResolveCorrectedSearchQueryAction
 {
     use AsAction;
@@ -49,8 +52,11 @@ final class ResolveCorrectedSearchQueryAction
 
             $misspelling = NormalizeSearchQueryAction::run($misspelling);
             $correction = NormalizeSearchQueryAction::run((string) $correction);
+            if ($misspelling === '') {
+                continue;
+            }
 
-            if ($misspelling === '' || $correction === '') {
+            if ($correction === '') {
                 continue;
             }
 
@@ -144,8 +150,11 @@ final class ResolveCorrectedSearchQueryAction
             }
 
             $distance = levenshtein($token, $term);
+            if ($distance > $maxDistance) {
+                continue;
+            }
 
-            if ($distance > $maxDistance || $distance >= $nearestDistance) {
+            if ($distance >= $nearestDistance) {
                 continue;
             }
 

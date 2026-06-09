@@ -8,6 +8,9 @@ use Capell\Search\Settings\SearchSettings;
 use Lorisleiva\Actions\Concerns\AsAction;
 use Throwable;
 
+/**
+ * @method static array<string, mixed> run(string $zeroResultQuery, string $targetQuery)
+ */
 final class CreateSynonymFromZeroResultSearchAction
 {
     use AsAction;

@@ -13,11 +13,7 @@
         "bundle": "search-seo"
     },
     "namespace": "Capell\\Search",
-    "surfaces": [
-        "admin",
-        "frontend",
-        "console"
-    ],
+    "surfaces": ["admin", "frontend", "console"],
     "dependencies": {
         "requires": [
             "capell-app/admin",
@@ -25,28 +21,24 @@
             "capell-app/frontend"
         ],
         "supports": [
-            "capell-app/site-discovery"
+            "capell-app/seo-suite",
+            "capell-app/site-discovery",
+            "capell-app/url-manager"
         ],
         "conflicts": []
     },
     "providers": {
         "metadata": [],
         "install": [],
-        "runtime": [
-            "Capell\\Search\\Providers\\SearchServiceProvider"
-        ],
-        "admin": [
-            "Capell\\Search\\Providers\\AdminServiceProvider"
-        ],
+        "runtime": ["Capell\\Search\\Providers\\SearchServiceProvider"],
+        "admin": ["Capell\\Search\\Providers\\AdminServiceProvider"],
         "frontend": []
     },
     "contributes": [
         {
             "type": "route",
             "class": "Capell\\Search\\Manifest\\SearchFrontendRouteContribution",
-            "routes": [
-                "capell-frontend.search"
-            ]
+            "routes": ["capell-frontend.search"]
         },
         {
             "type": "model",
@@ -87,9 +79,7 @@
     "database": {
         "migrations": true,
         "settings": true,
-        "requiredTables": [
-            "search_logs"
-        ]
+        "requiredTables": ["search_logs"]
     },
     "commands": {
         "install": null,
@@ -118,9 +108,7 @@
         "resolvePromotedSearchResults": "Capell\\Search\\Actions\\ResolvePromotedSearchResultsAction",
         "runSearch": "Capell\\Search\\Actions\\RunSearchAction"
     },
-    "settings": [
-        "Capell\\Search\\Settings\\SearchSettings"
-    ],
+    "settings": ["Capell\\Search\\Settings\\SearchSettings"],
     "permissions": [],
     "capabilities": [
         "search",
@@ -137,15 +125,10 @@
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
-        "cacheTags": [
-            "search"
-        ],
+        "cacheTags": ["search"],
         "cacheSafety": {
             "cacheable": false,
-            "variesBy": [
-                "site",
-                "locale"
-            ],
+            "variesBy": ["site", "locale"],
             "sensitiveOutput": false,
             "invalidationSources": [],
             "queueInvalidation": true
@@ -262,12 +245,7 @@
                 "caption": "Zero-result search opportunities in dark mode"
             }
         ],
-        "categories": [
-            "admin",
-            "console",
-            "frontend",
-            "search-seo"
-        ]
+        "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {
         "deferredContributions": []

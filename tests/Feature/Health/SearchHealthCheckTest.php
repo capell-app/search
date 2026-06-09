@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
 use Capell\Core\Facades\CapellCore;
 use Capell\Search\Health\SearchHealthCheck;
 use Capell\Search\Models\SearchLog;
@@ -44,7 +43,6 @@ it('runs diagnostics with runtime probes', function (): void {
     $results = SearchHealthCheck::runDiagnostics();
 
     expect($results)->toHaveCount(5)
-        ->and($results->every(static fn (DoctorCheckResultData $result): bool => $result instanceof DoctorCheckResultData))->toBeTrue()
         ->and($results->pluck('label')->all())->toContain(
             'Search log storage table',
             'SearchLog model registration',

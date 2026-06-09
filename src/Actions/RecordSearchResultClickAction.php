@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Schema as SchemaFacade;
 use JsonException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static ?SearchLog run(SearchLog|Request $request, string $query, ?string $url = null, ?string $token = null, ?string $type = null, ?int $position = null, ?string $surface = null)
+ */
 final class RecordSearchResultClickAction
 {
     use AsAction;

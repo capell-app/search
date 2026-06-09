@@ -158,8 +158,8 @@ test('uses primary driver pagination beyond the first expanded search page', fun
 
     $results = (new RunSearchAction($search))->handle(new SearchRequestData(
         query: 'CMS hosting',
-        perPage: 5,
         page: 2,
+        perPage: 5,
     ));
 
     expect($search->calls)->toBe([

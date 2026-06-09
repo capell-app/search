@@ -7,6 +7,9 @@ namespace Capell\Search\Actions;
 use Capell\Search\Data\SearchResultData;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static ?SearchResultData run(SearchResultData $result)
+ */
 final class SanitizeSearchResultAction
 {
     use AsAction;

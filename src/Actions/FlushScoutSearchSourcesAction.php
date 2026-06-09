@@ -9,6 +9,9 @@ use Capell\Search\Support\SearchableSourceRegistry;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static list<string> run(?string $sourceKey = null)
+ */
 final readonly class FlushScoutSearchSourcesAction
 {
     use AsAction;
@@ -20,15 +23,20 @@ final readonly class FlushScoutSearchSourcesAction
      */
     public function handle(?string $sourceKey = null): array
     {
-        return $this->sources($sourceKey)
-            ->filter(static fn (SearchableSourceData $source): bool => method_exists($source->modelClass, 'removeAllFromSearch'))
+        return array_values($this->sources($sourceKey)
+            ->filter(static fn (SearchableSourceData $source): bool => method_exists($source->modelClass, 'removeAllFromSearch')
+                && is_callable([$source->modelClass, 'removeAllFromSearch']))
             ->map(function (SearchableSourceData $source): string {
-                call_user_func([$source->modelClass, 'removeAllFromSearch']);
+                $callback = [$source->modelClass, 'removeAllFromSearch'];
+
+                if (method_exists($source->modelClass, 'removeAllFromSearch') && is_callable($callback)) {
+                    $callback();
+                }
 
                 return $source->key;
             })
             ->values()
-            ->all();
+            ->all());
     }
 
     /**

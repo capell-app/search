@@ -13,7 +13,11 @@
         "bundle": "search-seo"
     },
     "namespace": "Capell\\Search",
-    "surfaces": ["admin", "frontend", "console"],
+    "surfaces": [
+        "admin",
+        "frontend",
+        "console"
+    ],
     "dependencies": {
         "requires": [
             "capell-app/admin",
@@ -30,15 +34,21 @@
     "providers": {
         "metadata": [],
         "install": [],
-        "runtime": ["Capell\\Search\\Providers\\SearchServiceProvider"],
-        "admin": ["Capell\\Search\\Providers\\AdminServiceProvider"],
+        "runtime": [
+            "Capell\\Search\\Providers\\SearchServiceProvider"
+        ],
+        "admin": [
+            "Capell\\Search\\Providers\\AdminServiceProvider"
+        ],
         "frontend": []
     },
     "contributes": [
         {
             "type": "route",
             "class": "Capell\\Search\\Manifest\\SearchFrontendRouteContribution",
-            "routes": ["capell-frontend.search"]
+            "routes": [
+                "capell-frontend.search"
+            ]
         },
         {
             "type": "model",
@@ -79,7 +89,9 @@
     "database": {
         "migrations": true,
         "settings": true,
-        "requiredTables": ["search_logs"]
+        "requiredTables": [
+            "search_logs"
+        ]
     },
     "commands": {
         "install": null,
@@ -108,7 +120,9 @@
         "resolvePromotedSearchResults": "Capell\\Search\\Actions\\ResolvePromotedSearchResultsAction",
         "runSearch": "Capell\\Search\\Actions\\RunSearchAction"
     },
-    "settings": ["Capell\\Search\\Settings\\SearchSettings"],
+    "settings": [
+        "Capell\\Search\\Settings\\SearchSettings"
+    ],
     "permissions": [],
     "capabilities": [
         "search",
@@ -123,21 +137,29 @@
         "search-site-discovery-indexing"
     ],
     "security": {
-        "riskTier": "sensitive",
+        "riskTier": "standard",
         "publicSurface": {
             "routeNames": [
                 "capell-frontend.search",
                 "capell-frontend.search.autocomplete",
-                "capell-frontend.search.click"
+                "capell-frontend.search.click",
+                "search",
+                "search.autocomplete",
+                "search.click"
             ],
             "auth": "public",
-            "csrfExemptRoutes": ["capell-frontend.search.click"],
+            "csrfExemptRoutes": [
+                "capell-frontend.search.click",
+                "search.click"
+            ],
             "signedRoutes": [],
             "tokenizedRoutes": [],
             "webhookRoutes": [],
             "throttledRoutes": [
                 "capell-frontend.search.autocomplete",
-                "capell-frontend.search.click"
+                "capell-frontend.search.click",
+                "search.autocomplete",
+                "search.click"
             ]
         },
         "sensitiveData": {
@@ -165,10 +187,15 @@
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
-        "cacheTags": ["search"],
+        "cacheTags": [
+            "search"
+        ],
         "cacheSafety": {
             "cacheable": false,
-            "variesBy": ["site", "locale"],
+            "variesBy": [
+                "site",
+                "locale"
+            ],
             "sensitiveOutput": false,
             "invalidationSources": [],
             "queueInvalidation": true
@@ -285,9 +312,16 @@
                 "caption": "Zero-result search opportunities in dark mode"
             }
         ],
-        "categories": ["admin", "console", "frontend", "search-seo"]
+        "categories": [
+            "admin",
+            "console",
+            "frontend",
+            "search-seo"
+        ]
     },
     "contributionTraceability": {
-        "deferredContributions": []
+        "deferredContributions": [
+            "admin-page"
+        ]
     }
 }

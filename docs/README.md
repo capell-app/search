@@ -11,7 +11,6 @@ Start at the [package README](../README.md) when deciding whether to install thi
 | [Credits And Acknowledgements](credits-and-acknowledgements.md) | Upstream services, dependencies, and acknowledgements.                             |
 | [Drivers And Logging](drivers-and-logging.md)                   | Focused package workflow, setup, troubleshooting, or implementation details.       |
 | [Overview](overview.md)                                         | Package boundary, runtime surfaces, install notes, and first troubleshooting path. |
-| [Search](search.md)                                             | Focused package workflow, setup, troubleshooting, or implementation details.       |
 
 ## Read Next
 

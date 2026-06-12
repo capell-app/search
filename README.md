@@ -173,7 +173,6 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - [credits-and-acknowledgements.md](docs/credits-and-acknowledgements.md)
 - [drivers-and-logging.md](docs/drivers-and-logging.md)
 - [overview.md](docs/overview.md)
-- [search.md](docs/search.md)
 
 ## Testing
 

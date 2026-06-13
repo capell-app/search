@@ -123,29 +123,21 @@
         "search-site-discovery-indexing"
     ],
     "security": {
-        "riskTier": "standard",
+        "riskTier": "sensitive",
         "publicSurface": {
             "routeNames": [
                 "capell-frontend.search",
                 "capell-frontend.search.autocomplete",
-                "capell-frontend.search.click",
-                "search",
-                "search.autocomplete",
-                "search.click"
+                "capell-frontend.search.click"
             ],
             "auth": "public",
-            "csrfExemptRoutes": [
-                "capell-frontend.search.click",
-                "search.click"
-            ],
+            "csrfExemptRoutes": ["capell-frontend.search.click"],
             "signedRoutes": [],
             "tokenizedRoutes": [],
             "webhookRoutes": [],
             "throttledRoutes": [
                 "capell-frontend.search.autocomplete",
-                "capell-frontend.search.click",
-                "search.autocomplete",
-                "search.click"
+                "capell-frontend.search.click"
             ]
         },
         "sensitiveData": {

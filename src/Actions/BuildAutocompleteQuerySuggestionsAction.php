@@ -60,7 +60,7 @@ final class BuildAutocompleteQuerySuggestionsAction
             ->map(fn (object $row): AutocompleteQuerySuggestionData => new AutocompleteQuerySuggestionData(
                 query: (string) $row->normalized_query,
                 searches: (int) $row->searches,
-                url: route('capell-frontend.search', ['q' => (string) $row->normalized_query]),
+                url: route('capell-frontend.search', ['q' => (string) $row->normalized_query], false),
             ))
             ->values()
             ->all());

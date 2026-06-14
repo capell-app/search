@@ -16,6 +16,43 @@
         aria-live="polite"
     ></p>
 
+    <div
+        class="grid gap-3 p-3"
+        data-site-search-loading
+        data-site-search-loading-template="{{ __('capell-search::generic.searching_for') }}"
+        data-site-search-loading-status="{{ __('capell-search::generic.searching') }}"
+        hidden
+    >
+        <div class="flex items-center gap-3">
+            <span
+                class="border-outline bg-surface inline-grid size-8 shrink-0 place-items-center rounded-md border"
+                aria-hidden="true"
+            >
+                @svg('heroicon-o-magnifying-glass', 'text-primary h-4 w-4 animate-pulse')
+            </span>
+            <div class="min-w-0">
+                <p
+                    class="text-on-surface text-sm font-medium"
+                    data-site-search-loading-label
+                >
+                    {{ __('capell-search::generic.searching') }}
+                </p>
+                <p class="text-on-surface-variant text-sm">
+                    {{ __('capell-search::generic.searching_hint') }}
+                </p>
+            </div>
+        </div>
+        <div
+            class="grid gap-2"
+            aria-hidden="true"
+        >
+            <span
+                class="bg-surface h-3 w-11/12 animate-pulse rounded-sm"
+            ></span>
+            <span class="bg-surface h-3 w-7/12 animate-pulse rounded-sm"></span>
+        </div>
+    </div>
+
     <ol
         id="{{ $resultsId }}"
         class="max-h-80 overflow-y-auto"
@@ -25,7 +62,7 @@
     ></ol>
 
     <a
-        href="{{ route('capell-frontend.search') }}"
+        href="{{ route('capell-frontend.search', absolute: false) }}"
         class="border-outline/50 text-on-surface hover:bg-surface-low border-t px-3 py-2 text-sm font-medium transition"
         data-site-search-all-results
         hidden

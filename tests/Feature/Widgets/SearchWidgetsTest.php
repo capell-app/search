@@ -9,6 +9,7 @@ use Capell\Search\Filament\Widgets\TrendingSearchesWidget;
 use Capell\Search\Filament\Widgets\ZeroResultSearchesWidget;
 use Capell\Search\Models\SearchLog;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 
@@ -75,4 +76,26 @@ test('site search contributes overview stats instead of an overview widget', fun
         'search_overview.unique_queries',
         'search_overview.zero_result_rate',
     );
+});
+
+test('site search overview stat cache stays scoped to the current request', function (): void {
+    app()->instance('request', Request::create('/admin/search/first'));
+
+    $firstRequestStat = collect(CapellAdmin::getOverviewStats(false))
+        ->firstWhere('key', 'search_overview');
+
+    SearchLog::factory()->create([
+        'query' => 'Fresh query',
+        'normalized_query' => 'fresh query',
+        'results_count' => 3,
+        'searched_at' => now(),
+    ]);
+
+    app()->instance('request', Request::create('/admin/search/second'));
+
+    $secondRequestStat = collect(CapellAdmin::getOverviewStats(false))
+        ->firstWhere('key', 'search_overview');
+
+    expect($firstRequestStat?->value)->toBe('2')
+        ->and($secondRequestStat?->value)->toBe('3');
 });

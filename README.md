@@ -1,190 +1,115 @@
 # Search
 
-Search adds a frontend search route, configurable search drivers, synonym expansion, typo correction, promoted results, source weighting, result click tracking, zero-result reporting, query logging, Site Discovery indexing, and admin search insights.
+<!-- prettier-ignore-start -->
 
-## At A Glance
+## What This Plugin Adds
 
-- Package: `capell-app/search`
-- Namespace: `Capell\Search\`
-- Surfaces: Filament admin, console, HTTP, database
-- Service providers: `packages/search/src/Providers/AdminServiceProvider.php`, `packages/search/src/Providers/SearchServiceProvider.php`
-- Capell dependencies: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`
-- Third-party dependencies: `lorisleiva/laravel-actions`, `spatie/laravel-data`, `spatie/laravel-package-tools`
+Search is an **Available**, **Schema-owning** Capell package in the **Capell Search & SEO** product group. It ships as `capell-app/search` and extends these surfaces: admin, frontend, console.
 
-## Why It Helps Your Capell Workflow
+Search gives every Capell site a fast, themeable search experience: a results page, header search field, and type-ahead autocomplete, backed by a pluggable driver contract (database, Site Discovery URL registry, or Laravel Scout/Meilisearch/Typesense). Curate results with synonyms, typo corrections, and promoted "best bet" answers, and tune ranking with source weighting plus exact-match, recency, and click-through boosts. The admin dashboard surfaces top searches, trending terms, and - critically - zero-result queries, so editors see exactly where content is missing. Privacy-first by default: visitor identifiers are hashed and query logs auto-purge on a configurable retention window.
 
-- Adds frontend search, configurable search drivers, click tracking, query logging, and admin search insights.
-- Helps owners understand what visitors cannot find while giving users a public search experience.
-- Gives developers driver boundaries and logging Actions instead of coupling search behavior to theme templates.
+After install, admins get package-owned management surfaces and public users may see package-owned frontend output or routes.
 
-## Best Used With
+Status details:
 
-- [SEO Suite](../seo-suite/README.md)
-- [Site Discovery](../site-discovery/README.md)
-- [Insights](../insights/README.md)
-
-## What It Adds
-
-Search adds a frontend search route, configurable search drivers, synonym expansion, typo correction, promoted results, source weighting, result click tracking, zero-result reporting, query logging, Site Discovery indexing, and admin search insights.
-
-- Frontend search controller route.
-- Database, Site Discovery URL registry, and Scout search drivers.
-- Header search render hook.
-- Search insights widgets.
-- Synonym expansion, typo correction, promoted results, source weighting, and zero-result reporting.
-- Settings schema and dashboard contributor.
-- Actions for search, normalization, logging, click tracking, and purging logs.
+- Status: Available
+- Tier: premium
+- Bundle: search-seo
+- Composer package: `capell-app/search`
+- Namespace: `Capell\Search`
+- Theme key: not applicable
 
 ## Why It Matters
 
-**For developers:** Uses a Search contract and driver classes so search can start with database queries and move to Scout without changing the frontend surface.
+**For developers:** The package gives developers package-owned service providers, Actions, Data objects, models, Laravel routes, Filament classes, and Blade views instead of pushing this behaviour into core or application code.
 
-**For teams:** Lets visitors search site content and lets operators review what people searched for, including zero-result terms.
-
-## Built With
-
-This package makes its Composer dependencies visible because they are part of the value proposition, not just plumbing. When an upstream package has a public repository, its linked preview card points readers back to the maintainers so their work gets proper credit.
-
-**Capell packages used here**
-
-- [Capell Admin](https://github.com/capell-app/admin)
-- [Capell Core](https://github.com/capell-app/core)
-- [Capell Frontend](https://github.com/capell-app/frontend)
-
-**Open-source packages used here**
-
-- [Laravel Actions](https://github.com/lorisleiva/laravel-actions) - single-purpose action classes that keep package workflows out of controllers and Filament resources.
-- [Spatie Laravel Data](https://github.com/spatie/laravel-data) - typed data objects for package boundaries, form state, settings, and structured results.
-- [Spatie Laravel Package Tools](https://github.com/spatie/laravel-package-tools) - Laravel package bootstrapping for config, migrations, commands, translations, and service provider setup.
-
-**Linked package previews**
-
-[![Laravel Actions GitHub preview](https://opengraph.githubassets.com/capell-readme/lorisleiva/laravel-actions)](https://github.com/lorisleiva/laravel-actions)
-
-[![Spatie Laravel Data GitHub preview](https://opengraph.githubassets.com/capell-readme/spatie/laravel-data)](https://github.com/spatie/laravel-data)
-
-[![Spatie Laravel Package Tools GitHub preview](https://opengraph.githubassets.com/capell-readme/spatie/laravel-package-tools)](https://github.com/spatie/laravel-package-tools)
+**For teams:** Production-grade site search for Capell - relevance-tuned results with synonyms, typo tolerance, and curated promotions, plus admin insights into what visitors search for and where you have no answers.
 
 ## Screens And Workflow
 
-Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) during package deployment.
+Screenshot contract: `docs/screenshots.json`.
 
-- Frontend search results page.
-- Header search field.
-- Top searches widget.
-- Trending searches widget.
-- Zero-result searches widget.
-- Site search settings screen.
+- Frontend search results page (frontend, required).
+- Header search field (frontend, required).
+- Top searches widget (admin, required).
+- Trending searches widget (admin, required).
+- Zero-result searches widget (admin, required).
+- Site search settings screen (admin, required).
+- Annotated search curation settings (admin, required).
 
 ## Technical Shape
 
-- SearchServiceProvider and AdminServiceProvider register the package.
-- Config file: capell-search.php.
-- Route: GET search by default, named capell-frontend.search.
-- Model: SearchLog.
-- Drivers: DatabaseSearch, SiteDiscoverySearch, and ScoutSearch.
-- Commands: `search:purge`, `search:index`, and `search:flush`.
-
-## Code Map
-
-| Area      | Path                            | Purpose                                                             |
-| --------- | ------------------------------- | ------------------------------------------------------------------- |
-| Actions   | `packages/search/src/Actions`   | Domain operations. Test these directly where possible.              |
-| Data      | `packages/search/src/Data`      | Structured payloads, form state, view models, and integration data. |
-| Enums     | `packages/search/src/Enums`     | Persisted states and Filament option values.                        |
-| Models    | `packages/search/src/Models`    | Eloquent records owned by the package.                              |
-| Filament  | `packages/search/src/Filament`  | Admin resources, pages, widgets, and settings UI.                   |
-| HTTP      | `packages/search/src/Http`      | Controllers, middleware, and request handling.                      |
-| Providers | `packages/search/src/Providers` | Registration, extension hooks, routes, migrations, and resources.   |
-| Resources | `packages/search/resources`     | Views, translations, assets, and package resources.                 |
-| Routes    | `packages/search/routes`        | Route files loaded by the service provider.                         |
-| Config    | `packages/search/config`        | Package configuration and publishable config.                       |
-| Database  | `packages/search/database`      | Migrations, seeders, and settings migrations.                       |
-| Tests     | `packages/search/tests`         | Package-level Pest coverage.                                        |
-
-## Admin Surface
-
-- Widgets: `BuildsSearchInsightsWindow`, `SearchOverviewStatsWidget`, `TopSearchesWidget`, `TrendingSearchesWidget`, `ZeroResultSearchesWidget`.
-- Settings: `SearchSettings`.
-
-## Runtime Surface
-
-- Controllers: `SearchController`.
-- Routes: `packages/search/routes/web.php`.
-
-## Commands
-
-- `search:purge {--days= : Override retention days}` (packages/search/src/Console/Commands/PurgeSearchLogsCommand.php)
-- `search:index {--source= : Only index one configured searchable source key} {--chunk= : Scout import chunk size}` (packages/search/src/Console/Commands/IndexSearchCommand.php)
-- `search:flush {--source= : Only flush one configured searchable source key}` (packages/search/src/Console/Commands/FlushSearchCommand.php)
-
-## Data And Persistence
-
-- search_logs stores site, language, query, normalized query, result count, clicked URL, and searched_at.
-- Logs connect to sites and languages.
-- Retention defaults to 180 days in config.
-
+- Service providers: `Capell\Search\Providers\SearchServiceProvider`, `Capell\Search\Providers\AdminServiceProvider`.
+- Config files: `packages/search/config/capell-search.php`.
+- Migrations: `packages/search/database/migrations/2026_05_10_190868_01_create_search_logs_table.php`, `packages/search/database/migrations/2026_05_21_000002_add_fulltext_index_to_search_database_table.php`.
+- Settings migrations: `packages/search/database/settings/2026_05_10_190869_01_add_search_settings.php`.
+- Settings classes: `SearchSettings`.
 - Models: `SearchLog`.
-- Migrations: `2026_05_10_190868_01_create_search_logs_table.php`.
-- Config: `packages/search/config/capell-search.php`.
-- Data objects live in `src/Data/`; use them for payloads, form state, and view models.
+- Filament classes: `SearchSettingsPage`, `SearchDashboardSettingsContributor`, `SearchSettingsSchema`, `BuildsSearchInsightsWindow`, `SearchOverviewStatsWidget`, `TopSearchesWidget`, `TrendingSearchesWidget`, `ZeroResultSearchesWidget`.
+- Route files: `packages/search/routes/web.php`.
+- Actions: `ApplySearchResultEnhancementsAction`, `BuildAutocompleteQuerySuggestionsAction`, `BuildSearchFacetGroupsAction`, `BuildTopClickedResultsQueryAction`, `BuildTopSearchesQueryAction`, `BuildTrendingSearchesQueryAction`, `BuildZeroResultSearchesQueryAction`, `CreatePromotedResultFromZeroResultSearchAction`, `CreateSynonymFromZeroResultSearchAction`, `FlushScoutSearchSourcesAction`, `GenerateSearchClickTokenAction`, `IndexScoutSearchSourcesAction`, `and 14 more`.
+- Data objects: `AutocompleteQuerySuggestionData`, `AutocompleteSearchResponseData`, `AutocompleteSearchResultData`, `PromotedSearchResultData`, `SearchFacetGroupData`, `SearchFacetOptionData`, `SearchFilterData`, `SearchInsightsWindowData`, `SearchQueryMetadataData`, `SearchRequestData`, `SearchResultData`, `SearchTermSummaryData`, `and 1 more`.
+- Command signatures: `search:flush`, `search:index`, `search:purge`.
+- Console command classes: `FlushSearchCommand`, `IndexSearchCommand`, `PurgeSearchLogsCommand`.
+- Manifest contributions: `dashboard-widget: Capell\Search\Manifest\TopSearchesWidgetContribution`, `dashboard-widget: Capell\Search\Manifest\TrendingSearchesWidgetContribution`, `dashboard-widget: Capell\Search\Manifest\ZeroResultSearchesWidgetContribution`, `model: Capell\Search\Manifest\SearchLogModelContribution`, `overview-stat: Capell\Search\Manifest\SearchOverviewStatsContribution`, `route: Capell\Search\Manifest\SearchFrontendRouteContribution`, `scheduled-job: Capell\Search\Manifest\SearchLogPurgeScheduleContribution`.
+- Health checks: `Capell\Search\Health\SearchHealthCheck`.
+- Blade views: `packages/search/resources/views/components/facets.blade.php`, `packages/search/resources/views/components/form.blade.php`, `packages/search/resources/views/components/header/autocomplete-results.blade.php`, `packages/search/resources/views/components/header/search-dialog.blade.php`, `packages/search/resources/views/components/header/search-modal.blade.php`, `packages/search/resources/views/components/header/search-trigger.blade.php`, `packages/search/resources/views/components/results.blade.php`, `packages/search/resources/views/filament/widgets/search-overview-stats.blade.php`, `packages/search/resources/views/layouts/frontend.blade.php`, `packages/search/resources/views/pages/search.blade.php`.
+- Cache tags: `search`.
 
-## Extension Points
+## Data Model
 
-- Contracts: `Search`.
-- Register Capell extension points, routes, migrations, settings, render hooks, and resources from service providers.
+- Required tables: `search_logs`.
+- Models: `SearchLog`.
+- Migration files: `2026_05_10_190868_01_create_search_logs_table.php`, `2026_05_21_000002_add_fulltext_index_to_search_database_table.php`.
+- Migration impact: run host migrations through the package install flow before opening package surfaces.
+- Deletion/retention behaviour: Docs gap unless the package has an explicit pruning command, retention setting, or tested cascade path.
 
 ## Install Impact
 
-- Adds search_logs table and settings migration.
-- Adds frontend search route.
-- Adds optional header search render hook.
-- Adds dashboard insights widgets.
-- Adds config keys for driver, route, result count, excerpts, logging, hashing, retention, synonyms, typo corrections, promoted results, source weighting, and database column weighting.
-
-## Install And Setup
-
-- Install with `composer require capell-app/search` in the host Capell application.
-- Run migrations through the host application package install flow.
-- In this repository, verify package changes with `vendor/bin/pest`; do not use `php artisan`.
-
-## Admin And Access
-
-- None proven in this package directory.
-
-- Gate: SearchOverviewStatsWidget: `admin`, `super_admin`
-- Gate: TopSearchesWidget: `admin`, `super_admin`
-- Gate: TrendingSearchesWidget: `admin`, `super_admin`
-- Gate: ZeroResultSearchesWidget: `admin`, `super_admin`
+- Admin navigation: adds package-owned Filament classes when registered.
+- Permissions: none declared in `capell.json`.
+- Public routes: route files exist and must be reviewed before public enablement.
+- Database changes: package migrations are declared.
+- Settings: `Capell\Search\Settings\SearchSettings`.
+- Queues or schedules: none detected in standard package paths.
+- Cache tags: `search`.
+- Commands: `search:flush`, `search:index`, `search:purge`.
 
 ## Common Pitfalls
 
-- Database driver config must point at searchable columns that exist.
-- The default core `pages` table is not a flat search index. Use a flattened table/view, the Site Discovery URL registry driver, a custom `Search` binding, or Scout for real page content.
-- The Site Discovery driver searches registry metadata and canonical URLs; use Scout or a custom driver when full page body search is required.
-- Scout source packages own their public `toSearchableArray()` payloads, model observer behavior, and external index freshness. Use `search:index` and `search:flush` for explicit maintenance.
-- Minimum query length defaults to 2 characters.
-- Disable logging or hashing according to privacy requirements.
-- Run log purge if retention needs enforcement.
+- Run migrations before opening package resources or public routes.
+- Configure package settings before testing production-like workflows.
+- Review route middleware, throttling, signed URLs, and public-output safety before exposing routes.
+- Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
+- Run package commands from the host app; in this repository use `vendor/bin/pest` for package tests.
+- Keep `composer.json`, `composer.local.json`, `capell.json`, docs, screenshots, and tests aligned when the package surface changes.
 
-## Docs
+## Troubleshooting
 
-- [docs index](docs/README.md)
-- [credits-and-acknowledgements.md](docs/credits-and-acknowledgements.md)
-- [drivers-and-logging.md](docs/drivers-and-logging.md)
-- [overview.md](docs/overview.md)
-- [search.md](docs/search.md)
+| Symptom | Likely cause | Check | Fix |
+| --- | --- | --- | --- |
+| Package surface is missing after install | Provider or manifest is not loaded | Confirm `capell.json`, package `composer.json`, and provider registration | Reinstall the package, refresh Composer autoload, and clear host caches |
+| Admin screen or command fails on missing table | Package migrations have not run | Check the tables listed in `Data Model` | Run host migrations and rerun the focused package test |
+| Route returns unexpected output | Route cache, middleware, or signed URL setup does not match the package route file | Check the route files listed in `Technical Shape` | Clear route cache and verify middleware before exposing public routes |
+| Background work does not run | Queue worker or scheduled command is not active | Check package jobs, commands, and host scheduler configuration | Start the queue or scheduler, then run the focused command or package test |
+| Public output leaks unexpected state | Render data, cache variation, or authoring boundary has regressed | Check public Blade, cache tags, and public-output safety tests | Move data loading out of Blade and rerun the package public-output tests |
 
-## Testing
+## Quick Start
 
-Run package tests from the repository root:
+1. Install the package: `composer require capell-app/search`.
+2. Run the required setup: `php artisan migrate`.
+3. Open the related Capell admin surface and verify Search appears.
 
-```bash
-vendor/bin/pest packages/search/tests --configuration=phpunit.xml
-```
+## Next Steps
 
-## Maintenance Notes
+- [Package docs](docs/README.md)
+- [Overview](docs/overview.md)
+- [Screenshot contract](docs/screenshots.json)
+- [Marketplace assets](docs/assets/marketplace/)
+- [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
+- [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
+- [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
+- Related packages: [Seo Suite](../seo-suite/README.md), [Site Discovery](../site-discovery/README.md), [Url Manager](../url-manager/README.md).
+- Focused tests: `vendor/bin/pest packages/search/tests --configuration=phpunit.xml`.
 
-- Put behaviour changes in `src/Actions/`; UI classes, commands, and controllers should call actions instead of owning domain logic.
-- Use package `Data` classes at boundaries instead of passing anonymous arrays between layers.
-- Use backed enums for persisted values and enum labels for Filament options.
+<!-- prettier-ignore-end -->

@@ -7,7 +7,8 @@ namespace Capell\Search\Providers;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Settings\SettingsGroupMetadata;
-use Capell\Core\Support\Settings\SettingsSchemaRegistry;
+use Capell\Frontend\Enums\RenderHookLocation;
+use Capell\Frontend\Support\Render\FrontendHookRegistrar;
 use Capell\Search\Actions\RegisterConfiguredSearchableSourcesAction;
 use Capell\Search\Actions\ResolveSearchSettingAction;
 use Capell\Search\Contracts\Search;
@@ -98,11 +99,19 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             return;
         }
 
-        if (! class_exists(RegisterHeaderSearchHook::class)) {
+        if (! class_exists(RegisterHeaderSearchHook::class) || ! $this->app->bound(FrontendHookRegistrar::class)) {
             return;
         }
 
-        $this->app->make(RegisterHeaderSearchHook::class)->register();
+        resolve(FrontendHookRegistrar::class)->contribute(
+            location: RenderHookLocation::HeaderAfter,
+            extension: new RegisterHeaderSearchHook,
+            owner: 'capell-app/search',
+            key: 'header-search',
+            scenario: 'foundation-theme-header-actions',
+            target: 'capell-navigation::components.header.navigation',
+            cacheSafe: true,
+        );
     }
 
     #[Override]
@@ -215,26 +224,21 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             return $this;
         }
 
-        CapellCore::registerModels([SearchLog::class]);
+        $this->surface()->models([SearchLog::class]);
 
         return $this;
     }
 
     private function registerSettings(): self
     {
-        if (! class_exists(SettingsSchemaRegistry::class)) {
-            return $this;
-        }
-
         if (! class_exists(SearchSettings::class) || ! class_exists(SearchSettingsSchema::class)) {
             return $this;
         }
 
-        /** @var SettingsSchemaRegistry $registry */
-        $registry = $this->app->make(SettingsSchemaRegistry::class);
+        $this->surface()->settingsClass('search', SearchSettings::class);
+        $this->surface()->settingsSchema('search', SearchSettingsSchema::class);
 
-        $registry->registerSettingsClass('search', SearchSettings::class);
-        $registry->registerMetadata(new SettingsGroupMetadata(
+        $this->surface()->settingsMetadata(new SettingsGroupMetadata(
             group: 'search',
             label: 'capell-search::settings.title',
             icon: Heroicon::OutlinedMagnifyingGlass,
@@ -242,7 +246,6 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             navigationSort: 95,
             packageName: self::$packageName,
         ));
-        $registry->register('search', SearchSettingsSchema::class);
 
         return $this;
     }

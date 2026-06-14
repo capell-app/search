@@ -67,7 +67,7 @@
                 </button>
                 <button
                     type="button"
-                    class="border-outline/70 text-on-surface-variant hover:border-primary hover:text-primary focus-visible:outline-primary inline-flex h-12 w-full shrink-0 items-center justify-center rounded-md border transition focus-visible:outline-2 focus-visible:outline-offset-2 sm:w-12"
+                    class="border-outline/70 text-on-surface-variant hover:border-primary hover:text-primary focus-visible:outline-primary inline-flex h-12 shrink-0 items-center justify-center rounded-md border px-4 transition focus-visible:outline-2 focus-visible:outline-offset-2"
                     data-site-search-close
                 >
                     <span class="sr-only">

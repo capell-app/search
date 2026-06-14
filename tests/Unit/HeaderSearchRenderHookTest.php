@@ -17,13 +17,12 @@ it('registers an icon-triggered header search modal', function (): void {
 
     $registry = new RenderHookRegistry;
 
-    (new RegisterHeaderSearchHook($registry))->register();
-
-    $html = $registry->renderAll(
-        RenderHookLocation::HeaderAfter,
-        scenario: 'foundation-theme-header-actions',
-        target: 'capell-navigation::components.header.navigation',
+    $registry->registerExtension(
+        location: RenderHookLocation::HeaderAfter,
+        extension: new RegisterHeaderSearchHook,
     );
+
+    $html = $registry->renderAll(RenderHookLocation::HeaderAfter);
 
     expect($html)
         ->toContain('aria-controls="site-header-search-dialog"')

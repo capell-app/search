@@ -12,6 +12,6 @@
         :class="$triggerClass"
         :show-label="$showTriggerLabel"
     />
-
-    <x-capell-search::header.search-dialog :dialog-id="$dialogId" />
 </div>
+
+<x-capell-search::header.search-dialog :dialog-id="$dialogId" />

@@ -504,6 +504,7 @@ test('controller passes normalized valid searches to the site search service', f
     expect($view->getData()['results']->total())->toBe(1);
     expect($view->getData()['results']->currentPage())->toBe(2);
     expect($view->getData()['results']->perPage())->toBe(5);
+    expect($view->getData()['results']->url(3))->toBe('http://localhost/search?page=3');
     expect($view->getData()['highlightedResults']->first())->toBe([
         'title' => 'Laravel <mark>Search</mark>',
         'excerpt' => '<mark>Search</mark> result content',

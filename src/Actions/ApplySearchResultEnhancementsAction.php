@@ -56,8 +56,10 @@ final class ApplySearchResultEnhancementsAction
         $typeLabels = $this->typeLabels();
         $clickCounts = $this->clickCounts($siteId, $languageId);
 
-        $promotedItems = (new Collection($promotedResults))
-            ->map(static fn (PromotedSearchResultData $promotion): SearchResultData => $promotion->toSearchResult());
+        $promotedItems = $results->currentPage() === 1
+            ? (new Collection($promotedResults))
+                ->map(static fn (PromotedSearchResultData $promotion): SearchResultData => $promotion->toSearchResult())
+            : new Collection;
 
         $promotedUrls = $promotedItems
             ->pluck('url')

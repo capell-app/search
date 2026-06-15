@@ -174,6 +174,37 @@ test('uses primary driver pagination beyond the first expanded search page', fun
         ->and($results->perPage())->toBe(5);
 });
 
+test('does not repeat promoted results beyond the first search page', function (): void {
+    config()->set('capell-search.promoted_results', [
+        [
+            'queries' => ['cms hosting'],
+            'title' => 'Promoted CMS Hosting',
+            'url' => '/promoted-cms-hosting',
+            'excerpt' => 'Pinned result for CMS hosting.',
+            'type' => 'page',
+            'score' => 1000.0,
+        ],
+    ]);
+
+    $results = new Paginator(new Collection([
+        new SearchResultData(
+            title: 'CMS Hosting Page Two',
+            url: '/cms-hosting-page-two',
+            excerpt: 'Second page result.',
+            score: 1.0,
+        ),
+    ]), 3, 1, 2);
+
+    $enhancedResults = ApplySearchResultEnhancementsAction::run($results, 'cms hosting');
+
+    expect($enhancedResults->currentPage())->toBe(2)
+        ->and($enhancedResults->perPage())->toBe(1)
+        ->and($enhancedResults->total())->toBe(3)
+        ->and(collect($enhancedResults->items())->pluck('url')->all())->toBe([
+            '/cms-hosting-page-two',
+        ]);
+});
+
 test('caps expanded search query breadth on the first page', function (): void {
     config()->set('capell-search.query_expansion.max_queries', 2);
     config()->set('capell-search.synonyms', [

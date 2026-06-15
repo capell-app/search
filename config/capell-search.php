@@ -23,6 +23,7 @@ return [
     ],
     'filters' => [
         'enabled' => true,
+        'facet_groups' => true,
     ],
     'query_expansion' => [
         'max_queries' => 3,

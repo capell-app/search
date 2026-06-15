@@ -39,7 +39,12 @@ final readonly class BuildSearchFacetGroupsAction
         $normalizedQuery = NormalizeSearchQueryAction::run($query);
         $minimumLength = $this->integerSetting('minimum_query_length', 'capell-search.minimum_query_length', 2);
 
-        if (! (bool) config('capell-search.filters.enabled', true) || $normalizedQuery === '' || mb_strlen($normalizedQuery) < $minimumLength) {
+        if (
+            ! (bool) config('capell-search.filters.enabled', true)
+            || ! (bool) config('capell-search.filters.facet_groups', true)
+            || $normalizedQuery === ''
+            || mb_strlen($normalizedQuery) < $minimumLength
+        ) {
             return [];
         }
 

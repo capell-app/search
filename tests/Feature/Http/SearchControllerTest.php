@@ -68,7 +68,7 @@ test('autocomplete returns no results for blank or too-short queries', function 
         'query' => $query,
         'minimumLength' => 2,
         'results' => [],
-        'allResultsUrl' => route('capell-frontend.search', ['q' => $query]),
+        'allResultsUrl' => route('capell-frontend.search', ['q' => $query], false),
     ]);
 })->with(['', 'c']);
 
@@ -221,7 +221,7 @@ test('autocomplete returns corrected query metadata and popular query suggestion
     expect($metadata['corrected'] ?? null)->toBe('capell')
         ->and($suggestions)->toHaveCount(2)
         ->and($suggestions[0]['query'] ?? null)->toBe('capel marketplace')
-        ->and($suggestions[0]['url'] ?? null)->toBe(route('capell-frontend.search', ['q' => 'capel marketplace']));
+        ->and($suggestions[0]['url'] ?? null)->toBe(route('capell-frontend.search', ['q' => 'capel marketplace'], false));
 });
 
 test('autocomplete route is lightly throttled', function (): void {
@@ -504,6 +504,7 @@ test('controller passes normalized valid searches to the site search service', f
     expect($view->getData()['results']->total())->toBe(1);
     expect($view->getData()['results']->currentPage())->toBe(2);
     expect($view->getData()['results']->perPage())->toBe(5);
+    expect($view->getData()['results']->url(3))->toBe('http://localhost/search?page=3');
     expect($view->getData()['highlightedResults']->first())->toBe([
         'title' => 'Laravel <mark>Search</mark>',
         'excerpt' => '<mark>Search</mark> result content',

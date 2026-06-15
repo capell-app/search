@@ -113,7 +113,7 @@ final readonly class RunAutocompleteSearchAction
             $parameters['source'] = $filters->sourceKeys;
         }
 
-        return route('capell-frontend.search', $parameters);
+        return route('capell-frontend.search', $parameters, false);
     }
 
     /**

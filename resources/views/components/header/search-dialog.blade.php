@@ -11,8 +11,8 @@
     id="{{ $dialogId }}"
     class="fixed inset-0 z-[90] hidden min-h-dvh items-center justify-center bg-black/70 px-4 py-10 backdrop-blur-sm"
     data-site-search-dialog
-    data-site-search-autocomplete-url="{{ route('capell-frontend.search.autocomplete') }}"
-    data-site-search-click-url="{{ route('capell-frontend.search.click') }}"
+    data-site-search-autocomplete-url="{{ route('capell-frontend.search.autocomplete', absolute: false) }}"
+    data-site-search-click-url="{{ route('capell-frontend.search.click', absolute: false) }}"
     data-site-search-minimum-length="{{ (int) config('capell-search.minimum_query_length', 2) }}"
     data-site-search-debounce-ms="{{ max(0, (int) config('capell-search.autocomplete.debounce_ms', 150)) }}"
     data-site-search-keyboard-shortcuts="{{ (bool) config('capell-search.keyboard_shortcuts.enabled', true) ? 'true' : 'false' }}"
@@ -34,7 +34,7 @@
     >
         <form
             method="GET"
-            action="{{ route('capell-frontend.search') }}"
+            action="{{ route('capell-frontend.search', absolute: false) }}"
             role="search"
             class="grid gap-3"
             data-site-search-form
@@ -61,9 +61,10 @@
                 />
                 <button
                     type="submit"
-                    class="bg-primary text-primary-on hover:bg-primary-container focus-visible:outline-primary inline-flex h-12 shrink-0 items-center justify-center rounded-md px-5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2"
+                    class="bg-primary text-primary-on hover:bg-primary-container focus-visible:outline-primary inline-flex h-12 shrink-0 items-center justify-center rounded-md px-4 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2"
+                    aria-label="{{ __('capell-search::button.search') }}"
                 >
-                    {{ __('capell-search::button.search') }}
+                    @svg('heroicon-o-magnifying-glass', 'h-5 w-5')
                 </button>
                 <button
                     type="button"
@@ -98,6 +99,7 @@
                 dialog: '[data-site-search-dialog]',
                 input: '[data-site-search-input]',
                 list: '[data-site-search-list]',
+                loading: '[data-site-search-loading]',
                 status: '[data-site-search-status]',
                 allResults: '[data-site-search-all-results]',
             }
@@ -264,6 +266,7 @@
             const clearResults = (dialog) => {
                 const input = dialog.querySelector(selectors.input)
                 const list = dialog.querySelector(selectors.list)
+                const loading = dialog.querySelector(selectors.loading)
                 const status = dialog.querySelector(selectors.status)
                 const allResults = dialog.querySelector(selectors.allResults)
                 const resultsRegion = dialog.querySelector(
@@ -276,6 +279,9 @@
                 state.results = []
                 list.replaceChildren()
                 list.hidden = true
+                if (loading) {
+                    loading.hidden = true
+                }
                 allResults.hidden = true
                 if (resultsRegion) {
                     resultsRegion.hidden = true
@@ -283,6 +289,46 @@
                 input.setAttribute('aria-expanded', 'false')
                 input.removeAttribute('aria-activedescendant')
                 status.textContent = ''
+            }
+
+            const setLoading = (dialog, query) => {
+                const input = dialog.querySelector(selectors.input)
+                const list = dialog.querySelector(selectors.list)
+                const loading = dialog.querySelector(selectors.loading)
+                const status = dialog.querySelector(selectors.status)
+                const allResults = dialog.querySelector(selectors.allResults)
+                const resultsRegion = dialog.querySelector(
+                    '[data-site-search-results]',
+                )
+                const state = stateFor(dialog)
+
+                state.activeIndex = -1
+                state.results = []
+                list.replaceChildren()
+                list.hidden = true
+                allResults.hidden = true
+
+                if (resultsRegion) {
+                    resultsRegion.hidden = false
+                }
+
+                if (loading) {
+                    const label =
+                        loading.getAttribute(
+                            'data-site-search-loading-template',
+                        ) || 'Searching for ":query"'
+
+                    loading.querySelector(
+                        '[data-site-search-loading-label]',
+                    ).textContent = label.replace(':query', query)
+                    loading.hidden = false
+                }
+
+                input.setAttribute('aria-expanded', 'true')
+                input.removeAttribute('aria-activedescendant')
+                status.textContent =
+                    loading?.getAttribute('data-site-search-loading-status') ||
+                    'Searching'
             }
 
             const setActiveResult = (dialog, index) => {
@@ -394,6 +440,7 @@
             const renderResults = (dialog, payload) => {
                 const input = dialog.querySelector(selectors.input)
                 const list = dialog.querySelector(selectors.list)
+                const loading = dialog.querySelector(selectors.loading)
                 const status = dialog.querySelector(selectors.status)
                 const allResults = dialog.querySelector(selectors.allResults)
                 const resultsRegion = dialog.querySelector(
@@ -441,6 +488,9 @@
                 const allItems = [...suggestionItems, ...results]
 
                 state.results = allItems
+                if (loading) {
+                    loading.hidden = true
+                }
                 list.replaceChildren(
                     ...suggestionItems.map((suggestion, index) =>
                         querySuggestionItem(
@@ -526,14 +576,28 @@
             }
 
             const scheduleFetchResults = (dialog) => {
+                const input = dialog.querySelector(selectors.input)
                 const state = stateFor(dialog)
                 const debounceMs = Number.parseInt(
                     dialog.getAttribute('data-site-search-debounce-ms') ||
                         '150',
                     10,
                 )
+                const minimumLength = Number.parseInt(
+                    dialog.getAttribute('data-site-search-minimum-length') ||
+                        '2',
+                    10,
+                )
+                const query = input?.value.trim() || ''
 
                 window.clearTimeout(state.debounceTimer)
+
+                if (query.length < minimumLength) {
+                    clearResults(dialog)
+                    return
+                }
+
+                setLoading(dialog, query)
                 state.debounceTimer = window.setTimeout(
                     () => fetchResults(dialog),
                     Math.max(0, debounceMs),

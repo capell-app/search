@@ -21,12 +21,15 @@ use Capell\Search\Filament\Widgets\TrendingSearchesWidget;
 use Capell\Search\Filament\Widgets\ZeroResultSearchesWidget;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
 use Override;
 use Spatie\Permission\PermissionRegistrar;
 
 final class AdminServiceProvider extends ServiceProvider
 {
+    private const string REQUEST_SEARCH_OVERVIEW_CACHE_KEY = 'capell.search.admin.overview';
+
     #[Override]
     public function register(): void
     {
@@ -161,13 +164,16 @@ final class AdminServiceProvider extends ServiceProvider
      */
     private function searchOverview(): array
     {
-        static $overview = [];
-
         $siteId = $this->currentDashboardSiteId();
         $cacheKey = $siteId === null ? 'global' : 'site-' . $siteId;
+        $request = $this->currentRequest();
 
-        if (isset($overview[$cacheKey])) {
-            return $overview[$cacheKey];
+        if ($request instanceof Request) {
+            $overviewCache = $this->requestSearchOverviewCache($request);
+
+            if (array_key_exists($cacheKey, $overviewCache)) {
+                return $overviewCache[$cacheKey];
+            }
         }
 
         $days = config('capell-search.dashboard.default_days', 30);
@@ -182,13 +188,19 @@ final class AdminServiceProvider extends ServiceProvider
         $totalSearches = (int) $topSearches->sum('searches');
         $zeroResultTotal = (int) $zeroResultSearches->sum('searches');
 
-        $overview[$cacheKey] = [
+        $overview = [
             'totalSearches' => $totalSearches,
             'uniqueQueries' => $topSearches->count(),
             'zeroResultRate' => $totalSearches === 0 ? 0.0 : round(($zeroResultTotal / $totalSearches) * 100, 1),
         ];
 
-        return $overview[$cacheKey];
+        if ($request instanceof Request) {
+            $overviewCache = $this->requestSearchOverviewCache($request);
+            $overviewCache[$cacheKey] = $overview;
+            $request->attributes->set(self::REQUEST_SEARCH_OVERVIEW_CACHE_KEY, $overviewCache);
+        }
+
+        return $overview;
     }
 
     private function currentDashboardSiteId(): ?int
@@ -209,5 +221,26 @@ final class AdminServiceProvider extends ServiceProvider
         });
 
         return $this;
+    }
+
+    /**
+     * @return array<string, array{totalSearches: int, uniqueQueries: int, zeroResultRate: float}>
+     */
+    private function requestSearchOverviewCache(Request $request): array
+    {
+        $cache = $request->attributes->get(self::REQUEST_SEARCH_OVERVIEW_CACHE_KEY, []);
+
+        return is_array($cache) ? $cache : [];
+    }
+
+    private function currentRequest(): ?Request
+    {
+        if (! app()->bound('request')) {
+            return null;
+        }
+
+        $request = request();
+
+        return $request instanceof Request ? $request : null;
     }
 }

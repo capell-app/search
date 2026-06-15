@@ -103,6 +103,6 @@ test('builds popular autocomplete query suggestions scoped by site and language'
     expect($suggestions)->toHaveCount(2)
         ->and($suggestions[0]->query)->toBe('capell marketplace')
         ->and($suggestions[0]->searches)->toBe(2)
-        ->and($suggestions[0]->url)->toBe(route('capell-frontend.search', ['q' => 'capell marketplace']))
+        ->and($suggestions[0]->url)->toBe(route('capell-frontend.search', ['q' => 'capell marketplace'], false))
         ->and($suggestions[1]->query)->toBe('capell migration');
 });

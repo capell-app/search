@@ -115,4 +115,9 @@ test('does not build facets for blank or disabled filter requests', function ():
     config()->set('capell-search.filters.enabled', false);
 
     expect($action->handle($request, 'capell', new SearchFilterData))->toBe([]);
+
+    config()->set('capell-search.filters.enabled', true);
+    config()->set('capell-search.filters.facet_groups', false);
+
+    expect($action->handle($request, 'capell', new SearchFilterData))->toBe([]);
 });

@@ -50,7 +50,7 @@ final class SearchController
             request: $request,
         );
 
-        $results = RunSearchAction::run($data);
+        $results = RunSearchAction::run($data)->withPath($request->url());
         $highlightedResults = $this->highlightedResults(resolve(Search::class), $results, $query);
         $clickTrackingToken = GenerateSearchClickTokenAction::run($data);
         $facetGroups = BuildSearchFacetGroupsAction::run(

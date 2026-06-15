@@ -74,6 +74,13 @@
             ]
         },
         {
+            "type": "admin-page",
+            "class": "Capell\\Search\\Manifest\\SearchSettingsPageContribution",
+            "pageClass": "Capell\\Search\\Filament\\Pages\\SearchSettingsPage",
+            "labelKey": "capell-search::settings.title",
+            "settingsGroup": "search"
+        },
+        {
             "type": "scheduled-job",
             "class": "Capell\\Search\\Manifest\\SearchLogPurgeScheduleContribution",
             "command": "search:purge",
@@ -313,6 +320,6 @@
         "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {
-        "deferredContributions": ["admin-page"]
+        "deferredContributions": []
     }
 }

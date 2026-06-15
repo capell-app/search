@@ -8,13 +8,12 @@ use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * @method static LengthAwarePaginator<int, SearchResultData> run(SearchRequestData $data)
+ * @method static Paginator<int, SearchResultData> run(SearchRequestData $data)
  */
 final readonly class RunSearchAction
 {
@@ -23,9 +22,9 @@ final readonly class RunSearchAction
     public function __construct(private Search $search) {}
 
     /**
-     * @return LengthAwarePaginator<int, SearchResultData>
+     * @return Paginator<int, SearchResultData>
      */
-    public function handle(SearchRequestData $data): LengthAwarePaginator
+    public function handle(SearchRequestData $data): Paginator
     {
         $normalizedQuery = NormalizeSearchQueryAction::run($data->query);
         $minimumLength = $this->integerSetting(

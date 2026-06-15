@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Schema as SchemaFacade;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * @method static LengthAwarePaginator<int, SearchResultData> run(LengthAwarePaginator<int, SearchResultData> $results, string $normalizedQuery, ?int $siteId = null, ?int $languageId = null)
+ * @method static Paginator<int, SearchResultData> run(LengthAwarePaginator<int, SearchResultData> $results, string $normalizedQuery, ?int $siteId = null, ?int $languageId = null)
  */
 final class ApplySearchResultEnhancementsAction
 {
@@ -43,14 +43,14 @@ final class ApplySearchResultEnhancementsAction
 
     /**
      * @param  LengthAwarePaginator<int, SearchResultData>  $results
-     * @return LengthAwarePaginator<int, SearchResultData>
+     * @return Paginator<int, SearchResultData>
      */
     public function handle(
         LengthAwarePaginator $results,
         string $normalizedQuery,
         ?int $siteId = null,
         ?int $languageId = null,
-    ): LengthAwarePaginator {
+    ): Paginator {
         $promotedResults = (new ResolvePromotedSearchResultsAction)->handle($normalizedQuery);
         $sourceWeights = $this->sourceWeights();
         $typeLabels = $this->typeLabels();

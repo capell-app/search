@@ -23,10 +23,10 @@ use Capell\Search\Actions\RunSearchAction;
 use Capell\Search\Console\Commands\FlushSearchCommand;
 use Capell\Search\Console\Commands\IndexSearchCommand;
 use Capell\Search\Console\Commands\PurgeSearchLogsCommand;
+use Capell\Search\Filament\Pages\SearchSettingsPage;
 use Capell\Search\Filament\Widgets\TopSearchesWidget;
 use Capell\Search\Filament\Widgets\TrendingSearchesWidget;
 use Capell\Search\Filament\Widgets\ZeroResultSearchesWidget;
-use Capell\Search\Filament\Pages\SearchSettingsPage;
 use Capell\Search\Health\SearchHealthCheck;
 use Capell\Search\Manifest\SearchConsoleCommandsContribution;
 use Capell\Search\Manifest\SearchFrontendRouteContribution;
@@ -34,8 +34,8 @@ use Capell\Search\Manifest\SearchHealthContribution;
 use Capell\Search\Manifest\SearchLogModelContribution;
 use Capell\Search\Manifest\SearchLogPurgeScheduleContribution;
 use Capell\Search\Manifest\SearchOverviewStatsContribution;
-use Capell\Search\Manifest\SearchSettingsPageContribution;
 use Capell\Search\Manifest\SearchSettingsContribution;
+use Capell\Search\Manifest\SearchSettingsPageContribution;
 use Capell\Search\Manifest\TopSearchesWidgetContribution;
 use Capell\Search\Manifest\TrendingSearchesWidgetContribution;
 use Capell\Search\Manifest\ZeroResultSearchesWidgetContribution;
@@ -174,6 +174,7 @@ it('declares implemented search gap features contributions and actions', functio
         ->and(class_implements(SearchSettingsContribution::class))->toContain(RegistersExtensionSetting::class)
         ->and(class_implements(SearchHealthContribution::class))->toContain(ChecksExtensionHealth::class)
         ->and(data_get($manifest, 'contributionTraceability.deferredContributions'))->not->toContain(
+            'admin-page',
             'console-command',
             'dashboard-widget',
             'health-check',

@@ -62,7 +62,7 @@ Screenshot contract: `screenshots.json`.
 - Models: `SearchLog`.
 - Migration files: `2026_05_10_190868_01_create_search_logs_table.php`, `2026_05_21_000002_add_fulltext_index_to_search_database_table.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
-- Deletion/retention behaviour: `search:purge` removes old `search_logs` rows using the configured retention window and is scheduled monthly.
+- Deletion/retention behaviour: Docs gap unless the package has an explicit pruning command, retention setting, or tested cascade path.
 
 ## Install Impact
 
@@ -71,7 +71,7 @@ Screenshot contract: `screenshots.json`.
 - Public routes: route files exist and must be reviewed before public enablement.
 - Database changes: package migrations are declared.
 - Settings: `Capell\Search\Settings\SearchSettings`.
-- Queues or schedules: schedules `search:purge` monthly when the package is installed.
+- Queues or schedules: none detected in standard package paths.
 - Cache tags: `search`.
 - Commands: `search:flush`, `search:index`, `search:purge`.
 
@@ -97,7 +97,7 @@ Screenshot contract: `screenshots.json`.
 ## Quick Start
 
 1. Install the package: `composer require capell-app/search`.
-2. Run the host application's migration flow, including this package's migrations and settings migration.
+2. Run the required setup: `php artisan migrate`.
 3. Open the related Capell admin surface and verify Search appears.
 
 ## Next Steps

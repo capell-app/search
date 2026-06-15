@@ -8,6 +8,7 @@ use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;

@@ -230,7 +230,31 @@ final class AdminServiceProvider extends ServiceProvider
     {
         $cache = $request->attributes->get(self::REQUEST_SEARCH_OVERVIEW_CACHE_KEY, []);
 
-        return is_array($cache) ? $cache : [];
+        if (! is_array($cache)) {
+            return [];
+        }
+
+        $typedCache = [];
+
+        foreach ($cache as $key => $overview) {
+            if (
+                ! is_string($key)
+                || ! is_array($overview)
+                || ! is_int($overview['totalSearches'] ?? null)
+                || ! is_int($overview['uniqueQueries'] ?? null)
+                || ! is_float($overview['zeroResultRate'] ?? null)
+            ) {
+                continue;
+            }
+
+            $typedCache[$key] = [
+                'totalSearches' => $overview['totalSearches'],
+                'uniqueQueries' => $overview['uniqueQueries'],
+                'zeroResultRate' => $overview['zeroResultRate'],
+            ];
+        }
+
+        return $typedCache;
     }
 
     private function currentRequest(): ?Request

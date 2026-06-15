@@ -14,7 +14,7 @@ use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * @method static LengthAwarePaginator<int, SearchResultData> run(SearchRequestData $data)
+ * @method static Paginator<int, SearchResultData> run(SearchRequestData $data)
  */
 final readonly class RunSearchAction
 {
@@ -23,9 +23,9 @@ final readonly class RunSearchAction
     public function __construct(private Search $search) {}
 
     /**
-     * @return LengthAwarePaginator<int, SearchResultData>
+     * @return Paginator<int, SearchResultData>
      */
-    public function handle(SearchRequestData $data): LengthAwarePaginator
+    public function handle(SearchRequestData $data): Paginator
     {
         $normalizedQuery = NormalizeSearchQueryAction::run($data->query);
         $minimumLength = $this->integerSetting(

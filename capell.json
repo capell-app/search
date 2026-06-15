@@ -38,7 +38,11 @@
         {
             "type": "route",
             "class": "Capell\\Search\\Manifest\\SearchFrontendRouteContribution",
-            "routes": ["capell-frontend.search"]
+            "routes": [
+                "capell-frontend.search",
+                "capell-frontend.search.autocomplete",
+                "capell-frontend.search.click"
+            ]
         },
         {
             "type": "model",
@@ -70,10 +74,38 @@
             ]
         },
         {
+            "type": "admin-page",
+            "class": "Capell\\Search\\Manifest\\SearchSettingsPageContribution",
+            "pageClass": "Capell\\Search\\Filament\\Pages\\SearchSettingsPage",
+            "labelKey": "capell-search::settings.title",
+            "settingsGroup": "search"
+        },
+        {
             "type": "scheduled-job",
             "class": "Capell\\Search\\Manifest\\SearchLogPurgeScheduleContribution",
             "command": "search:purge",
             "frequency": "monthly"
+        },
+        {
+            "type": "console-command",
+            "class": "Capell\\Search\\Manifest\\SearchConsoleCommandsContribution",
+            "commands": ["search:index", "search:flush", "search:purge"],
+            "commandClasses": [
+                "Capell\\Search\\Console\\Commands\\IndexSearchCommand",
+                "Capell\\Search\\Console\\Commands\\FlushSearchCommand",
+                "Capell\\Search\\Console\\Commands\\PurgeSearchLogsCommand"
+            ]
+        },
+        {
+            "type": "setting",
+            "class": "Capell\\Search\\Manifest\\SearchSettingsContribution",
+            "settingsClass": "Capell\\Search\\Settings\\SearchSettings",
+            "settingsGroup": "search"
+        },
+        {
+            "type": "health-check",
+            "class": "Capell\\Search\\Manifest\\SearchHealthContribution",
+            "checkClass": "Capell\\Search\\Health\\SearchHealthCheck"
         }
     ],
     "database": {
@@ -288,6 +320,6 @@
         "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {
-        "deferredContributions": ["admin-page"]
+        "deferredContributions": []
     }
 }

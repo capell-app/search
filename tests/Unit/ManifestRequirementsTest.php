@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Contracts\Extensions\ChecksExtensionHealth;
+use Capell\Core\Contracts\Extensions\ExtensionContribution;
 use Capell\Core\Contracts\Extensions\RegistersExtensionRoute;
+use Capell\Core\Contracts\Extensions\RegistersExtensionSetting;
 use Capell\Core\Contracts\Extensions\RegistersExtensionWidget;
 use Capell\Core\Contracts\Extensions\RunsScheduledExtensionJob;
 use Capell\Search\Actions\ApplySearchResultEnhancementsAction;
@@ -17,13 +20,22 @@ use Capell\Search\Actions\IndexScoutSearchSourcesAction;
 use Capell\Search\Actions\ResolveExpandedSearchQueriesAction;
 use Capell\Search\Actions\ResolvePromotedSearchResultsAction;
 use Capell\Search\Actions\RunSearchAction;
+use Capell\Search\Console\Commands\FlushSearchCommand;
+use Capell\Search\Console\Commands\IndexSearchCommand;
+use Capell\Search\Console\Commands\PurgeSearchLogsCommand;
 use Capell\Search\Filament\Widgets\TopSearchesWidget;
 use Capell\Search\Filament\Widgets\TrendingSearchesWidget;
 use Capell\Search\Filament\Widgets\ZeroResultSearchesWidget;
+use Capell\Search\Filament\Pages\SearchSettingsPage;
+use Capell\Search\Health\SearchHealthCheck;
+use Capell\Search\Manifest\SearchConsoleCommandsContribution;
 use Capell\Search\Manifest\SearchFrontendRouteContribution;
+use Capell\Search\Manifest\SearchHealthContribution;
 use Capell\Search\Manifest\SearchLogModelContribution;
 use Capell\Search\Manifest\SearchLogPurgeScheduleContribution;
 use Capell\Search\Manifest\SearchOverviewStatsContribution;
+use Capell\Search\Manifest\SearchSettingsPageContribution;
+use Capell\Search\Manifest\SearchSettingsContribution;
 use Capell\Search\Manifest\TopSearchesWidgetContribution;
 use Capell\Search\Manifest\TrendingSearchesWidgetContribution;
 use Capell\Search\Manifest\ZeroResultSearchesWidgetContribution;
@@ -62,7 +74,11 @@ it('declares implemented search gap features contributions and actions', functio
         ->and(data_get($manifest, 'contributes'))->toContain([
             'type' => 'route',
             'class' => SearchFrontendRouteContribution::class,
-            'routes' => ['capell-frontend.search'],
+            'routes' => [
+                'capell-frontend.search',
+                'capell-frontend.search.autocomplete',
+                'capell-frontend.search.click',
+            ],
         ])
         ->and(data_get($manifest, 'contributes'))->toContain([
             'type' => 'model',
@@ -94,10 +110,38 @@ it('declares implemented search gap features contributions and actions', functio
             ],
         ])
         ->and($manifest['contributes'])->toContain([
+            'type' => 'admin-page',
+            'class' => SearchSettingsPageContribution::class,
+            'pageClass' => SearchSettingsPage::class,
+            'labelKey' => 'capell-search::settings.title',
+            'settingsGroup' => 'search',
+        ])
+        ->and($manifest['contributes'])->toContain([
             'type' => 'scheduled-job',
             'class' => SearchLogPurgeScheduleContribution::class,
             'command' => 'search:purge',
             'frequency' => 'monthly',
+        ])
+        ->and($manifest['contributes'])->toContain([
+            'type' => 'console-command',
+            'class' => SearchConsoleCommandsContribution::class,
+            'commands' => ['search:index', 'search:flush', 'search:purge'],
+            'commandClasses' => [
+                IndexSearchCommand::class,
+                FlushSearchCommand::class,
+                PurgeSearchLogsCommand::class,
+            ],
+        ])
+        ->and($manifest['contributes'])->toContain([
+            'type' => 'setting',
+            'class' => SearchSettingsContribution::class,
+            'settingsClass' => SearchSettings::class,
+            'settingsGroup' => 'search',
+        ])
+        ->and($manifest['contributes'])->toContain([
+            'type' => 'health-check',
+            'class' => SearchHealthContribution::class,
+            'checkClass' => SearchHealthCheck::class,
         ])
         ->and(data_get($manifest, 'actions'))->toHaveKey('applySearchResultEnhancements', ApplySearchResultEnhancementsAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('buildTopClickedResultsQuery', BuildTopClickedResultsQueryAction::class)
@@ -124,12 +168,19 @@ it('declares implemented search gap features contributions and actions', functio
         ->and(class_implements(TrendingSearchesWidgetContribution::class))->toContain(RegistersExtensionWidget::class)
         ->and(class_implements(ZeroResultSearchesWidgetContribution::class))->toContain(RegistersExtensionWidget::class)
         ->and(class_implements(SearchOverviewStatsContribution::class))->toContain(RegistersExtensionWidget::class)
+        ->and(class_implements(SearchSettingsPageContribution::class))->toContain(ExtensionContribution::class)
         ->and(class_implements(SearchLogPurgeScheduleContribution::class))->toContain(RunsScheduledExtensionJob::class)
+        ->and(class_implements(SearchConsoleCommandsContribution::class))->toContain(ExtensionContribution::class)
+        ->and(class_implements(SearchSettingsContribution::class))->toContain(RegistersExtensionSetting::class)
+        ->and(class_implements(SearchHealthContribution::class))->toContain(ChecksExtensionHealth::class)
         ->and(data_get($manifest, 'contributionTraceability.deferredContributions'))->not->toContain(
+            'console-command',
             'dashboard-widget',
+            'health-check',
             'model',
             'overview-stat',
             'route',
             'scheduled-job',
+            'setting',
         );
 });

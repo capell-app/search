@@ -30,7 +30,8 @@ it('registers an icon-triggered header search modal', function (): void {
         ->toContain('id="site-header-search-dialog"')
         ->toContain('role="combobox"')
         ->toContain('role="listbox"')
-        ->toContain(route('capell-frontend.search.autocomplete'))
+        ->toContain(route('capell-frontend.search.autocomplete', absolute: false))
+        ->toContain(route('capell-frontend.search.click', absolute: false))
         ->toContain('data-site-search-trigger')
         ->toContain('setActiveResult(dialog, -1)')
         ->toContain('setPageInert(true)')
@@ -55,11 +56,12 @@ test('header search hook renders a real package view', function (): void {
 
     expect($html)
         ->toContain('role="search"')
-        ->toContain(route('capell-frontend.search'))
+        ->toContain(route('capell-frontend.search', absolute: false))
         ->toContain('type="search"')
         ->toContain('Search')
         ->toContain('placeholder="Search pages, services, and resources"')
         ->toContain('data-site-search-results')
         ->toContain('hidden')
-        ->toContain(route('capell-frontend.search.autocomplete'));
+        ->toContain(route('capell-frontend.search.autocomplete', absolute: false))
+        ->toContain(route('capell-frontend.search.click', absolute: false));
 });

@@ -51,7 +51,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Data objects: `AutocompleteQuerySuggestionData`, `AutocompleteSearchResponseData`, `AutocompleteSearchResultData`, `PromotedSearchResultData`, `SearchFacetGroupData`, `SearchFacetOptionData`, `SearchFilterData`, `SearchInsightsWindowData`, `SearchQueryMetadataData`, `SearchRequestData`, `SearchResultData`, `SearchTermSummaryData`, `and 1 more`.
 - Command signatures: `search:flush`, `search:index`, `search:purge`.
 - Console command classes: `FlushSearchCommand`, `IndexSearchCommand`, `PurgeSearchLogsCommand`.
-- Manifest contributions: `dashboard-widget: Capell\Search\Manifest\TopSearchesWidgetContribution`, `dashboard-widget: Capell\Search\Manifest\TrendingSearchesWidgetContribution`, `dashboard-widget: Capell\Search\Manifest\ZeroResultSearchesWidgetContribution`, `model: Capell\Search\Manifest\SearchLogModelContribution`, `overview-stat: Capell\Search\Manifest\SearchOverviewStatsContribution`, `route: Capell\Search\Manifest\SearchFrontendRouteContribution`, `scheduled-job: Capell\Search\Manifest\SearchLogPurgeScheduleContribution`.
+- Manifest contributions: `console-command: Capell\Search\Manifest\SearchConsoleCommandsContribution`, `dashboard-widget: Capell\Search\Manifest\TopSearchesWidgetContribution`, `dashboard-widget: Capell\Search\Manifest\TrendingSearchesWidgetContribution`, `dashboard-widget: Capell\Search\Manifest\ZeroResultSearchesWidgetContribution`, `health-check: Capell\Search\Manifest\SearchHealthContribution`, `model: Capell\Search\Manifest\SearchLogModelContribution`, `overview-stat: Capell\Search\Manifest\SearchOverviewStatsContribution`, `route: Capell\Search\Manifest\SearchFrontendRouteContribution`, `scheduled-job: Capell\Search\Manifest\SearchLogPurgeScheduleContribution`, `setting: Capell\Search\Manifest\SearchSettingsContribution`.
 - Health checks: `Capell\Search\Health\SearchHealthCheck`.
 - Blade views: `packages/search/resources/views/components/facets.blade.php`, `packages/search/resources/views/components/form.blade.php`, `packages/search/resources/views/components/header/autocomplete-results.blade.php`, `packages/search/resources/views/components/header/search-dialog.blade.php`, `packages/search/resources/views/components/header/search-modal.blade.php`, `packages/search/resources/views/components/header/search-trigger.blade.php`, `packages/search/resources/views/components/results.blade.php`, `packages/search/resources/views/filament/widgets/search-overview-stats.blade.php`, `packages/search/resources/views/layouts/frontend.blade.php`, `packages/search/resources/views/pages/search.blade.php`.
 - Cache tags: `search`.
@@ -62,7 +62,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Models: `SearchLog`.
 - Migration files: `2026_05_10_190868_01_create_search_logs_table.php`, `2026_05_21_000002_add_fulltext_index_to_search_database_table.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
-- Deletion/retention behaviour: Docs gap unless the package has an explicit pruning command, retention setting, or tested cascade path.
+- Deletion/retention behaviour: `search:purge` removes old `search_logs` rows using the configured retention window and is scheduled monthly.
 
 ## Install Impact
 
@@ -71,7 +71,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Public routes: route files exist and must be reviewed before public enablement.
 - Database changes: package migrations are declared.
 - Settings: `Capell\Search\Settings\SearchSettings`.
-- Queues or schedules: none detected in standard package paths.
+- Queues or schedules: schedules `search:purge` monthly when the package is installed.
 - Cache tags: `search`.
 - Commands: `search:flush`, `search:index`, `search:purge`.
 
@@ -97,7 +97,7 @@ Screenshot contract: `docs/screenshots.json`.
 ## Quick Start
 
 1. Install the package: `composer require capell-app/search`.
-2. Run the required setup: `php artisan migrate`.
+2. Run the host application's migration flow, including this package's migrations and settings migration.
 3. Open the related Capell admin surface and verify Search appears.
 
 ## Next Steps

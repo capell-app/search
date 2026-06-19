@@ -37,6 +37,66 @@ Screenshot contract: `screenshots.json`.
 - Site search settings screen (admin, required).
 - Annotated search curation settings (admin, required).
 
+## Screenshot Evidence
+
+These captures are the package-owned visual contract for the admin pages, public pages, actions, workflows, and feature surfaces described above. Keep this section aligned with `docs/screenshots.json` whenever the package surface changes.
+
+### Frontend search results page
+
+![Frontend search results page](screenshots/frontend-search-results-page.png)
+
+- Surface: frontend · Target: frontend-url.
+- Documents: A visitor searches seeded public content and sees ranked results and pagination.
+- Capture notes: Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.
+
+### Header search field
+
+![Header search field](screenshots/header-search-field.png)
+
+- Surface: frontend · Target: frontend-url.
+- Documents: A visitor uses the header search control supplied by the package frontend surface.
+- Capture notes: Capture with a compatible theme header slot. In a core-only harness, render the package form in a header slot without installing another frontend package.
+
+### Top searches widget
+
+![Top searches widget](screenshots/top-searches-widget.png)
+
+- Surface: admin · Target: admin-surface.
+- Documents: An administrator reviews top searched terms from seeded query logs.
+- Capture notes: Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.
+
+### Trending searches widget
+
+![Trending searches widget](screenshots/trending-searches-widget.png)
+
+- Surface: admin · Target: admin-surface.
+- Documents: An administrator reviews trending searches over the configured window.
+- Capture notes: Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.
+
+### Zero-result searches widget
+
+![Zero-result searches widget](screenshots/zero-result-searches-widget.png)
+
+- Surface: admin · Target: admin-surface.
+- Documents: An administrator identifies search terms with no matching content.
+- Capture notes: Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.
+
+### Site search settings screen
+
+![Site search settings screen](screenshots/search-settings-screen.png)
+
+- Surface: admin · Target: admin-surface.
+- Documents: A site owner configures search settings, logging, retention, and result behavior.
+- Capture notes: Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.
+
+### Annotated search curation settings
+
+![Annotated search curation settings](screenshots/search-curation-annotated.png)
+
+- Surface: admin · Target: admin-surface.
+- Documents: A site owner understands how Search curation controls query intent and promoted answers.
+- Capture notes: Annotated marketplace explainer derived from the Search settings surface to show synonyms, typo corrections, and promoted results.
+
 ## Technical Shape
 
 - Service providers: `Capell\Search\Providers\SearchServiceProvider`, `Capell\Search\Providers\AdminServiceProvider`.

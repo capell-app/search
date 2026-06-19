@@ -163,9 +163,7 @@
                 "capell-frontend.search.click"
             ],
             "auth": "public",
-            "csrfExemptRoutes": [
-                "capell-frontend.search.click"
-            ],
+            "csrfExemptRoutes": ["capell-frontend.search.click"],
             "signedRoutes": [],
             "tokenizedRoutes": [],
             "webhookRoutes": [],

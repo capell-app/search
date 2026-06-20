@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Capell\Search\Filament\Widgets;
 
-use Capell\Admin\Contracts\CapellWidgetContract;
+use Capell\Admin\Contracts\CapellFilamentWidgetContract;
 use Capell\Admin\Filament\Concerns\GatedByRoleAndSettings;
-use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
+use Capell\Search\Actions\BuildTopSearchesQueryAction;
 use Capell\Search\Data\SearchTermSummaryData;
 use Capell\Search\Filament\Widgets\Concerns\BuildsSearchInsightsWindow;
 use Filament\Tables\Columns\TextColumn;
@@ -15,7 +15,7 @@ use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Support\Collection;
 use Override;
 
-final class ZeroResultSearchesWidget extends BaseWidget implements CapellWidgetContract
+final class TopSearchesFilamentWidget extends BaseWidget implements CapellFilamentWidgetContract
 {
     use BuildsSearchInsightsWindow;
     use GatedByRoleAndSettings;
@@ -23,22 +23,22 @@ final class ZeroResultSearchesWidget extends BaseWidget implements CapellWidgetC
     /** @var list<string> */
     protected static array $rolesConfigKeys = ['admin', 'super_admin'];
 
-    protected static string $settingsKey = 'zero_result_searches';
+    protected static string $settingsKey = 'top_searches';
 
     /** @var int|string|array<string, int|null> */
     protected int|string|array $columnSpan = ['md' => 1];
 
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 2;
 
     #[Override]
     public function table(Table $table): Table
     {
         return $table
             ->records(fn (): Collection => $this->getRecords())
-            ->queryStringIdentifier('search-zero-result-searches')
+            ->queryStringIdentifier('search-top-searches')
             ->paginated(false)
             ->searchable(false)
-            ->heading(__('capell-search::dashboard.zero_result_searches'))
+            ->heading(__('capell-search::dashboard.top_searches'))
             ->columns([
                 TextColumn::make('query')
                     ->label(__('capell-search::dashboard.query')),
@@ -56,9 +56,9 @@ final class ZeroResultSearchesWidget extends BaseWidget implements CapellWidgetC
      */
     private function getRecords(): Collection
     {
-        return BuildZeroResultSearchesQueryAction::run($this->getInsightsWindow(), 5)
+        return BuildTopSearchesQueryAction::run($this->getInsightsWindow(), 5)
             ->map(fn (SearchTermSummaryData $summary, int $index): array => [
-                'id' => 'zero-result-search-' . $index,
+                'id' => 'top-search-' . $index,
                 'query' => $summary->query,
                 'searches' => $summary->searches,
                 'resultsCount' => $summary->resultsCount,

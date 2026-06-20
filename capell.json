@@ -52,17 +52,17 @@
         {
             "type": "dashboard-widget",
             "class": "Capell\\Search\\Manifest\\TopSearchesWidgetContribution",
-            "widgetClass": "Capell\\Search\\Filament\\Widgets\\TopSearchesWidget"
+            "widgetClass": "Capell\\Search\\Filament\\Widgets\\TopSearchesFilamentWidget"
         },
         {
             "type": "dashboard-widget",
             "class": "Capell\\Search\\Manifest\\TrendingSearchesWidgetContribution",
-            "widgetClass": "Capell\\Search\\Filament\\Widgets\\TrendingSearchesWidget"
+            "widgetClass": "Capell\\Search\\Filament\\Widgets\\TrendingSearchesFilamentWidget"
         },
         {
             "type": "dashboard-widget",
             "class": "Capell\\Search\\Manifest\\ZeroResultSearchesWidgetContribution",
-            "widgetClass": "Capell\\Search\\Filament\\Widgets\\ZeroResultSearchesWidget"
+            "widgetClass": "Capell\\Search\\Filament\\Widgets\\ZeroResultSearchesFilamentWidget"
         },
         {
             "type": "overview-stat",

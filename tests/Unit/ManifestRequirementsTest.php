@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Capell\Core\Contracts\Extensions\ChecksExtensionHealth;
 use Capell\Core\Contracts\Extensions\ExtensionContribution;
+use Capell\Core\Contracts\Extensions\RegistersExtensionFilamentWidget;
 use Capell\Core\Contracts\Extensions\RegistersExtensionRoute;
 use Capell\Core\Contracts\Extensions\RegistersExtensionSetting;
-use Capell\Core\Contracts\Extensions\RegistersExtensionWidget;
 use Capell\Core\Contracts\Extensions\RunsScheduledExtensionJob;
 use Capell\Search\Actions\ApplySearchResultEnhancementsAction;
 use Capell\Search\Actions\BuildTopClickedResultsQueryAction;
@@ -24,9 +24,9 @@ use Capell\Search\Console\Commands\FlushSearchCommand;
 use Capell\Search\Console\Commands\IndexSearchCommand;
 use Capell\Search\Console\Commands\PurgeSearchLogsCommand;
 use Capell\Search\Filament\Pages\SearchSettingsPage;
-use Capell\Search\Filament\Widgets\TopSearchesWidget;
-use Capell\Search\Filament\Widgets\TrendingSearchesWidget;
-use Capell\Search\Filament\Widgets\ZeroResultSearchesWidget;
+use Capell\Search\Filament\Widgets\TopSearchesFilamentWidget;
+use Capell\Search\Filament\Widgets\TrendingSearchesFilamentWidget;
+use Capell\Search\Filament\Widgets\ZeroResultSearchesFilamentWidget;
 use Capell\Search\Health\SearchHealthCheck;
 use Capell\Search\Manifest\SearchConsoleCommandsContribution;
 use Capell\Search\Manifest\SearchFrontendRouteContribution;
@@ -88,17 +88,17 @@ it('declares implemented search gap features contributions and actions', functio
         ->and(data_get($manifest, 'contributes'))->toContain([
             'type' => 'dashboard-widget',
             'class' => TopSearchesWidgetContribution::class,
-            'widgetClass' => TopSearchesWidget::class,
+            'widgetClass' => TopSearchesFilamentWidget::class,
         ])
         ->and(data_get($manifest, 'contributes'))->toContain([
             'type' => 'dashboard-widget',
             'class' => TrendingSearchesWidgetContribution::class,
-            'widgetClass' => TrendingSearchesWidget::class,
+            'widgetClass' => TrendingSearchesFilamentWidget::class,
         ])
         ->and(data_get($manifest, 'contributes'))->toContain([
             'type' => 'dashboard-widget',
             'class' => ZeroResultSearchesWidgetContribution::class,
-            'widgetClass' => ZeroResultSearchesWidget::class,
+            'widgetClass' => ZeroResultSearchesFilamentWidget::class,
         ])
         ->and(data_get($manifest, 'contributes'))->toContain([
             'type' => 'overview-stat',
@@ -164,10 +164,10 @@ it('declares implemented search gap features contributions and actions', functio
             'search-site-discovery-indexing',
         )
         ->and(class_implements(SearchFrontendRouteContribution::class))->toContain(RegistersExtensionRoute::class)
-        ->and(class_implements(TopSearchesWidgetContribution::class))->toContain(RegistersExtensionWidget::class)
-        ->and(class_implements(TrendingSearchesWidgetContribution::class))->toContain(RegistersExtensionWidget::class)
-        ->and(class_implements(ZeroResultSearchesWidgetContribution::class))->toContain(RegistersExtensionWidget::class)
-        ->and(class_implements(SearchOverviewStatsContribution::class))->toContain(RegistersExtensionWidget::class)
+        ->and(class_implements(TopSearchesWidgetContribution::class))->toContain(RegistersExtensionFilamentWidget::class)
+        ->and(class_implements(TrendingSearchesWidgetContribution::class))->toContain(RegistersExtensionFilamentWidget::class)
+        ->and(class_implements(ZeroResultSearchesWidgetContribution::class))->toContain(RegistersExtensionFilamentWidget::class)
+        ->and(class_implements(SearchOverviewStatsContribution::class))->toContain(RegistersExtensionFilamentWidget::class)
         ->and(class_implements(SearchSettingsPageContribution::class))->toContain(ExtensionContribution::class)
         ->and(class_implements(SearchLogPurgeScheduleContribution::class))->toContain(RunsScheduledExtensionJob::class)
         ->and(class_implements(SearchConsoleCommandsContribution::class))->toContain(ExtensionContribution::class)

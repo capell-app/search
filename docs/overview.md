@@ -45,7 +45,7 @@ Screenshot contract: `screenshots.json`.
 - Settings migrations: `packages/search/database/settings/2026_05_10_190869_01_add_search_settings.php`.
 - Settings classes: `SearchSettings`.
 - Models: `SearchLog`.
-- Filament classes: `SearchSettingsPage`, `SearchDashboardSettingsContributor`, `SearchSettingsSchema`, `BuildsSearchInsightsWindow`, `SearchOverviewStatsWidget`, `TopSearchesWidget`, `TrendingSearchesWidget`, `ZeroResultSearchesWidget`.
+- Filament classes: `SearchSettingsPage`, `SearchDashboardSettingsContributor`, `SearchSettingsSchema`, `BuildsSearchInsightsWindow`, `SearchOverviewStatsFilamentWidget`, `TopSearchesFilamentWidget`, `TrendingSearchesFilamentWidget`, `ZeroResultSearchesFilamentWidget`.
 - Route files: `packages/search/routes/web.php`.
 - Actions: `ApplySearchResultEnhancementsAction`, `BuildAutocompleteQuerySuggestionsAction`, `BuildSearchFacetGroupsAction`, `BuildTopClickedResultsQueryAction`, `BuildTopSearchesQueryAction`, `BuildTrendingSearchesQueryAction`, `BuildZeroResultSearchesQueryAction`, `CreatePromotedResultFromZeroResultSearchAction`, `CreateSynonymFromZeroResultSearchAction`, `FlushScoutSearchSourcesAction`, `GenerateSearchClickTokenAction`, `IndexScoutSearchSourcesAction`, `and 14 more`.
 - Data objects: `AutocompleteQuerySuggestionData`, `AutocompleteSearchResponseData`, `AutocompleteSearchResultData`, `PromotedSearchResultData`, `SearchFacetGroupData`, `SearchFacetOptionData`, `SearchFilterData`, `SearchInsightsWindowData`, `SearchQueryMetadataData`, `SearchRequestData`, `SearchResultData`, `SearchTermSummaryData`, `and 1 more`.

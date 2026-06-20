@@ -16,9 +16,9 @@ use Capell\Search\Console\Commands\IndexSearchCommand;
 use Capell\Search\Console\Commands\PurgeSearchLogsCommand;
 use Capell\Search\Data\SearchInsightsWindowData;
 use Capell\Search\Filament\Settings\Contributors\SearchDashboardSettingsContributor;
-use Capell\Search\Filament\Widgets\TopSearchesWidget;
-use Capell\Search\Filament\Widgets\TrendingSearchesWidget;
-use Capell\Search\Filament\Widgets\ZeroResultSearchesWidget;
+use Capell\Search\Filament\Widgets\TopSearchesFilamentWidget;
+use Capell\Search\Filament\Widgets\TrendingSearchesFilamentWidget;
+use Capell\Search\Filament\Widgets\ZeroResultSearchesFilamentWidget;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Request;
@@ -46,7 +46,7 @@ final class AdminServiceProvider extends ServiceProvider
             ->registerCommands()
             ->registerExtensionPages()
             ->registerOverviewStats()
-            ->registerDashboardWidgets()
+            ->registerDashboardFilamentWidgets()
             ->registerSchedule();
     }
 
@@ -105,12 +105,12 @@ final class AdminServiceProvider extends ServiceProvider
         return $this;
     }
 
-    private function registerDashboardWidgets(): self
+    private function registerDashboardFilamentWidgets(): self
     {
         $widgetClasses = [
-            TopSearchesWidget::class,
-            TrendingSearchesWidget::class,
-            ZeroResultSearchesWidget::class,
+            TopSearchesFilamentWidget::class,
+            TrendingSearchesFilamentWidget::class,
+            ZeroResultSearchesFilamentWidget::class,
         ];
 
         foreach ($widgetClasses as $widgetClass) {
@@ -118,7 +118,7 @@ final class AdminServiceProvider extends ServiceProvider
                 continue;
             }
 
-            CapellAdmin::registerDashboardWidget($widgetClass, DashboardEnum::Main);
+            CapellAdmin::registerDashboardFilamentWidget($widgetClass, DashboardEnum::Main);
         }
 
         return $this;

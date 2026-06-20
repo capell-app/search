@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Search\Filament\Widgets;
 
-use Capell\Admin\Contracts\CapellWidgetContract;
+use Capell\Admin\Contracts\CapellFilamentWidgetContract;
 use Capell\Admin\Filament\Concerns\GatedByRoleAndSettings;
 use Capell\Search\Actions\BuildTopClickedResultsQueryAction;
 use Capell\Search\Actions\BuildTopSearchesQueryAction;
@@ -13,7 +13,7 @@ use Capell\Search\Filament\Widgets\Concerns\BuildsSearchInsightsWindow;
 use Filament\Widgets\Widget;
 use Override;
 
-final class SearchOverviewStatsWidget extends Widget implements CapellWidgetContract
+final class SearchOverviewStatsFilamentWidget extends Widget implements CapellFilamentWidgetContract
 {
     use BuildsSearchInsightsWindow;
     use GatedByRoleAndSettings;

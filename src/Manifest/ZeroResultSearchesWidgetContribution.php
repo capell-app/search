@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Capell\Search\Manifest;
 
 use Capell\Core\Contracts\Extensions\ExtensionContribution;
-use Capell\Core\Contracts\Extensions\RegistersExtensionWidget;
+use Capell\Core\Contracts\Extensions\RegistersExtensionFilamentWidget;
 
-final class ZeroResultSearchesWidgetContribution implements ExtensionContribution, RegistersExtensionWidget
+final class ZeroResultSearchesWidgetContribution implements ExtensionContribution, RegistersExtensionFilamentWidget
 {
     public static function compatibleCapellApiVersion(): string
     {

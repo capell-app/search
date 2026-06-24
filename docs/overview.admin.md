@@ -1,7 +1,3 @@
-# Search
-
-<!-- prettier-ignore-start -->
-
 ## What it does for you
 
 Search powers the search box on your site. You choose what visitors can find, see what they are searching for, and add synonyms so different words find the same thing.
@@ -28,10 +24,3 @@ Go to **Search** in the admin to configure what is searchable and to review sear
 - See what visitors are searching for, so you can give them what they want.
 - Add a **synonym** so "tee" also finds "T-shirt".
 - If a common search returns nothing, add the missing content or a synonym.
-
----
-
-For how to use Search, see the [admin guide](admin-guide.md).
-For developers: see the [README](../README.md).
-
-<!-- prettier-ignore-end -->

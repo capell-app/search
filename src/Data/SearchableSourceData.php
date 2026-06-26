@@ -24,6 +24,7 @@ final class SearchableSourceData extends Data
         public readonly float $weight = 1.0,
         public readonly ?string $indexName = null,
         public readonly ?Closure $urlResolver = null,
+        public readonly bool $siteScoped = true,
     ) {}
 
     public function enabled(): bool

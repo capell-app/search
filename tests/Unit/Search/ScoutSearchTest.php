@@ -155,6 +155,56 @@ test('preserves absolute urls from searchable payloads', function (): void {
     expect($results->items()[0]->url)->toBe('https://capell-app.test/search-result');
 });
 
+test('site-scoped source filters records to the resolved site', function (): void {
+    $registry = new SearchableSourceRegistry;
+    $registry->register(new SearchableSourceData(
+        key: 'site-scoped',
+        label: 'Site Scoped',
+        modelClass: SearchAdditionalCoverageScoutModel::class,
+        type: 'page',
+        enabledByDefault: true,
+    ));
+
+    SearchAdditionalCoverageScoutModel::fakeRecords([
+        [
+            'title' => 'Capell Other Site',
+            'excerpt' => 'Result belonging to another site.',
+            'slug' => 'other-site',
+            'site_id' => 2,
+        ],
+    ]);
+
+    $results = (new ScoutSearch($registry))->search('Capell', siteId: 1);
+
+    expect($results->total())->toBe(0);
+});
+
+test('site-agnostic source ignores the resolved site filter', function (): void {
+    $registry = new SearchableSourceRegistry;
+    $registry->register(new SearchableSourceData(
+        key: 'site-agnostic',
+        label: 'Site Agnostic',
+        modelClass: SearchAdditionalCoverageScoutModel::class,
+        type: 'showcase',
+        enabledByDefault: true,
+        siteScoped: false,
+    ));
+
+    SearchAdditionalCoverageScoutModel::fakeRecords([
+        [
+            'title' => 'Capell Showcase Item',
+            'excerpt' => 'Site-agnostic showcase result.',
+            'slug' => 'showcase-item',
+            'site_id' => 2,
+        ],
+    ]);
+
+    $results = (new ScoutSearch($registry))->search('Capell', siteId: 1);
+
+    expect($results->total())->toBe(1)
+        ->and($results->items()[0]->url)->toBe('/showcase-item');
+});
+
 test('excludes unpublished and private payloads from public Scout results', function (): void {
     $registry = new SearchableSourceRegistry;
     $registry->register(new SearchableSourceData(

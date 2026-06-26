@@ -22,4 +22,12 @@
     <span @class(['sr-only' => ! $showLabel])>
         {{ $label }}
     </span>
+    @if ($showLabel && (bool) config('capell-search.keyboard_shortcuts.enabled', true))
+        <kbd
+            class="border-outline/70 text-on-surface-variant ms-1 hidden rounded border px-1.5 py-0.5 text-[11px] leading-none font-medium sm:inline-block"
+            aria-hidden="true"
+        >
+            {{ str_contains(strtolower(request()->userAgent() ?? ''), 'mac') ? '⌘K' : 'Ctrl K' }}
+        </kbd>
+    @endif
 </button>

@@ -130,7 +130,7 @@ class ScoutSearch implements Search
             call_user_func([$builder, 'within'], $source->indexName);
         }
 
-        if ($siteId !== null && is_callable([$builder, 'where'])) {
+        if ($source->siteScoped && $siteId !== null && is_callable([$builder, 'where'])) {
             call_user_func([$builder, 'where'], 'site_id', $siteId);
         }
 

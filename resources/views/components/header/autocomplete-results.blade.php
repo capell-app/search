@@ -17,6 +17,26 @@
     ></p>
 
     <div
+        class="flex items-center gap-3 p-4"
+        data-site-search-idle
+    >
+        <span
+            class="border-outline bg-surface text-on-surface-variant inline-grid size-8 shrink-0 place-items-center rounded-md border"
+            aria-hidden="true"
+        >
+            @svg('heroicon-o-magnifying-glass', 'h-4 w-4')
+        </span>
+        <div class="min-w-0">
+            <p class="text-on-surface text-sm font-medium">
+                {{ __('capell-search::generic.empty_query') }}
+            </p>
+            <p class="text-on-surface-variant text-sm">
+                {{ __('capell-search::generic.idle_hint') }}
+            </p>
+        </div>
+    </div>
+
+    <div
         class="grid gap-3 p-3"
         data-site-search-loading
         data-site-search-loading-template="{{ __('capell-search::generic.searching_for') }}"
@@ -60,6 +80,26 @@
         role="listbox"
         hidden
     ></ol>
+
+    <div
+        class="flex items-center gap-3 p-4"
+        data-site-search-empty
+        data-site-search-empty-template="{{ __('capell-search::generic.no_results', ['query' => '__query__']) }}"
+        hidden
+    >
+        <span
+            class="border-outline bg-surface text-on-surface-variant inline-grid size-8 shrink-0 place-items-center rounded-md border"
+            aria-hidden="true"
+        >
+            @svg('heroicon-o-face-frown', 'h-4 w-4')
+        </span>
+        <p
+            class="text-on-surface-variant text-sm"
+            data-site-search-empty-label
+        >
+            {{ __('capell-search::generic.no_results', ['query' => '']) }}
+        </p>
+    </div>
 
     <a
         href="{{ route('capell-frontend.search', absolute: false) }}"

@@ -49,6 +49,14 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             $package->hasViews();
         }
 
+        // Publishes resources/dist (the externalised search-modal.js) to
+        // public/vendor/capell-search via `vendor:publish --tag=capell-search-assets`,
+        // so the search dialog references a cached asset instead of inlining ~34KB
+        // of JavaScript on every page.
+        if (is_dir(__DIR__ . '/../../resources/dist')) {
+            $package->hasAssets();
+        }
+
         if (file_exists(__DIR__ . '/../../database/migrations/2026_05_10_190868_01_create_search_logs_table.php')) {
             $package->hasMigrations([
                 '2026_05_10_190868_01_create_search_logs_table',

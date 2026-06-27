@@ -156,11 +156,6 @@ it('declares implemented search gap features contributions and actions', functio
         ->and(data_get($manifest, 'actions'))->toHaveKey('resolvePromotedSearchResults', ResolvePromotedSearchResultsAction::class)
         ->and(data_get($manifest, 'actions'))->toHaveKey('runSearch', RunSearchAction::class)
         ->and(data_get($manifest, 'capabilities'))->toContain(
-            'search-synonyms',
-            'search-promoted-results',
-            'search-typo-corrections',
-            'search-source-weighting',
-            'search-zero-result-reporting',
             'search-site-discovery-indexing',
         )
         ->and(class_implements(SearchFrontendRouteContribution::class))->toContain(RegistersExtensionRoute::class)

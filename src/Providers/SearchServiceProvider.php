@@ -116,7 +116,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             extension: new RegisterHeaderSearchHook,
             owner: 'capell-app/search',
             key: 'header-search',
-            scenario: 'foundation-theme-header-actions',
+            scenario: 'theme-foundation-header-actions',
             target: 'capell-navigation::components.header.navigation',
             cacheSafe: true,
         );

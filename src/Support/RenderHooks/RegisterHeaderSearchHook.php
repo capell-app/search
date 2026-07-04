@@ -6,25 +6,24 @@ namespace Capell\Search\Support\RenderHooks;
 
 use Capell\Frontend\Contracts\RenderHookExtensionInterface;
 use Capell\Frontend\Data\RenderHookContext;
+use Capell\Frontend\Facades\Frontend;
 use Capell\Search\Actions\ResolveSearchSettingAction;
 
 final class RegisterHeaderSearchHook implements RenderHookExtensionInterface
 {
     public function render(RenderHookContext $context): string
     {
-        if (! (bool) ResolveSearchSettingAction::run(
-            'enabled',
-            'capell-search.enabled',
-            true,
-        )) {
+        $enabled = Frontend::getFrontendData('search.header.enabled');
+        $visible = Frontend::getFrontendData('search.header.visible');
+
+        $enabled ??= ResolveSearchSettingAction::run('enabled', 'capell-search.enabled', true);
+        $visible ??= ResolveSearchSettingAction::run('show_header_search', 'capell-search.show_header_search', true);
+
+        if (! (bool) $enabled) {
             return '';
         }
 
-        if (! (bool) ResolveSearchSettingAction::run(
-            'show_header_search',
-            'capell-search.show_header_search',
-            true,
-        )) {
+        if (! (bool) $visible) {
             return '';
         }
 

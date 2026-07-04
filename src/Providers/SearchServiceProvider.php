@@ -8,6 +8,7 @@ use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Settings\SettingsGroupMetadata;
 use Capell\Frontend\Enums\RenderHookLocation;
+use Capell\Frontend\Events\FrontendRenderPreparing;
 use Capell\Frontend\Support\Render\FrontendHookRegistrar;
 use Capell\Search\Actions\RegisterConfiguredSearchableSourcesAction;
 use Capell\Search\Actions\ResolveSearchSettingAction;
@@ -25,6 +26,7 @@ use Capell\Search\Support\SiteDiscovery\SearchGeneratedOutputCoverageSource;
 use Capell\SiteDiscovery\Contracts\GeneratedOutputCoverageSource;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Http\Request;
@@ -120,6 +122,17 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             target: 'capell-navigation::components.header.navigation',
             cacheSafe: true,
         );
+
+        $this->app->make(Dispatcher::class)->listen(FrontendRenderPreparing::class, function (FrontendRenderPreparing $event): void {
+            $event->context->setFrontendData(
+                'search.header.enabled',
+                ResolveSearchSettingAction::run('enabled', 'capell-search.enabled', true),
+            );
+            $event->context->setFrontendData(
+                'search.header.visible',
+                ResolveSearchSettingAction::run('show_header_search', 'capell-search.show_header_search', true),
+            );
+        });
     }
 
     #[Override]

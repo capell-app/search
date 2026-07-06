@@ -24,13 +24,13 @@
 
     <main
         id="main"
-        @class([
+        @class ([
             'search-main relative z-0 flex min-h-full flex-1 flex-col overflow-x-hidden lg:!min-h-0',
             $theme['meta']['main_class'] ?? 'py-6 lg:py-10',
             $containerWidth->getContainerClass(),
         ])
     >
-        @include('capell-search::pages.search', [
+        @include ('capell-search::pages.search', [
             'highlightedResults' => $highlightedResults ?? null,
             'query' => $query,
             'results' => $results,

@@ -1,4 +1,4 @@
-@props([
+@props ([
     'clickTrackingToken' => null,
     'highlightedResults' => null,
     'results',
@@ -64,9 +64,7 @@
                 </li>
             @endforeach
         </ol>
-        <div class="mt-6">
-            {{ $results->links() }}
-        </div>
+        <div class="mt-6">{{ $results->links() }}</div>
     @endif
 </section>
 

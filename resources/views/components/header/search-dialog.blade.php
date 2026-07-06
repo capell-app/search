@@ -1,4 +1,4 @@
-@props([
+@props ([
     'dialogId' => 'site-header-search-dialog',
 ])
 
@@ -47,7 +47,7 @@
                 <span class="sr-only">
                     {{ __('capell-frontend::generic.close') }}
                 </span>
-                @svg('heroicon-o-x-mark', 'h-5 w-5')
+                @svg ('heroicon-o-x-mark', 'h-5 w-5')
             </button>
         </div>
 
@@ -83,7 +83,7 @@
                     class="bg-primary text-primary-on hover:bg-primary-container focus-visible:outline-primary inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-md px-5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2"
                     aria-label="{{ __('capell-search::button.search') }}"
                 >
-                    @svg('heroicon-o-magnifying-glass', 'h-5 w-5')
+                    @svg ('heroicon-o-magnifying-glass', 'h-5 w-5')
                 </button>
             </div>
         </form>

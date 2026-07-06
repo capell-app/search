@@ -1,4 +1,4 @@
-@props([
+@props ([
     'resultsId',
 ])
 
@@ -24,7 +24,7 @@
             class="border-outline bg-surface text-on-surface-variant inline-grid size-8 shrink-0 place-items-center rounded-md border"
             aria-hidden="true"
         >
-            @svg('heroicon-o-magnifying-glass', 'h-4 w-4')
+            @svg ('heroicon-o-magnifying-glass', 'h-4 w-4')
         </span>
         <div class="min-w-0">
             <p class="text-on-surface text-sm font-medium">
@@ -48,7 +48,7 @@
                 class="border-outline bg-surface inline-grid size-8 shrink-0 place-items-center rounded-md border"
                 aria-hidden="true"
             >
-                @svg('heroicon-o-magnifying-glass', 'text-primary h-4 w-4 animate-pulse')
+                @svg ('heroicon-o-magnifying-glass', 'text-primary h-4 w-4 animate-pulse')
             </span>
             <div class="min-w-0">
                 <p
@@ -91,7 +91,7 @@
             class="border-outline bg-surface text-on-surface-variant inline-grid size-8 shrink-0 place-items-center rounded-md border"
             aria-hidden="true"
         >
-            @svg('heroicon-o-face-frown', 'h-4 w-4')
+            @svg ('heroicon-o-face-frown', 'h-4 w-4')
         </span>
         <p
             class="text-on-surface-variant text-sm"

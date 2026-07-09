@@ -9,104 +9,39 @@ use Capell\Core\Models\Language;
 use Capell\Core\Models\Layout;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\Theme;
-use Capell\Frontend\Facades\Frontend;
-use Capell\Search\Actions\BuildSearchFacetGroupsAction;
-use Capell\Search\Actions\GenerateSearchClickTokenAction;
-use Capell\Search\Actions\NormalizeSearchFiltersAction;
-use Capell\Search\Actions\RecordSearchAction;
+use Capell\Frontend\Support\CapellFrontendContext;
+use Capell\Search\Actions\BuildSearchPageViewDataAction;
 use Capell\Search\Actions\RecordSearchResultClickAction;
-use Capell\Search\Actions\ResolveSearchSettingAction;
 use Capell\Search\Actions\RunAutocompleteSearchAction;
-use Capell\Search\Actions\RunSearchAction;
-use Capell\Search\Contracts\Search;
-use Capell\Search\Data\SearchFilterData;
-use Capell\Search\Data\SearchRequestData;
-use Capell\Search\Data\SearchResultData;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
-use Throwable;
 
 final class SearchController
 {
     public function __invoke(Request $request): View
     {
-        $query = (string) $request->query('q', '');
-        $page = max(1, (int) $request->query('page', 1));
-        $perPage = (int) ResolveSearchSettingAction::run(
-            'results_per_page',
-            'capell-search.results_per_page',
-            10,
-        );
-
-        $data = $this->searchRequestData(
-            query: $query,
-            page: $page,
-            perPage: $perPage,
-            request: $request,
-        );
-
-        $results = RunSearchAction::run($data)->withPath($request->url());
-        $highlightedResults = $this->highlightedResults(resolve(Search::class), $results, $query);
-        $clickTrackingToken = GenerateSearchClickTokenAction::run($data);
-        $facetGroups = BuildSearchFacetGroupsAction::run(
-            request: $request,
-            query: $query,
-            filters: $data->filters ?? new SearchFilterData,
-            siteId: $data->siteId,
-            languageId: $data->languageId,
-        );
-
-        RecordSearchAction::dispatchAfterResponse(
-            $data,
-            $results->total(),
-            $request->ip(),
-            $request->userAgent(),
-        );
-
+        $viewData = BuildSearchPageViewDataAction::run($request)->toViewData();
         $pageView = $this->configuredPageView();
 
         if ($pageView !== null) {
-            return view($pageView, [
-                'highlightedResults' => $highlightedResults,
-                'facetGroups' => $facetGroups,
-                'clickTrackingToken' => $clickTrackingToken,
-                'query' => $query,
-                'results' => $results,
-            ]);
+            return view($pageView, $viewData);
         }
 
-        $content = view('capell-search::pages.search', [
-            'highlightedResults' => $highlightedResults,
-            'facetGroups' => $facetGroups,
-            'clickTrackingToken' => $clickTrackingToken,
-            'query' => $query,
-            'results' => $results,
-        ]);
+        $content = view('capell-search::pages.search', $viewData);
+        $shellData = $this->frontendShellData();
 
-        if (! $this->canRenderFrontendShell()) {
+        if ($shellData === null) {
             return $content;
         }
 
-        $slot = view('capell-search::layouts.frontend', [
-            'highlightedResults' => $highlightedResults,
-            'facetGroups' => $facetGroups,
-            'clickTrackingToken' => $clickTrackingToken,
-            'query' => $query,
-            'results' => $results,
-        ]);
+        $slot = view('capell-search::layouts.frontend', $viewData);
 
         return view('capell::app', [
-            'language' => Frontend::language(),
-            'layout' => Frontend::layout(),
-            'pageRecord' => Frontend::page(),
-            'site' => Frontend::site(),
+            ...$shellData,
             'slot' => new HtmlString($slot->render()),
-            'theme' => Frontend::theme(),
         ]);
     }
 
@@ -134,35 +69,6 @@ final class SearchController
         return response()->noContent();
     }
 
-    private function searchRequestData(string $query, int $page, int $perPage, Request $request): SearchRequestData
-    {
-        $site = $request->attributes->get('site');
-        $language = $request->attributes->get('language');
-
-        return new SearchRequestData(
-            query: $query,
-            page: $page,
-            perPage: $perPage,
-            siteId: is_object($site) ? (int) data_get($site, 'id') : null,
-            languageId: is_object($language) ? (int) data_get($language, 'id') : null,
-            filters: NormalizeSearchFiltersAction::run($request),
-        );
-    }
-
-    /**
-     * @param  LengthAwarePaginator<int, SearchResultData>  $results
-     * @return Collection<int, array{title: string, excerpt: string}>
-     */
-    private function highlightedResults(Search $search, LengthAwarePaginator $results, string $query): Collection
-    {
-        return collect($results->items())
-            ->map(static fn (SearchResultData $result): array => [
-                'title' => $search->highlight($result->title, $query),
-                'excerpt' => $search->highlight($result->excerpt, $query),
-            ])
-            ->values();
-    }
-
     /**
      * @return view-string|null
      */
@@ -177,16 +83,38 @@ final class SearchController
         return view()->exists($view) ? $view : null;
     }
 
-    private function canRenderFrontendShell(): bool
+    /**
+     * @return array{language: Language, layout: Layout, pageRecord: Pageable, site: Site, theme: Theme}|null
+     */
+    private function frontendShellData(): ?array
     {
-        try {
-            return Frontend::language() instanceof Language
-                && Frontend::layout() instanceof Layout
-                && Frontend::page() instanceof Pageable
-                && Frontend::site() instanceof Site
-                && Frontend::theme() instanceof Theme;
-        } catch (Throwable) {
-            return false;
+        if (! app()->bound(CapellFrontendContext::class)) {
+            return null;
         }
+
+        $frontend = app(CapellFrontendContext::class);
+        $language = $frontend->language();
+        $layout = $frontend->layout();
+        $page = $frontend->page();
+        $site = $frontend->site();
+        $theme = $frontend->theme();
+
+        if (
+            ! $language instanceof Language
+            || ! $layout instanceof Layout
+            || ! $page instanceof Pageable
+            || ! $site instanceof Site
+            || ! $theme instanceof Theme
+        ) {
+            return null;
+        }
+
+        return [
+            'language' => $language,
+            'layout' => $layout,
+            'pageRecord' => $page,
+            'site' => $site,
+            'theme' => $theme,
+        ];
     }
 }

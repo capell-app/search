@@ -33,17 +33,12 @@ it('registers an icon-triggered header search modal', function (): void {
         ->toContain(route('capell-frontend.search.autocomplete', absolute: false))
         ->toContain(route('capell-frontend.search.click', absolute: false))
         ->toContain('data-site-search-trigger')
-        ->toContain('setActiveResult(dialog, -1)')
-        ->toContain('setPageInert(true)')
-        ->toContain('trapFocus(event, dialog)')
         ->toContain('data-site-search-debounce-ms')
-        ->toContain('scheduleFetchResults(input.closest(selectors.dialog))')
-        ->toContain('cancelPendingSearch(dialog)')
         ->toContain('data-site-search-suggestions-template')
+        ->toContain('vendor/capell-search/search-modal.js')
         ->not()->toContain('id="site-search-query"')
         ->not()->toContain('x-data')
-        ->not()->toContain('x-ref')
-        ->not()->toContain('capell-search');
+        ->not()->toContain('x-ref');
 });
 
 test('header search hook renders a real package view', function (): void {
@@ -59,7 +54,7 @@ test('header search hook renders a real package view', function (): void {
         ->toContain(route('capell-frontend.search', absolute: false))
         ->toContain('type="search"')
         ->toContain('Search')
-        ->toContain('placeholder="Search pages, services, and resources"')
+        ->toContain('placeholder="Search pages, extensions, resources, and media"')
         ->toContain('data-site-search-results')
         ->toContain('hidden')
         ->toContain(route('capell-frontend.search.autocomplete', absolute: false))

@@ -9,6 +9,7 @@ use Capell\Core\Models\Site;
 use Capell\Core\Models\Theme;
 use Capell\Frontend\Support\CapellFrontendContext;
 use Capell\Frontend\Support\State\FrontendState;
+use Capell\Search\Actions\BuildSearchPageViewDataAction;
 use Capell\Search\Actions\GenerateSearchClickTokenAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchFilterData;
@@ -239,8 +240,15 @@ test('click tracking route is csrf exempt for cached frontend beacons', function
 
 test('header click beacon does not require a csrf token', function (): void {
     $html = view('capell-search::components.header.search-dialog')->render();
+    $script = file_get_contents(__DIR__ . '/../../../resources/dist/search-modal.js');
+
+    throw_unless(is_string($script), RuntimeException::class, 'Expected search modal script to be readable.');
 
     expect($html)
+        ->toContain('vendor/capell-search/search-modal.js')
+        ->not()->toContain('csrf-token')
+        ->not()->toContain('X-CSRF-TOKEN')
+        ->and($script)
         ->toContain("mode: 'no-cors'")
         ->not()->toContain('csrf-token')
         ->not()->toContain('X-CSRF-TOKEN');
@@ -360,9 +368,57 @@ test('controller uses configured page view when it exists', function (): void {
     expect($view->name())->toBe('capell-search::components.form')
         ->and($view->getData()['query'])->toBe('Capell')
         ->and($html)->toContain('Search this site')
-        ->and($html)->toContain('placeholder="Search pages, services, and resources"')
+        ->and($html)->toContain('placeholder="Search pages, extensions, resources, and media"')
         ->and($html)->toContain('placeholder:text-outline-variant')
         ->and($html)->toContain('text-primary-on');
+});
+
+test('builds reusable search page view data through an action boundary', function (): void {
+    config()->set('capell-search.filters.enabled', false);
+
+    app()->instance(Search::class, new class implements Search
+    {
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+            ?SearchFilterData $filters = null,
+        ): LengthAwarePaginator {
+            return new Paginator(new Collection([
+                new SearchResultData(
+                    title: 'Laravel Search',
+                    url: '/laravel-search',
+                    excerpt: 'Search result content',
+                ),
+            ]), 1, $perPage, $page);
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return str_replace('Search', '<mark>Search</mark>', e($text));
+        }
+    });
+
+    $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Laravel Search']);
+    $viewData = BuildSearchPageViewDataAction::run($request);
+    $payload = $viewData->toViewData();
+
+    expect($viewData->query)->toBe('Laravel Search')
+        ->and($viewData->results->total())->toBe(1)
+        ->and($viewData->highlightedResults->first())->toBe([
+            'title' => 'Laravel <mark>Search</mark>',
+            'excerpt' => '<mark>Search</mark> result content',
+        ])
+        ->and($viewData->clickTrackingToken)->toBeString()
+        ->and($payload)->toHaveKeys([
+            'highlightedResults',
+            'facetGroups',
+            'clickTrackingToken',
+            'query',
+            'results',
+        ]);
 });
 
 test('controller returns the search page view with an empty paginator for a blank query', function (): void {
@@ -392,6 +448,16 @@ test('controller returns the search page view with an empty paginator for a blan
     expect($view->getData()['query'])->toBe('   ');
     expect($view->getData()['results'])->toBeInstanceOf(LengthAwarePaginator::class);
     expect($view->getData()['results']->total())->toBe(0);
+});
+
+test('controller does not hide frontend shell failures behind a broad throwable catch', function (): void {
+    $source = file_get_contents(__DIR__ . '/../../../src/Http/Controllers/SearchController.php');
+
+    throw_unless(is_string($source), RuntimeException::class, 'Expected SearchController source to be readable.');
+
+    expect($source)
+        ->not()->toContain('use Throwable;')
+        ->not()->toContain('catch (Throwable)');
 });
 
 test('controller wraps the search page in the frontend shell when context is available', function (): void {

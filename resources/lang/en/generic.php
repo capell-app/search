@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 return [
     'did_you_mean' => 'Did you mean',
-    'site_discovery_result_excerpt' => ':type URL from :package.',
+    'site_discovery_result_excerpt' => ':type URL.',
     'empty_query' => 'Enter a keyword to search this site.',
     'idle_hint' => 'Search pages, extensions, resources, and media.',
     'hint_navigate' => 'Navigate',

@@ -165,7 +165,6 @@ final readonly class SiteDiscoverySearch implements Search
     {
         return __('capell-search::generic.site_discovery_result_excerpt', [
             'type' => $entry->contentType->getLabel(),
-            'package' => $entry->sourcePackage,
         ]);
     }
 

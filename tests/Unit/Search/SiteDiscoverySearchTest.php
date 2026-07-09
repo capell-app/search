@@ -53,7 +53,8 @@ test('site discovery search returns indexable public registry URLs', function ()
         ->and($firstResult?->title)->toBe('Cms Hosting')
         ->and($firstResult?->url)->toBe('https://example.com/services/cms-hosting')
         ->and($firstResult?->type)->toBe('page')
-        ->and($firstResult?->excerpt)->toContain('capell-app/core');
+        ->and($firstResult?->excerpt)->toBe('Page URL.')
+        ->and($firstResult?->excerpt)->not->toContain('capell-app/core');
 });
 
 test('site discovery search matches route package and content type metadata', function (): void {

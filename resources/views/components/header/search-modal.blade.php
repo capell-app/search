@@ -1,4 +1,4 @@
-@props([
+@props ([
     'dialogId' => 'site-header-search-dialog',
     'triggerLabel' => __('capell-search::generic.search_label'),
     'triggerClass' => null,

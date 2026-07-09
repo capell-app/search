@@ -6,14 +6,27 @@ use Capell\Search\Actions\CreatePromotedResultFromZeroResultSearchAction;
 use Capell\Search\Actions\CreateSynonymFromZeroResultSearchAction;
 use Capell\Search\Actions\ResolveExpandedSearchQueriesAction;
 use Capell\Search\Actions\ResolvePromotedSearchResultsAction;
+use Capell\Search\Enums\SearchDriver;
 use Capell\Search\Settings\SearchSettings;
+use Illuminate\Support\Facades\DB;
 
 beforeEach(function (): void {
-    $settings = new SearchSettings;
-    $settings->synonyms = [
+    seedSearchSetting('enabled', true);
+    seedSearchSetting('show_header_search', true);
+    seedSearchSetting('results_per_page', 10);
+    seedSearchSetting('driver', SearchDriver::SiteDiscovery->value);
+    seedSearchSetting('record_search_logs', true);
+    seedSearchSetting('log_retention_days', 180);
+    seedSearchSetting('hash_visitor_data', true);
+    seedSearchSetting('minimum_query_length', 2);
+    seedSearchSetting('sources', []);
+    seedSearchSetting('synonyms', [
         'cms' => ['content management system'],
-    ];
-    $settings->promoted_results = [
+    ]);
+    seedSearchSetting('typo_corrections', []);
+    seedSearchSetting('typo_terms', []);
+    seedSearchSetting('typo_max_distance', 1);
+    seedSearchSetting('promoted_results', [
         [
             'queries' => ['pricing'],
             'title' => 'Pricing',
@@ -22,9 +35,9 @@ beforeEach(function (): void {
             'type' => 'page',
             'score' => 1000.0,
         ],
-    ];
+    ]);
 
-    app()->instance(SearchSettings::class, $settings);
+    app()->forgetInstance(SearchSettings::class);
 });
 
 test('creates a synonym from a zero-result query', function (): void {
@@ -72,3 +85,28 @@ test('replaces duplicate promoted results for the same zero-result query and url
     expect($promotions)->toHaveCount(2)
         ->and($promotions[1]['title'])->toBe('New title');
 });
+
+test('zero-result curation save failures are not swallowed', function (string $actionClass): void {
+    $source = file_get_contents((string) (new ReflectionClass($actionClass))->getFileName());
+
+    expect($source)->toBeString()
+        ->and($source)->toContain('->save();')
+        ->and($source)->not->toContain('catch (Throwable)')
+        ->and($source)->not->toContain('catch (\\Throwable)')
+        ->and($source)->not->toContain('catch (Exception)')
+        ->and($source)->not->toContain('catch (\\Exception)');
+})->with([
+    'synonym curation' => [CreateSynonymFromZeroResultSearchAction::class],
+    'promoted-result curation' => [CreatePromotedResultFromZeroResultSearchAction::class],
+]);
+
+function seedSearchSetting(string $name, mixed $payload): void
+{
+    DB::table('settings')->updateOrInsert([
+        'group' => SearchSettings::group(),
+        'name' => $name,
+    ], [
+        'payload' => json_encode($payload, JSON_THROW_ON_ERROR),
+        'locked' => false,
+    ]);
+}

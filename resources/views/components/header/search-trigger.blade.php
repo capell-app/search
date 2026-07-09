@@ -1,4 +1,4 @@
-@props([
+@props ([
     'dialogId' => 'site-header-search-dialog',
     'label' => __('capell-search::generic.search_label'),
     'showLabel' => false,
@@ -18,10 +18,8 @@
     aria-expanded="false"
     aria-haspopup="dialog"
 >
-    @svg('heroicon-o-magnifying-glass', 'h-5 w-5')
-    <span @class(['sr-only' => ! $showLabel])>
-        {{ $label }}
-    </span>
+    @svg ('heroicon-o-magnifying-glass', 'h-5 w-5')
+    <span @class (['sr-only' => ! $showLabel])> {{ $label }} </span>
     @if ($showLabel && (bool) config('capell-search.keyboard_shortcuts.enabled', true))
         <kbd
             class="border-outline/70 text-on-surface-variant ms-1 hidden rounded border px-1.5 py-0.5 text-[11px] leading-none font-medium sm:inline-block"

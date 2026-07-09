@@ -328,8 +328,8 @@
 
         state.activeIndex = -1
         state.results = []
-        list.replaceChildren()
-        list.hidden = true
+        const hasCurrentResults = list.children.length > 0 && !list.hidden
+        list.hidden = !hasCurrentResults
         allResults.hidden = true
         if (idle) {
             idle.hidden = true

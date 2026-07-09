@@ -220,7 +220,7 @@
         state.abortController = null
     }
 
-    const closeDialog = (dialog) => {
+    const closeDialog = (dialog, { restoreFocus = true } = {}) => {
         const state = stateFor(dialog)
 
         cancelPendingSearch(dialog)
@@ -243,12 +243,24 @@
                 trigger.setAttribute('aria-expanded', 'false')
             })
 
-        state.trigger?.focus()
+        if (restoreFocus) {
+            state.trigger?.focus()
+        }
     }
 
     const openDialog = (dialog, trigger) => {
         const state = stateFor(dialog)
         const input = dialog.querySelector(selectors.input)
+
+        // Opening search is exclusive with the header menus: close the account
+        // dropdown, the platform/marketplace mega-menus, and the mobile menu so
+        // two overlays never sit open at once.
+        window.dispatchEvent(new CustomEvent('capell-close-header-menus'))
+        window.dispatchEvent(
+            new CustomEvent('capell-close-mobile-menu', {
+                detail: { restoreFocus: false },
+            }),
+        )
 
         state.trigger = trigger
         dialog.classList.remove('hidden')
@@ -700,6 +712,14 @@
         }
     })
 
+    // The header account dropdown and mega-menus dispatch this when they open,
+    // so search closes as they take over (the mirror of openDialog's dispatch).
+    window.addEventListener('capell-close-site-search', () => {
+        document
+            .querySelectorAll(`${selectors.dialog}:not(.hidden)`)
+            .forEach((dialog) => closeDialog(dialog, { restoreFocus: false }))
+    })
+
     document.addEventListener('input', (event) => {
         const input = event.target.closest(selectors.input)
 
@@ -714,7 +734,7 @@
         if (!dialog) {
             if (
                 (event.key === '/' ||
-                    (event.key.toLowerCase() === 'k' &&
+                    (event.key?.toLowerCase() === 'k' &&
                         (event.metaKey || event.ctrlKey))) &&
                 !isTypingTarget(event.target)
             ) {

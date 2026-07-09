@@ -175,6 +175,8 @@ test('records click by token when visitor hashes change', function (): void {
         'REMOTE_ADDR' => '203.0.113.99',
         'HTTP_USER_AGENT' => 'Changed Browser',
     ]);
+    $request->attributes->set('site', (object) ['id' => 10]);
+    $request->attributes->set('language', (object) ['id' => 20]);
 
     $updatedLog = RecordSearchResultClickAction::run(
         request: $request,
@@ -218,7 +220,7 @@ function searchLogResult(?SearchLog $log): SearchLog
     return $log;
 }
 
-test('falls back to visitor tuple when click token is invalid', function (): void {
+test('rejects click tracking when the token is invalid', function (): void {
     $log = RecordSearchAction::run(
         new SearchRequestData(query: 'Laravel Search'),
         1,
@@ -240,6 +242,62 @@ test('falls back to visitor tuple when click token is invalid', function (): voi
         token: 'not-a-valid-token',
     );
 
-    expect($updatedLog?->is($log))->toBeTrue()
-        ->and($log->refresh()->clicked_result_url)->toBe('/search-result');
+    expect($updatedLog)->toBeNull()
+        ->and($log->refresh()->clicked_result_url)->toBeNull();
+});
+
+test('rejects click tracking when the token is missing', function (): void {
+    $log = RecordSearchAction::run(
+        new SearchRequestData(query: 'Laravel Search'),
+        1,
+        '203.0.113.10',
+        'Capell Test Browser',
+    );
+
+    throw_unless($log instanceof SearchLog, RuntimeException::class, 'Expected search log.');
+
+    $request = Request::create('/search/click', Symfony\Component\HttpFoundation\Request::METHOD_POST, [], [], [], [
+        'REMOTE_ADDR' => '203.0.113.10',
+        'HTTP_USER_AGENT' => 'Capell Test Browser',
+    ]);
+
+    $updatedLog = RecordSearchResultClickAction::run(
+        request: $request,
+        query: 'Laravel Search',
+        url: '/search-result',
+    );
+
+    expect($updatedLog)->toBeNull()
+        ->and($log->refresh()->clicked_result_url)->toBeNull();
+});
+
+test('rejects click tracking when the token context does not match the request context', function (): void {
+    $log = RecordSearchAction::run(
+        new SearchRequestData(
+            query: 'Laravel Search',
+            siteId: 10,
+            languageId: 20,
+        ),
+        1,
+    );
+    $token = GenerateSearchClickTokenAction::run(new SearchRequestData(
+        query: 'Laravel Search',
+        siteId: 10,
+        languageId: 20,
+    ));
+
+    throw_unless($log instanceof SearchLog, RuntimeException::class, 'Expected search log.');
+    throw_unless(is_string($token), RuntimeException::class, 'Expected search click token.');
+
+    $request = Request::create('/search/click', Symfony\Component\HttpFoundation\Request::METHOD_POST);
+
+    $updatedLog = RecordSearchResultClickAction::run(
+        request: $request,
+        query: 'Laravel Search',
+        url: '/search-result',
+        token: $token,
+    );
+
+    expect($updatedLog)->toBeNull()
+        ->and($log->refresh()->clicked_result_url)->toBeNull();
 });

@@ -6,7 +6,6 @@ namespace Capell\Search\Actions;
 
 use Capell\Search\Settings\SearchSettings;
 use Lorisleiva\Actions\Concerns\AsAction;
-use Throwable;
 
 /**
  * @method static list<array<string, mixed>> run(string $zeroResultQuery, string $title, string $url, string $excerpt = '', string $type = 'page', float $score = 1000.0)
@@ -46,7 +45,7 @@ final class CreatePromotedResultFromZeroResultSearchAction
         ];
 
         $settings->promoted_results = array_values($promotedResults);
-        $this->save($settings);
+        $settings->save();
 
         return $this->promotedResults($settings->promoted_results);
     }
@@ -116,14 +115,5 @@ final class CreatePromotedResultFromZeroResultSearchAction
     private function settings(): SearchSettings
     {
         return resolve(SearchSettings::class);
-    }
-
-    private function save(SearchSettings $settings): void
-    {
-        try {
-            $settings->save();
-        } catch (Throwable) {
-            //
-        }
     }
 }

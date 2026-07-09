@@ -46,19 +46,13 @@ final class RecordSearchResultClickAction
         $language = $request->attributes->get('language');
         $windowMinutes = max(1, (int) config('capell-search.click_tracking.match_window_minutes', 30));
 
-        $log = $this->logFromToken($token, $windowMinutes, $normalizedQuery);
-
-        if (! $log instanceof SearchLog) {
-            $log = SearchLog::query()
-                ->where('normalized_query', $normalizedQuery)
-                ->where('searched_at', '>=', now()->subMinutes($windowMinutes))
-                ->where('site_id', is_object($site) ? (int) data_get($site, 'id') : null)
-                ->where('language_id', is_object($language) ? (int) data_get($language, 'id') : null)
-                ->where('ip_hash', $this->hashVisitorValue($request->ip()))
-                ->where('user_agent_hash', $this->hashVisitorValue($request->userAgent()))
-                ->latest('searched_at')
-                ->first();
-        }
+        $log = $this->logFromToken(
+            token: $token,
+            windowMinutes: $windowMinutes,
+            normalizedQuery: $normalizedQuery,
+            siteId: is_object($site) ? (int) data_get($site, 'id') : null,
+            languageId: is_object($language) ? (int) data_get($language, 'id') : null,
+        );
 
         if (! $log instanceof SearchLog) {
             return null;
@@ -79,57 +73,13 @@ final class RecordSearchResultClickAction
         return $log;
     }
 
-    private function logFromToken(?string $token, int $windowMinutes, string $normalizedQuery): ?SearchLog
-    {
-        $payload = $this->tokenPayload($token);
-
-        if ($payload === null) {
-            return null;
-        }
-
-        $issuedAt = (int) ($payload['issued_at'] ?? 0);
-
-        if ($issuedAt <= 0 || $issuedAt < now()->subMinutes($windowMinutes)->timestamp) {
-            return null;
-        }
-
-        if ($payload['query'] !== $normalizedQuery) {
-            return null;
-        }
-
-        $log = SearchLog::query()
-            ->where('normalized_query', $payload['query'])
-            ->where('searched_at', '>=', now()->subMinutes($windowMinutes))
-            ->where('site_id', $payload['site_id'])
-            ->where('language_id', $payload['language_id'])
-            ->latest('searched_at')
-            ->first();
-
-        return $log instanceof SearchLog ? $log : null;
-    }
-
-    private function hashVisitorValue(?string $value): ?string
-    {
-        if (! (bool) ResolveSearchSettingAction::run(
-            'hash_visitor_data',
-            'capell-search.hash_visitor_data',
-            true,
-        )) {
-            return null;
-        }
-
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        return hash('sha256', $value . '|' . config('app.key'));
-    }
-
-    /**
-     * @return array{query: string, site_id: int|null, language_id: int|null, issued_at: int}|null
-     */
-    private function tokenPayload(?string $token): ?array
-    {
+    private function logFromToken(
+        ?string $token,
+        int $windowMinutes,
+        string $normalizedQuery,
+        ?int $siteId,
+        ?int $languageId,
+    ): ?SearchLog {
         if ($token === null || trim($token) === '') {
             return null;
         }
@@ -151,11 +101,29 @@ final class RecordSearchResultClickAction
             return null;
         }
 
-        return [
-            'query' => $query,
-            'site_id' => is_numeric($payload['site_id'] ?? null) ? (int) $payload['site_id'] : null,
-            'language_id' => is_numeric($payload['language_id'] ?? null) ? (int) $payload['language_id'] : null,
-            'issued_at' => $issuedAt,
-        ];
+        if ($issuedAt <= 0 || $issuedAt < now()->subMinutes($windowMinutes)->timestamp) {
+            return null;
+        }
+
+        if ($query !== $normalizedQuery) {
+            return null;
+        }
+
+        $tokenSiteId = is_numeric($payload['site_id'] ?? null) ? (int) $payload['site_id'] : null;
+        $tokenLanguageId = is_numeric($payload['language_id'] ?? null) ? (int) $payload['language_id'] : null;
+
+        if ($tokenSiteId !== $siteId || $tokenLanguageId !== $languageId) {
+            return null;
+        }
+
+        $log = SearchLog::query()
+            ->where('normalized_query', $query)
+            ->where('searched_at', '>=', now()->subMinutes($windowMinutes))
+            ->where('site_id', $tokenSiteId)
+            ->where('language_id', $tokenLanguageId)
+            ->latest('searched_at')
+            ->first();
+
+        return $log instanceof SearchLog ? $log : null;
     }
 }

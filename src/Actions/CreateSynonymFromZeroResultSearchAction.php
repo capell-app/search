@@ -6,7 +6,6 @@ namespace Capell\Search\Actions;
 
 use Capell\Search\Settings\SearchSettings;
 use Lorisleiva\Actions\Concerns\AsAction;
-use Throwable;
 
 /**
  * @method static array<string, mixed> run(string $zeroResultQuery, string $targetQuery)
@@ -38,7 +37,7 @@ final class CreateSynonymFromZeroResultSearchAction
         )));
 
         $settings->synonyms = $synonyms;
-        $this->save($settings);
+        $settings->save();
 
         return $settings->synonyms;
     }
@@ -46,14 +45,5 @@ final class CreateSynonymFromZeroResultSearchAction
     private function settings(): SearchSettings
     {
         return resolve(SearchSettings::class);
-    }
-
-    private function save(SearchSettings $settings): void
-    {
-        try {
-            $settings->save();
-        } catch (Throwable) {
-            //
-        }
     }
 }

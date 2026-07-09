@@ -18,6 +18,11 @@ return new class extends SettingsMigration
             'search.hash_visitor_data' => true,
             'search.minimum_query_length' => 2,
             'search.sources' => [],
+            'search.synonyms' => [],
+            'search.typo_corrections' => [],
+            'search.typo_terms' => [],
+            'search.typo_max_distance' => 1,
+            'search.promoted_results' => [],
         ];
 
         foreach ($defaults as $key => $value) {

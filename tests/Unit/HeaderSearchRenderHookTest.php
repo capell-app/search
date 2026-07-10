@@ -9,6 +9,25 @@ use Capell\Frontend\Facades\Frontend;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
 use Capell\Search\Support\RenderHooks\RegisterHeaderSearchHook;
 
+test('search modal asset is generated from committed package source', function (): void {
+    $packageRoot = dirname(__DIR__, 2);
+    $packageManifest = json_decode(
+        (string) file_get_contents($packageRoot . '/package.json'),
+        true,
+        flags: JSON_THROW_ON_ERROR,
+    );
+    $source = file_get_contents($packageRoot . '/resources/js/search-modal.js');
+    $distribution = file_get_contents($packageRoot . '/resources/dist/search-modal.js');
+
+    expect($packageManifest)->toBeArray()
+        ->and(data_get($packageManifest, 'scripts.build'))->toBe('node build.mjs')
+        ->and(data_get($packageManifest, 'scripts.build:check'))->toBe('node build.mjs --check')
+        ->and($source)->toBeString()->toContain('window.siteSearchModalInitialized')
+        ->and($distribution)->toBeString()
+        ->toStartWith('// Generated from resources/js/search-modal.js.')
+        ->toContain("mode: 'no-cors'");
+});
+
 it('registers an icon-triggered header search modal', function (): void {
     Frontend::setFrontendData(
         'runtimeManifest',

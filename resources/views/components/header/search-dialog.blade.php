@@ -32,7 +32,9 @@
     <div
         class="border-outline/70 bg-surface-lowest text-on-surface relative w-full max-w-2xl rounded-lg border p-5 shadow-2xl shadow-black/35"
     >
-        <div class="absolute end-3 top-3 flex items-center gap-2">
+        <div
+            class="bg-surface-lowest absolute end-3 top-3 z-10 flex items-center gap-2 ps-2"
+        >
             <kbd
                 class="border-outline/70 text-on-surface-variant hidden rounded border px-1.5 py-0.5 text-[11px] leading-none font-medium sm:inline-block"
                 aria-hidden="true"
@@ -55,7 +57,7 @@
             method="GET"
             action="{{ route('capell-frontend.search', absolute: false) }}"
             role="search"
-            class="grid gap-3 pe-12"
+            class="grid gap-3 pe-16"
             data-site-search-form
         >
             <label

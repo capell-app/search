@@ -48,7 +48,7 @@
                 class="border-outline bg-surface inline-grid size-8 shrink-0 place-items-center rounded-md border"
                 aria-hidden="true"
             >
-                @svg ('heroicon-o-magnifying-glass', 'text-primary h-4 w-4 animate-pulse')
+                @svg ('heroicon-o-arrow-path', 'text-primary h-4 w-4 animate-spin')
             </span>
             <div class="min-w-0">
                 <p

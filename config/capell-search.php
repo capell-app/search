@@ -141,6 +141,9 @@ return [
         'table_name' => 'search_logs',
         'retention_days' => 180,
     ],
+    'honor_privacy_signals' => true,
+    'visitor_hash_secret' => null,
+    'visitor_hash_rotation_days' => 30,
     'dashboard' => [
         'default_days' => 30,
         'trending_candidate_limit' => 250,

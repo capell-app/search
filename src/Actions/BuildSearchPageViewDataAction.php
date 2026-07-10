@@ -42,12 +42,13 @@ final readonly class BuildSearchPageViewDataAction
             languageId: $data->languageId,
         );
 
-        RecordSearchAction::dispatchAfterResponse(
-            $data,
-            $results->total(),
-            $request->ip(),
-            $request->userAgent(),
-        );
+        if (CanCollectSearchAnalyticsAction::run($request) && $data->siteId !== null) {
+            RecordSearchAction::dispatchAfterResponse(
+                $data,
+                $results->total(),
+                CreateSearchVisitorIdentityAction::run($request, $data->siteId),
+            );
+        }
 
         return new SearchPageViewData(
             query: $query,

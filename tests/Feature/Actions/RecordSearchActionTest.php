@@ -6,6 +6,7 @@ use Capell\Search\Actions\GenerateSearchClickTokenAction;
 use Capell\Search\Actions\RecordSearchAction;
 use Capell\Search\Actions\RecordSearchResultClickAction;
 use Capell\Search\Data\SearchRequestData;
+use Capell\Search\Data\SearchVisitorIdentityData;
 use Capell\Search\Models\SearchLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Schema\Blueprint;
@@ -48,8 +49,7 @@ test('logs valid searches with normalized query and hashed visitor data', functi
             languageId: 20,
         ),
         7,
-        '203.0.113.10',
-        'Capell Test Browser',
+        searchVisitorIdentity(),
     );
 
     $log = searchLogResult($log);
@@ -59,8 +59,8 @@ test('logs valid searches with normalized query and hashed visitor data', functi
     expect($log->query)->toBe('  Laravel   Search  ');
     expect($log->normalized_query)->toBe('laravel search');
     expect($log->results_count)->toBe(7);
-    expect($log->ip_hash)->toBe(hash('sha256', '203.0.113.10|' . config('app.key')));
-    expect($log->user_agent_hash)->toBe(hash('sha256', 'Capell Test Browser|' . config('app.key')));
+    expect($log->ip_hash)->toBe(searchVisitorIdentity()->ipHash)
+        ->and($log->user_agent_hash)->toBe(searchVisitorIdentity()->userAgentHash);
     expect($log->searched_at)->toBeInstanceOf(CarbonImmutable::class);
 });
 
@@ -104,8 +104,7 @@ test('omits visitor hashes when visitor hashing is disabled', function (): void 
     $log = RecordSearchAction::run(
         new SearchRequestData(query: 'Laravel Search'),
         1,
-        '203.0.113.10',
-        'Capell Test Browser',
+        searchVisitorIdentity(),
     );
 
     $log = searchLogResult($log);
@@ -159,8 +158,7 @@ test('records click by token when visitor hashes change', function (): void {
             languageId: 20,
         ),
         1,
-        '203.0.113.10',
-        'Original Browser',
+        searchVisitorIdentity('original-ip-hash', 'original-user-agent-hash'),
     );
     $token = GenerateSearchClickTokenAction::run(new SearchRequestData(
         query: 'Laravel Search',
@@ -220,12 +218,18 @@ function searchLogResult(?SearchLog $log): SearchLog
     return $log;
 }
 
+function searchVisitorIdentity(
+    string $ipHash = 'ip-hash',
+    string $userAgentHash = 'user-agent-hash',
+): SearchVisitorIdentityData {
+    return new SearchVisitorIdentityData($ipHash, $userAgentHash);
+}
+
 test('rejects click tracking when the token is invalid', function (): void {
     $log = RecordSearchAction::run(
         new SearchRequestData(query: 'Laravel Search'),
         1,
-        '203.0.113.10',
-        'Capell Test Browser',
+        searchVisitorIdentity(),
     );
 
     throw_unless($log instanceof SearchLog, RuntimeException::class, 'Expected search log.');
@@ -250,8 +254,7 @@ test('rejects click tracking when the token is missing', function (): void {
     $log = RecordSearchAction::run(
         new SearchRequestData(query: 'Laravel Search'),
         1,
-        '203.0.113.10',
-        'Capell Test Browser',
+        searchVisitorIdentity(),
     );
 
     throw_unless($log instanceof SearchLog, RuntimeException::class, 'Expected search log.');

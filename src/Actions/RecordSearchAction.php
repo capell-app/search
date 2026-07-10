@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Capell\Search\Actions;
 
 use Capell\Search\Data\SearchRequestData;
+use Capell\Search\Data\SearchVisitorIdentityData;
 use Capell\Search\Models\SearchLog;
 use Illuminate\Support\Facades\Schema as SchemaFacade;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * @method static ?SearchLog run(SearchRequestData $data, int $resultsCount, ?string $ipAddress = null, ?string $userAgent = null)
+ * @method static ?SearchLog run(SearchRequestData $data, int $resultsCount, ?SearchVisitorIdentityData $visitorIdentity = null)
  */
 final class RecordSearchAction
 {
@@ -19,8 +20,7 @@ final class RecordSearchAction
     public function handle(
         SearchRequestData $data,
         int $resultsCount,
-        ?string $ipAddress = null,
-        ?string $userAgent = null,
+        ?SearchVisitorIdentityData $visitorIdentity = null,
     ): ?SearchLog {
         if (! (bool) ResolveSearchSettingAction::run(
             'record_search_logs',
@@ -51,26 +51,9 @@ final class RecordSearchAction
             'query' => $data->query,
             'normalized_query' => $normalizedQuery,
             'results_count' => $resultsCount,
-            'ip_hash' => $this->hashVisitorValue($ipAddress),
-            'user_agent_hash' => $this->hashVisitorValue($userAgent),
+            'ip_hash' => $visitorIdentity?->ipHash,
+            'user_agent_hash' => $visitorIdentity?->userAgentHash,
             'searched_at' => now(),
         ]);
-    }
-
-    private function hashVisitorValue(?string $value): ?string
-    {
-        if (! (bool) ResolveSearchSettingAction::run(
-            'hash_visitor_data',
-            'capell-search.hash_visitor_data',
-            true,
-        )) {
-            return null;
-        }
-
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        return hash('sha256', $value . '|' . config('app.key'));
     }
 }

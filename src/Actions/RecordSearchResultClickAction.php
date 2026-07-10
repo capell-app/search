@@ -63,8 +63,14 @@ final class RecordSearchResultClickAction
 
     private function recordClick(SearchLog $log, string $url): SearchLog
     {
+        $path = parse_url($url, PHP_URL_PATH);
+
+        if (! is_string($path) || $path === '') {
+            return $log;
+        }
+
         $log->forceFill([
-            'clicked_result_url' => $url,
+            'clicked_result_url' => $path,
         ]);
 
         $log->save();

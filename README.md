@@ -77,6 +77,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 ## Common Pitfalls
 
+- The full search route defaults to 30 requests per minute per authenticated user or IP; tune `capell-search.rate_limit.per_minute` for the deployment's traffic and search backend.
 - Run migrations before opening package resources or public routes.
 - Configure package settings before testing production-like workflows.
 - Review route middleware, throttling, signed URLs, and public-output safety before exposing routes.

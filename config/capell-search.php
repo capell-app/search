@@ -7,6 +7,10 @@ return [
     'show_header_search' => true,
     'driver' => env('CAPELL_SITE_SEARCH_DRIVER', 'site_discovery'), // database, site_discovery, or scout
     'route_path' => 'search',
+    'rate_limiter' => 'capell-search-requests',
+    'rate_limit' => [
+        'per_minute' => 30,
+    ],
     'page_view' => null,
     'results_per_page' => 10,
     'excerpt_length' => 200,

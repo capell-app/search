@@ -147,6 +147,7 @@
         "search-admin",
         "search-console",
         "search-frontend",
+        "search-public-rate-limit",
         "search-site-discovery-indexing"
     ],
     "security": {
@@ -163,6 +164,7 @@
             "tokenizedRoutes": [],
             "webhookRoutes": [],
             "throttledRoutes": [
+                "capell-frontend.search",
                 "capell-frontend.search.autocomplete",
                 "capell-frontend.search.click"
             ]

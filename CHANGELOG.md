@@ -4,6 +4,8 @@ All notable changes to `capell-app/search` will be documented in this file.
 
 ## Unreleased
 
+- Added a configurable per-user/IP rate limiter to the full public search route, closing the expensive unthrottled search-and-log path.
+
 ### 2026-06-03
 
 #### Changed

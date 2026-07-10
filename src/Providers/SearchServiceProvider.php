@@ -103,7 +103,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
 
     public function packageBooted(): void
     {
-        $this->registerAutocompleteRateLimiter();
+        $this->registerPublicRateLimiters();
 
         if (! $this->isPackageInstalled()) {
             return;
@@ -141,8 +141,14 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         return CapellCore::isPackageInstalled(self::$packageName);
     }
 
-    private function registerAutocompleteRateLimiter(): void
+    private function registerPublicRateLimiters(): void
     {
+        $searchName = config('capell-search.rate_limiter', 'capell-search-requests');
+
+        RateLimiter::for($searchName, static fn (Request $request): Limit => Limit::perMinute(
+            max(1, (int) config('capell-search.rate_limit.per_minute', 30)),
+        )->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
+
         $name = config('capell-search.autocomplete.rate_limiter', 'capell-search-autocomplete');
 
         RateLimiter::for($name, static fn (Request $request): Limit => Limit::perMinute(

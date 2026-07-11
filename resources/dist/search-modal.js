@@ -266,8 +266,8 @@
       const state = stateFor(dialog)
       state.activeIndex = -1
       state.results = []
-      const hasCurrentResults = list.children.length > 0 && !list.hidden
-      list.hidden = !hasCurrentResults
+      list.replaceChildren()
+      list.hidden = true
       allResults.hidden = true
       if (idle) {
         idle.hidden = true

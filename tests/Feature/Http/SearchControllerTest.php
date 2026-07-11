@@ -10,6 +10,7 @@ use Capell\Core\Models\Theme;
 use Capell\Frontend\Support\CapellFrontendContext;
 use Capell\Frontend\Support\State\FrontendState;
 use Capell\Search\Actions\BuildSearchPageViewDataAction;
+use Capell\Search\Actions\CreateSearchVisitorIdentityAction;
 use Capell\Search\Actions\GenerateSearchClickTokenAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchFilterData;
@@ -614,6 +615,9 @@ test('controller defers search log writes until after the response', function ()
         'REMOTE_ADDR' => '203.0.113.10',
         'HTTP_USER_AGENT' => 'Capell Test Browser',
     ]);
+    $site = Site::factory()->createOne();
+    $request->attributes->set('site', $site);
+    $expectedVisitorIdentity = CreateSearchVisitorIdentityAction::run($request, (int) $site->getKey());
 
     (new SearchController)($request);
 
@@ -628,13 +632,11 @@ test('controller defers search log writes until after the response', function ()
 
     throw_unless($log instanceof SearchLog, RuntimeException::class, 'Expected deferred search log.');
 
-    $appKey = config('app.key');
-    throw_unless(is_string($appKey), RuntimeException::class, 'Expected app key string.');
-
     expect($log->query)->toBe('Laravel Search')
         ->and($log->results_count)->toBe(1)
-        ->and($log->ip_hash)->toBe(hash('sha256', '203.0.113.10|' . $appKey))
-        ->and($log->user_agent_hash)->toBe(hash('sha256', 'Capell Test Browser|' . $appKey));
+        ->and($log->site_id)->toBe($site->getKey())
+        ->and($log->ip_hash)->toBe($expectedVisitorIdentity->ipHash)
+        ->and($log->user_agent_hash)->toBe($expectedVisitorIdentity->userAgentHash);
 });
 
 test('controller renders public filter facets with live counts', function (): void {

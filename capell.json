@@ -249,36 +249,6 @@
                 "caption": "Search extension preview"
             },
             {
-                "path": "docs/screenshots/frontend-search-results-page.png",
-                "alt": "Frontend search results page with ranked public results",
-                "caption": "Themeable frontend search results"
-            },
-            {
-                "path": "docs/screenshots/frontend-search-results-page-dark.png",
-                "alt": "Dark mode frontend search results page with ranked public results",
-                "caption": "Frontend search results in dark mode"
-            },
-            {
-                "path": "docs/screenshots/header-search-field.png",
-                "alt": "Header search field with autocomplete entry point",
-                "caption": "Header search and autocomplete"
-            },
-            {
-                "path": "docs/screenshots/header-search-field-dark.png",
-                "alt": "Dark mode header search field with autocomplete entry point",
-                "caption": "Header search in dark mode"
-            },
-            {
-                "path": "docs/screenshots/search-settings-screen.png",
-                "alt": "Search settings screen for query logging, ranking, and retention",
-                "caption": "Configurable search settings"
-            },
-            {
-                "path": "docs/screenshots/search-settings-screen-dark.png",
-                "alt": "Dark mode search settings screen for query logging, ranking, and retention",
-                "caption": "Search settings in dark mode"
-            },
-            {
                 "path": "docs/screenshots/search-curation-annotated.png",
                 "alt": "Annotated search curation settings for synonyms, typo corrections, and promoted results",
                 "caption": "Search curation controls"
@@ -292,26 +262,6 @@
                 "path": "docs/screenshots/top-searches-widget-dark.png",
                 "alt": "Dark mode top searches admin insight widget",
                 "caption": "Top search analytics in dark mode"
-            },
-            {
-                "path": "docs/screenshots/trending-searches-widget.png",
-                "alt": "Trending searches admin insight widget",
-                "caption": "Trending search analytics"
-            },
-            {
-                "path": "docs/screenshots/trending-searches-widget-dark.png",
-                "alt": "Dark mode trending searches admin insight widget",
-                "caption": "Trending search analytics in dark mode"
-            },
-            {
-                "path": "docs/screenshots/zero-result-searches-widget.png",
-                "alt": "Zero-result searches admin insight widget",
-                "caption": "Zero-result search opportunities"
-            },
-            {
-                "path": "docs/screenshots/zero-result-searches-widget-dark.png",
-                "alt": "Dark mode zero-result searches admin insight widget",
-                "caption": "Zero-result search opportunities in dark mode"
             }
         ],
         "categories": ["admin", "console", "frontend", "search-seo"]

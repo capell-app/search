@@ -1,0 +1,101 @@
+{
+    "package": "search",
+    "composerName": "capell-app/search",
+    "generatedFor": "deployment-screenshot-runner",
+    "requiresInstalledPackage": true,
+    "outputDirectory": "packages/search/docs/screenshots",
+    "entries": [
+        {
+            "id": "frontend-search-results-page",
+            "title": "Frontend search results page.",
+            "package": "search",
+            "surface": "frontend",
+            "targetType": "frontend-url",
+            "target": null,
+            "url": "/search?q=capell",
+            "required": false,
+            "notes": "Optional Beta evidence target. The current file is an empty host shell rather than proof of Search results; replace it with an independently captured seeded results page before using it as release or Marketplace evidence.",
+            "useCase": "A visitor searches seeded public content and sees ranked results and pagination.",
+            "screenshotPath": "packages/search/docs/screenshots/frontend-search-results-page.png",
+            "darkScreenshotPath": "packages/search/docs/screenshots/frontend-search-results-page-dark.png"
+        },
+        {
+            "id": "header-search-field",
+            "title": "Header search field.",
+            "package": "search",
+            "surface": "frontend",
+            "targetType": "frontend-url",
+            "target": null,
+            "url": "/search?q=capell",
+            "required": false,
+            "notes": "Optional Beta evidence target. The current file is a generic Settings capture rather than proof of the header field; replace it with an independently captured compatible theme header before using it as release or Marketplace evidence.",
+            "useCase": "A visitor uses the header search control supplied by the package frontend surface.",
+            "screenshotPath": "packages/search/docs/screenshots/header-search-field.png",
+            "darkScreenshotPath": "packages/search/docs/screenshots/header-search-field-dark.png"
+        },
+        {
+            "id": "top-searches-widget",
+            "title": "Top searches widget.",
+            "package": "search",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": null,
+            "required": true,
+            "notes": "Capture after installing capell-app/search in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "An administrator reviews top searched terms from seeded query logs.",
+            "screenshotPath": "packages/search/docs/screenshots/top-searches-widget.png",
+            "darkScreenshotPath": "packages/search/docs/screenshots/top-searches-widget-dark.png"
+        },
+        {
+            "id": "trending-searches-widget",
+            "title": "Trending searches widget.",
+            "package": "search",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": null,
+            "required": false,
+            "notes": "Optional Beta evidence target. The current file duplicates the top-searches widget; replace it with an independently captured trending-searches state before using it as release or Marketplace evidence.",
+            "useCase": "An administrator reviews trending searches over the configured window.",
+            "screenshotPath": "packages/search/docs/screenshots/trending-searches-widget.png",
+            "darkScreenshotPath": "packages/search/docs/screenshots/trending-searches-widget-dark.png"
+        },
+        {
+            "id": "zero-result-searches-widget",
+            "title": "Zero-result searches widget.",
+            "package": "search",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": null,
+            "required": false,
+            "notes": "Optional Beta evidence target. The current file duplicates the top-searches widget; replace it with an independently captured zero-result state before using it as release or Marketplace evidence.",
+            "useCase": "An administrator identifies search terms with no matching content.",
+            "screenshotPath": "packages/search/docs/screenshots/zero-result-searches-widget.png",
+            "darkScreenshotPath": "packages/search/docs/screenshots/zero-result-searches-widget-dark.png"
+        },
+        {
+            "id": "search-settings-screen",
+            "title": "Site search settings screen.",
+            "package": "search",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": null,
+            "required": false,
+            "notes": "Optional Beta evidence target. The current file is a generic Settings capture rather than proof of Search settings; replace it with an independently captured package-specific settings state before using it as release or Marketplace evidence.",
+            "useCase": "A site owner configures search settings, logging, retention, and result behavior.",
+            "screenshotPath": "packages/search/docs/screenshots/search-settings-screen.png",
+            "darkScreenshotPath": "packages/search/docs/screenshots/search-settings-screen-dark.png"
+        },
+        {
+            "id": "search-curation-annotated",
+            "title": "Annotated search curation settings.",
+            "package": "search",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": null,
+            "required": true,
+            "notes": "Annotated marketplace explainer derived from the Search settings surface to show synonyms, typo corrections, and promoted results.",
+            "useCase": "A site owner understands how Search curation controls query intent and promoted answers.",
+            "screenshotPath": "packages/search/docs/screenshots/search-curation-annotated.png"
+        }
+    ]
+}

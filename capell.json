@@ -1,0 +1,272 @@
+{
+    "manifest-version": 3,
+    "name": "capell-app/search",
+    "slug": "search",
+    "displayName": "Search",
+    "kind": "package",
+    "capellApiVersion": "^0.0.1",
+    "version": "0.0.x-dev",
+    "description": "Search gives every Capell site a fast, themeable search experience: a results page, header search field, and type-ahead autocomplete, backed by a pluggable driver contract (database, Site Discovery URL registry, or Laravel Scout/Meilisearch/Typesense). Curate results with synonyms, typo corrections, and promoted \"best bet\" answers, and tune ranking with source weighting plus exact-match, recency, and click-through boosts. The admin dashboard surfaces top searches, trending terms, and — critically — zero-result queries, so editors see exactly where content is missing. Privacy-first by default: visitor identifiers are hashed and query logs auto-purge on a configurable retention window.",
+    "product": {
+        "group": "Capell Search & SEO",
+        "tier": "premium",
+        "bundle": "search-seo"
+    },
+    "namespace": "Capell\\Search",
+    "surfaces": ["admin", "frontend", "console"],
+    "dependencies": {
+        "requires": [
+            "capell-app/admin",
+            "capell-app/core",
+            "capell-app/frontend"
+        ],
+        "supports": [
+            "capell-app/seo-suite",
+            "capell-app/site-discovery",
+            "capell-app/url-manager"
+        ],
+        "conflicts": []
+    },
+    "providers": {
+        "metadata": [],
+        "install": [],
+        "runtime": ["Capell\\Search\\Providers\\SearchServiceProvider"],
+        "admin": ["Capell\\Search\\Providers\\AdminServiceProvider"],
+        "frontend": []
+    },
+    "contributes": [
+        {
+            "type": "route",
+            "class": "Capell\\Search\\Manifest\\SearchFrontendRouteContribution",
+            "routes": [
+                "capell-frontend.search",
+                "capell-frontend.search.autocomplete",
+                "capell-frontend.search.click"
+            ]
+        },
+        {
+            "type": "model",
+            "class": "Capell\\Search\\Manifest\\SearchLogModelContribution",
+            "modelClass": "Capell\\Search\\Models\\SearchLog"
+        },
+        {
+            "type": "dashboard-widget",
+            "class": "Capell\\Search\\Manifest\\TopSearchesWidgetContribution",
+            "widgetClass": "Capell\\Search\\Filament\\Widgets\\TopSearchesFilamentWidget"
+        },
+        {
+            "type": "dashboard-widget",
+            "class": "Capell\\Search\\Manifest\\TrendingSearchesWidgetContribution",
+            "widgetClass": "Capell\\Search\\Filament\\Widgets\\TrendingSearchesFilamentWidget"
+        },
+        {
+            "type": "dashboard-widget",
+            "class": "Capell\\Search\\Manifest\\ZeroResultSearchesWidgetContribution",
+            "widgetClass": "Capell\\Search\\Filament\\Widgets\\ZeroResultSearchesFilamentWidget"
+        },
+        {
+            "type": "overview-stat",
+            "class": "Capell\\Search\\Manifest\\SearchOverviewStatsContribution",
+            "keys": [
+                "search_overview",
+                "search_overview.unique_queries",
+                "search_overview.zero_result_rate"
+            ]
+        },
+        {
+            "type": "admin-page",
+            "class": "Capell\\Search\\Manifest\\SearchSettingsPageContribution",
+            "pageClass": "Capell\\Search\\Filament\\Pages\\SearchSettingsPage",
+            "labelKey": "capell-search::settings.title",
+            "settingsGroup": "search"
+        },
+        {
+            "type": "scheduled-job",
+            "class": "Capell\\Search\\Manifest\\SearchLogPurgeScheduleContribution",
+            "command": "search:purge",
+            "frequency": "monthly"
+        },
+        {
+            "type": "console-command",
+            "class": "Capell\\Search\\Manifest\\SearchConsoleCommandsContribution",
+            "commands": ["search:index", "search:flush", "search:purge"],
+            "commandClasses": [
+                "Capell\\Search\\Console\\Commands\\IndexSearchCommand",
+                "Capell\\Search\\Console\\Commands\\FlushSearchCommand",
+                "Capell\\Search\\Console\\Commands\\PurgeSearchLogsCommand"
+            ]
+        },
+        {
+            "type": "setting",
+            "class": "Capell\\Search\\Manifest\\SearchSettingsContribution",
+            "settingsClass": "Capell\\Search\\Settings\\SearchSettings",
+            "settingsGroup": "search"
+        },
+        {
+            "type": "health-check",
+            "class": "Capell\\Search\\Manifest\\SearchHealthContribution",
+            "checkClass": "Capell\\Search\\Health\\SearchHealthCheck"
+        }
+    ],
+    "database": {
+        "migrations": true,
+        "settings": true,
+        "requiredTables": ["search_logs"]
+    },
+    "commands": {
+        "install": null,
+        "setup": null,
+        "demo": null,
+        "doctor": null,
+        "index": "search:index",
+        "flush": "search:flush",
+        "purge": "search:purge"
+    },
+    "actions": {
+        "applySearchResultEnhancements": "Capell\\Search\\Actions\\ApplySearchResultEnhancementsAction",
+        "buildTopClickedResultsQuery": "Capell\\Search\\Actions\\BuildTopClickedResultsQueryAction",
+        "buildTopSearchesQuery": "Capell\\Search\\Actions\\BuildTopSearchesQueryAction",
+        "buildTrendingSearchesQuery": "Capell\\Search\\Actions\\BuildTrendingSearchesQueryAction",
+        "buildZeroResultSearchesQuery": "Capell\\Search\\Actions\\BuildZeroResultSearchesQueryAction",
+        "createPromotedResultFromZeroResultSearch": "Capell\\Search\\Actions\\CreatePromotedResultFromZeroResultSearchAction",
+        "createSynonymFromZeroResultSearch": "Capell\\Search\\Actions\\CreateSynonymFromZeroResultSearchAction",
+        "flushScoutSearchSources": "Capell\\Search\\Actions\\FlushScoutSearchSourcesAction",
+        "indexScoutSearchSources": "Capell\\Search\\Actions\\IndexScoutSearchSourcesAction",
+        "normalizeSearchQuery": "Capell\\Search\\Actions\\NormalizeSearchQueryAction",
+        "purgeSearchLogs": "Capell\\Search\\Actions\\PurgeSearchLogsAction",
+        "recordSearch": "Capell\\Search\\Actions\\RecordSearchAction",
+        "recordSearchResultClick": "Capell\\Search\\Actions\\RecordSearchResultClickAction",
+        "resolveExpandedSearchQueries": "Capell\\Search\\Actions\\ResolveExpandedSearchQueriesAction",
+        "resolvePromotedSearchResults": "Capell\\Search\\Actions\\ResolvePromotedSearchResultsAction",
+        "runSearch": "Capell\\Search\\Actions\\RunSearchAction"
+    },
+    "settings": ["Capell\\Search\\Settings\\SearchSettings"],
+    "permissions": [],
+    "capabilities": [
+        "search",
+        "search-admin",
+        "search-console",
+        "search-frontend",
+        "search-public-rate-limit",
+        "search-site-discovery-indexing"
+    ],
+    "security": {
+        "riskTier": "sensitive",
+        "publicSurface": {
+            "routeNames": [
+                "capell-frontend.search",
+                "capell-frontend.search.autocomplete",
+                "capell-frontend.search.click"
+            ],
+            "auth": "public",
+            "csrfExemptRoutes": ["capell-frontend.search.click"],
+            "signedRoutes": [],
+            "tokenizedRoutes": [],
+            "webhookRoutes": [],
+            "throttledRoutes": [
+                "capell-frontend.search",
+                "capell-frontend.search.autocomplete",
+                "capell-frontend.search.click"
+            ]
+        },
+        "sensitiveData": {
+            "encryptedFields": [],
+            "hashedTokenFields": [],
+            "redactedOutputClasses": [],
+            "plaintextJustifications": []
+        },
+        "publicOutput": {
+            "cacheSafe": true,
+            "forbidAuthoringSurface": true,
+            "forbidSecrets": true,
+            "forbidPublicBladeQueries": true
+        },
+        "externalHttpClients": {
+            "requiresTimeouts": false,
+            "requiresSecretRedaction": false,
+            "clients": []
+        },
+        "adminSurface": {
+            "authorization": "panel-auth",
+            "permissions": []
+        }
+    },
+    "performance": {
+        "frontendRenderBudgetMs": 20,
+        "adminQueryBudget": 40,
+        "cacheTags": ["search"],
+        "cacheSafety": {
+            "cacheable": false,
+            "variesBy": ["site", "locale"],
+            "sensitiveOutput": false,
+            "invalidationSources": [],
+            "queueInvalidation": true
+        }
+    },
+    "healthChecks": [
+        {
+            "key": "search.frontend-query",
+            "label": "Frontend search normalizes queries and returns paginated results.",
+            "class": "Capell\\Search\\Health\\SearchHealthCheck",
+            "severity": "critical",
+            "surface": "frontend"
+        },
+        {
+            "key": "search.database-driver",
+            "label": "Database search escapes wildcards and clamps pagination arguments.",
+            "class": "Capell\\Search\\Health\\SearchHealthCheck",
+            "severity": "critical",
+            "surface": "frontend"
+        },
+        {
+            "key": "search.logging",
+            "label": "Search logs capture query, result, and zero-result analytics.",
+            "class": "Capell\\Search\\Health\\SearchHealthCheck",
+            "severity": "warning",
+            "surface": "admin"
+        },
+        {
+            "key": "search.retention",
+            "label": "Search log purge command enforces retention windows.",
+            "class": "Capell\\Search\\Health\\SearchHealthCheck",
+            "severity": "warning",
+            "surface": "console"
+        }
+    ],
+    "commercial": {
+        "proposedLicense": "paid",
+        "requestedCertification": "first-party",
+        "supportPolicy": "priority",
+        "privateDocsRequested": true
+    },
+    "marketplace": {
+        "summary": "Production-grade site search for Capell — relevance-tuned results with synonyms, typo tolerance, and curated promotions, plus admin insights into what visitors search for and where you have no answers.",
+        "description": "Search gives every Capell site a fast, themeable search experience: a results page, header search field, and type-ahead autocomplete, backed by a pluggable driver contract (database, Site Discovery URL registry, or Laravel Scout/Meilisearch/Typesense). Curate results with synonyms, typo corrections, and promoted \"best bet\" answers, and tune ranking with source weighting plus exact-match, recency, and click-through boosts. The admin dashboard surfaces top searches, trending terms, and — critically — zero-result queries, so editors see exactly where content is missing. Privacy-first by default: visitor identifiers are hashed and query logs auto-purge on a configurable retention window.",
+        "screenshots": [
+            {
+                "path": "docs/assets/marketplace/extension-card.jpg",
+                "alt": "Search extension preview image",
+                "caption": "Search extension preview"
+            },
+            {
+                "path": "docs/screenshots/search-curation-annotated.png",
+                "alt": "Annotated search curation settings for synonyms, typo corrections, and promoted results",
+                "caption": "Search curation controls"
+            },
+            {
+                "path": "docs/screenshots/top-searches-widget.png",
+                "alt": "Top searches admin insight widget",
+                "caption": "Top search analytics"
+            },
+            {
+                "path": "docs/screenshots/top-searches-widget-dark.png",
+                "alt": "Dark mode top searches admin insight widget",
+                "caption": "Top search analytics in dark mode"
+            }
+        ],
+        "categories": ["admin", "console", "frontend", "search-seo"]
+    },
+    "contributionTraceability": {
+        "deferredContributions": []
+    }
+}

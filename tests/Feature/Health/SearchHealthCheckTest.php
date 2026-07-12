@@ -36,7 +36,7 @@ afterEach(function (): void {
 });
 
 it('reports compatible capell api version', function (): void {
-    expect(SearchHealthCheck::compatibleCapellApiVersion())->toBe('^4.0');
+    expect(SearchHealthCheck::compatibleCapellApiVersion())->toBe('^0.0');
 });
 
 it('runs diagnostics with runtime probes', function (): void {

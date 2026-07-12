@@ -55,7 +55,11 @@ final readonly class BuildSearchPageViewDataAction
             results: $results,
             highlightedResults: $this->highlightedResults($results, $query),
             facetGroups: $facetGroups,
-            clickTrackingToken: GenerateSearchClickTokenAction::run($data),
+            clickTrackingTokens: collect($results->items())
+                ->mapWithKeys(static fn (SearchResultData $result): array => [
+                    $result->url => GenerateSearchClickTokenAction::run($data, $result->url),
+                ])
+                ->all(),
         );
     }
 

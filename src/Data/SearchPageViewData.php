@@ -13,20 +13,21 @@ final readonly class SearchPageViewData
      * @param  LengthAwarePaginator<int, SearchResultData>  $results
      * @param  Collection<int, array{title: string, excerpt: string}>  $highlightedResults
      * @param  list<SearchFacetGroupData>  $facetGroups
+     * @param  array<string, string|null>  $clickTrackingTokens
      */
     public function __construct(
         public string $query,
         public LengthAwarePaginator $results,
         public Collection $highlightedResults,
         public array $facetGroups,
-        public ?string $clickTrackingToken,
+        public array $clickTrackingTokens,
     ) {}
 
     /**
      * @return array{
      *     highlightedResults: Collection<int, array{title: string, excerpt: string}>,
      *     facetGroups: list<SearchFacetGroupData>,
-     *     clickTrackingToken: string|null,
+     *     clickTrackingTokens: array<string, string|null>,
      *     query: string,
      *     results: LengthAwarePaginator<int, SearchResultData>
      * }
@@ -36,7 +37,7 @@ final readonly class SearchPageViewData
         return [
             'highlightedResults' => $this->highlightedResults,
             'facetGroups' => $this->facetGroups,
-            'clickTrackingToken' => $this->clickTrackingToken,
+            'clickTrackingTokens' => $this->clickTrackingTokens,
             'query' => $this->query,
             'results' => $this->results,
         ];

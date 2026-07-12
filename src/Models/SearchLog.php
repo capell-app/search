@@ -45,6 +45,8 @@ final class SearchLog extends Model
     protected function casts(): array
     {
         return [
+            'query' => 'encrypted',
+            'clicked_result_url' => 'encrypted',
             'searched_at' => 'immutable_datetime',
         ];
     }

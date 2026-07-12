@@ -26,23 +26,23 @@ final class BuildTopClickedResultsQueryAction
 
         $query = SearchLog::query()
             ->select([
-                'clicked_result_url',
+                'clicked_result_hash',
+                DB::raw('MIN(clicked_result_url) as clicked_result_url'),
                 DB::raw('COUNT(*) as clicks'),
             ])
             ->whereNotNull('clicked_result_url')
             ->whereBetween('searched_at', [$window->start, $window->end])
             ->when($window->siteId !== null, fn (Builder $query): Builder => $query->where('site_id', $window->siteId))
-            ->groupBy('clicked_result_url')
+            ->groupBy('clicked_result_hash')
             ->orderByDesc('clicks');
 
         if ($limit !== null) {
             $query->limit($limit);
         }
 
-        return DB::query()
-            ->fromSub($query, 'clicked_results')
+        return $query
             ->get()
-            ->map(static fn (object $result): array => [
+            ->map(static fn (SearchLog $result): array => [
                 'url' => (string) $result->clicked_result_url,
                 'clicks' => (int) $result->clicks,
             ])

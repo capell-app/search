@@ -12,6 +12,7 @@ use Capell\Frontend\Support\State\FrontendState;
 use Capell\Search\Actions\BuildSearchPageViewDataAction;
 use Capell\Search\Actions\CreateSearchVisitorIdentityAction;
 use Capell\Search\Actions\GenerateSearchClickTokenAction;
+use Capell\Search\Actions\HashSearchRetentionValueAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchRequestData;
@@ -169,8 +170,10 @@ test('autocomplete returns corrected query metadata and popular query suggestion
         $table->foreignId('language_id')->nullable()->index();
         $table->string('query');
         $table->string('normalized_query')->index();
+        $table->string('normalized_query_hash', 64)->nullable()->index();
         $table->unsignedInteger('results_count')->default(0);
         $table->string('clicked_result_url')->nullable();
+        $table->string('clicked_result_hash', 64)->nullable()->index();
         $table->string('ip_hash', 64)->nullable();
         $table->string('user_agent_hash', 64)->nullable();
         $table->timestamp('searched_at')->index();
@@ -263,7 +266,7 @@ test('header click beacon does not require a csrf token', function (): void {
 
 test('result click beacon does not require a csrf token', function (): void {
     $html = view('capell-search::components.results', [
-        'clickTrackingToken' => 'opaque-token',
+        'clickTrackingTokens' => [],
         'query' => '',
         'results' => new Paginator(new Collection, 0, 5, 1),
     ])->render();
@@ -286,8 +289,10 @@ test('click tracking endpoint records result clicks by token', function (): void
         $table->foreignId('language_id')->nullable()->index();
         $table->string('query');
         $table->string('normalized_query')->index();
+        $table->string('normalized_query_hash', 64)->nullable()->index();
         $table->unsignedInteger('results_count')->default(0);
         $table->string('clicked_result_url')->nullable();
+        $table->string('clicked_result_hash', 64)->nullable()->index();
         $table->string('ip_hash', 64)->nullable();
         $table->string('user_agent_hash', 64)->nullable();
         $table->timestamp('searched_at')->index();
@@ -297,11 +302,12 @@ test('click tracking endpoint records result clicks by token', function (): void
     $searchData = new SearchRequestData(query: 'Laravel Search');
     $log = SearchLog::query()->create([
         'query' => 'Laravel Search',
-        'normalized_query' => 'laravel search',
+        'normalized_query' => HashSearchRetentionValueAction::run('laravel search'),
+        'normalized_query_hash' => HashSearchRetentionValueAction::run('laravel search'),
         'results_count' => 1,
         'searched_at' => now(),
     ]);
-    $token = GenerateSearchClickTokenAction::run($searchData);
+    $token = GenerateSearchClickTokenAction::run($searchData, '/laravel-search');
 
     $this
         ->withoutMiddleware()
@@ -325,8 +331,10 @@ test('click tracking endpoint enforces its configured rate limiter', function ()
         $table->foreignId('language_id')->nullable()->index();
         $table->string('query');
         $table->string('normalized_query')->index();
+        $table->string('normalized_query_hash', 64)->nullable()->index();
         $table->unsignedInteger('results_count')->default(0);
         $table->string('clicked_result_url')->nullable();
+        $table->string('clicked_result_hash', 64)->nullable()->index();
         $table->string('ip_hash', 64)->nullable();
         $table->string('user_agent_hash', 64)->nullable();
         $table->timestamp('searched_at')->index();
@@ -418,11 +426,11 @@ test('builds reusable search page view data through an action boundary', functio
             'title' => 'Laravel <mark>Search</mark>',
             'excerpt' => '<mark>Search</mark> result content',
         ])
-        ->and($viewData->clickTrackingToken)->toBeString()
+        ->and($viewData->clickTrackingTokens)->toBeArray()
         ->and($payload)->toHaveKeys([
             'highlightedResults',
             'facetGroups',
-            'clickTrackingToken',
+            'clickTrackingTokens',
             'query',
             'results',
         ]);
@@ -632,7 +640,7 @@ test('controller defers search log writes until after the response', function ()
 
     throw_unless($log instanceof SearchLog, RuntimeException::class, 'Expected deferred search log.');
 
-    expect($log->query)->toBe('Laravel Search')
+    expect($log->query)->toBe('laravel search')
         ->and($log->results_count)->toBe(1)
         ->and($log->site_id)->toBe($site->getKey())
         ->and($log->ip_hash)->toBe($expectedVisitorIdentity->ipHash)

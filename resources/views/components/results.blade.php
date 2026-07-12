@@ -1,5 +1,5 @@
 @props ([
-    'clickTrackingToken' => null,
+    'clickTrackingTokens' => [],
     'highlightedResults' => null,
     'results',
     'query' => '',
@@ -34,6 +34,7 @@
             @foreach ($results as $result)
                 @php
                     $highlightedResult = $highlightedResults?->get($loop->index);
+                    $clickTrackingToken = $clickTrackingTokens[$result->url] ?? null;
                 @endphp
 
                 <li

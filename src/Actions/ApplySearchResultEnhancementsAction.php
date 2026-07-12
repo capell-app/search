@@ -255,7 +255,11 @@ final class ApplySearchResultEnhancementsAction
      */
     private function applyClickBoost(SearchResultData $result, array $clickCounts): SearchResultData
     {
-        $clicks = $clickCounts[$result->url] ?? 0;
+        $resultPath = parse_url($result->url, PHP_URL_PATH);
+        $clickHash = is_string($resultPath) && $resultPath !== ''
+            ? HashSearchRetentionValueAction::run($resultPath)
+            : null;
+        $clicks = $clickHash === null ? 0 : ($clickCounts[$clickHash] ?? 0);
 
         if ($clicks <= 0) {
             return $result;
@@ -310,9 +314,9 @@ final class ApplySearchResultEnhancementsAction
     private function queryClickCounts(?int $siteId, ?int $languageId): array
     {
         $query = SearchLog::query()
-            ->whereNotNull('clicked_result_url')
-            ->selectRaw('clicked_result_url, count(*) as clicks')
-            ->groupBy('clicked_result_url');
+            ->whereNotNull('clicked_result_hash')
+            ->selectRaw('clicked_result_hash, count(*) as clicks')
+            ->groupBy('clicked_result_hash');
 
         if ($siteId !== null) {
             $query->where('site_id', $siteId);
@@ -323,7 +327,7 @@ final class ApplySearchResultEnhancementsAction
         }
 
         return $query
-            ->pluck('clicks', 'clicked_result_url')
+            ->pluck('clicks', 'clicked_result_hash')
             ->map(static fn (mixed $clicks): int => (int) $clicks)
             ->all();
     }

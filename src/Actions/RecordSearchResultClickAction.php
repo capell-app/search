@@ -58,22 +58,42 @@ final class RecordSearchResultClickAction
             return null;
         }
 
-        return $this->recordClick($log, $url);
+        $resultPath = parse_url($url, PHP_URL_PATH);
+
+        if (! is_string($resultPath) || $resultPath === '' || $resultPath !== $log->getRelation('tokenResultPath')) {
+            return null;
+        }
+
+        return $this->recordClick($log, $resultPath);
     }
 
     private function recordClick(SearchLog $log, string $url): SearchLog
     {
+        if ($log->clicked_result_url !== null) {
+            return $log;
+        }
+
         $path = parse_url($url, PHP_URL_PATH);
 
         if (! is_string($path) || $path === '') {
             return $log;
         }
 
-        $log->forceFill([
-            'clicked_result_url' => $path,
-        ]);
+        $recorded = SearchLog::query()
+            ->whereKey($log->getKey())
+            ->whereNull('clicked_result_url')
+            ->update([
+                'clicked_result_url' => Crypt::encryptString(mb_substr($path, 0, 255)),
+                'clicked_result_hash' => HashSearchRetentionValueAction::run($path),
+            ]);
 
-        $log->save();
+        $log->unsetRelation('tokenResultPath');
+
+        if ($recorded !== 1) {
+            return $log->refresh();
+        }
+
+        $log->refresh();
         ApplySearchResultEnhancementsAction::forgetClickCountsCache($log->site_id, $log->language_id);
 
         return $log;
@@ -100,10 +120,11 @@ final class RecordSearchResultClickAction
             return null;
         }
 
-        $query = $payload['query'] ?? null;
+        $queryHash = $payload['query_hash'] ?? null;
+        $resultPath = $payload['result_path'] ?? null;
         $issuedAt = $payload['issued_at'] ?? null;
 
-        if (! is_string($query) || $query === '' || ! is_int($issuedAt)) {
+        if (! is_string($queryHash) || $queryHash === '' || ! is_string($resultPath) || $resultPath === '' || ! is_int($issuedAt)) {
             return null;
         }
 
@@ -111,7 +132,7 @@ final class RecordSearchResultClickAction
             return null;
         }
 
-        if ($query !== $normalizedQuery) {
+        if (! hash_equals($queryHash, HashSearchRetentionValueAction::run($normalizedQuery))) {
             return null;
         }
 
@@ -123,13 +144,19 @@ final class RecordSearchResultClickAction
         }
 
         $log = SearchLog::query()
-            ->where('normalized_query', $query)
+            ->where('normalized_query_hash', $queryHash)
             ->where('searched_at', '>=', now()->subMinutes($windowMinutes))
             ->where('site_id', $tokenSiteId)
             ->where('language_id', $tokenLanguageId)
             ->latest('searched_at')
             ->first();
 
-        return $log instanceof SearchLog ? $log : null;
+        if (! $log instanceof SearchLog || $log->clicked_result_url !== null) {
+            return null;
+        }
+
+        $log->setRelation('tokenResultPath', $resultPath);
+
+        return $log;
     }
 }

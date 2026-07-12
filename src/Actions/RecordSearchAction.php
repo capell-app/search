@@ -45,14 +45,22 @@ final class RecordSearchAction
             return null;
         }
 
+        $retainVisitorHashes = (bool) ResolveSearchSettingAction::run(
+            'hash_visitor_data',
+            'capell-search.hash_visitor_data',
+            true,
+        );
+
         return SearchLog::query()->create([
             'site_id' => $data->siteId,
             'language_id' => $data->languageId,
-            'query' => $data->query,
-            'normalized_query' => $normalizedQuery,
+            // Retain one canonical value rather than the visitor's raw spacing/casing.
+            'query' => mb_substr($normalizedQuery, 0, 255),
+            'normalized_query' => HashSearchRetentionValueAction::run($normalizedQuery),
+            'normalized_query_hash' => HashSearchRetentionValueAction::run($normalizedQuery),
             'results_count' => $resultsCount,
-            'ip_hash' => $visitorIdentity?->ipHash,
-            'user_agent_hash' => $visitorIdentity?->userAgentHash,
+            'ip_hash' => $retainVisitorHashes ? $visitorIdentity?->ipHash : null,
+            'user_agent_hash' => $retainVisitorHashes ? $visitorIdentity?->userAgentHash : null,
             'searched_at' => now(),
         ]);
     }

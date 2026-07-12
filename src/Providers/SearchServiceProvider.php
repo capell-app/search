@@ -62,6 +62,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         if (file_exists(__DIR__ . '/../../database/migrations/2026_05_10_190868_01_create_search_logs_table.php')) {
             $package->hasMigrations([
                 '2026_05_10_190868_01_create_search_logs_table',
+                '2026_07_12_000001_encrypt_search_log_pii',
                 '2026_05_21_000002_add_fulltext_index_to_search_database_table',
             ]);
         }

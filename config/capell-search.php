@@ -139,7 +139,8 @@ return [
     ],
     'logs' => [
         'table_name' => 'search_logs',
-        'retention_days' => 180,
+        'retention_days' => 30,
+        'hash_secret' => env('CAPELL_SEARCH_LOG_HASH_SECRET'),
     ],
     'honor_privacy_signals' => true,
     'visitor_hash_secret' => null,

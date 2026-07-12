@@ -2,7 +2,7 @@
 
 <!-- prettier-ignore-start -->
 
-## What This Extension Adds
+## What This Plugin Adds
 
 Search is an **Available**, **Schema-owning** Capell package in the **Capell Search & SEO** product group. It ships as `capell-app/search` and extends these surfaces: admin, frontend, console.
 
@@ -29,12 +29,16 @@ Status details:
 
 Screenshot contract: `docs/screenshots.json`.
 
-- Frontend search results page (frontend, required).
-- Header search field (frontend, required).
+![Top searches widget](docs/screenshots/top-searches-widget.png)
+
+![Annotated search curation settings](docs/screenshots/search-curation-annotated.png)
+
+- Frontend search results page (frontend, optional).
+- Header search field (frontend, optional).
 - Top searches widget (admin, required).
-- Trending searches widget (admin, required).
-- Zero-result searches widget (admin, required).
-- Site search settings screen (admin, required).
+- Trending searches widget (admin, optional).
+- Zero-result searches widget (admin, optional).
+- Site search settings screen (admin, optional).
 - Annotated search curation settings (admin, required).
 
 ## Technical Shape
@@ -47,8 +51,8 @@ Screenshot contract: `docs/screenshots.json`.
 - Models: `SearchLog`.
 - Filament classes: `SearchSettingsPage`, `SearchDashboardSettingsContributor`, `SearchSettingsSchema`, `BuildsSearchInsightsWindow`, `SearchOverviewStatsFilamentWidget`, `TopSearchesFilamentWidget`, `TrendingSearchesFilamentWidget`, `ZeroResultSearchesFilamentWidget`.
 - Route files: `packages/search/routes/web.php`.
-- Actions: `ApplySearchResultEnhancementsAction`, `BuildAutocompleteQuerySuggestionsAction`, `BuildSearchFacetGroupsAction`, `BuildTopClickedResultsQueryAction`, `BuildTopSearchesQueryAction`, `BuildTrendingSearchesQueryAction`, `BuildZeroResultSearchesQueryAction`, `CreatePromotedResultFromZeroResultSearchAction`, `CreateSynonymFromZeroResultSearchAction`, `FlushScoutSearchSourcesAction`, `GenerateSearchClickTokenAction`, `IndexScoutSearchSourcesAction`, `and 14 more`.
-- Data objects: `AutocompleteQuerySuggestionData`, `AutocompleteSearchResponseData`, `AutocompleteSearchResultData`, `PromotedSearchResultData`, `SearchFacetGroupData`, `SearchFacetOptionData`, `SearchFilterData`, `SearchInsightsWindowData`, `SearchQueryMetadataData`, `SearchRequestData`, `SearchResultData`, `SearchTermSummaryData`, `and 1 more`.
+- Actions: `ApplySearchResultEnhancementsAction`, `BuildAutocompleteQuerySuggestionsAction`, `BuildSearchFacetGroupsAction`, `BuildSearchPageViewDataAction`, `BuildTopClickedResultsQueryAction`, `BuildTopSearchesQueryAction`, `BuildTrendingSearchesQueryAction`, `BuildZeroResultSearchesQueryAction`, `CanCollectSearchAnalyticsAction`, `CreatePromotedResultFromZeroResultSearchAction`, `CreateSearchVisitorIdentityAction`, `CreateSynonymFromZeroResultSearchAction`, `and 17 more`.
+- Data objects: `AutocompleteQuerySuggestionData`, `AutocompleteSearchResponseData`, `AutocompleteSearchResultData`, `PromotedSearchResultData`, `SearchFacetGroupData`, `SearchFacetOptionData`, `SearchFilterData`, `SearchInsightsWindowData`, `SearchPageViewData`, `SearchQueryMetadataData`, `SearchRequestData`, `SearchResultData`, `and 3 more`.
 - Command signatures: `search:flush`, `search:index`, `search:purge`.
 - Console command classes: `FlushSearchCommand`, `IndexSearchCommand`, `PurgeSearchLogsCommand`.
 - Manifest contributions: `admin-page: Capell\Search\Manifest\SearchSettingsPageContribution`, `console-command: Capell\Search\Manifest\SearchConsoleCommandsContribution`, `dashboard-widget: Capell\Search\Manifest\TopSearchesWidgetContribution`, `dashboard-widget: Capell\Search\Manifest\TrendingSearchesWidgetContribution`, `dashboard-widget: Capell\Search\Manifest\ZeroResultSearchesWidgetContribution`, `health-check: Capell\Search\Manifest\SearchHealthContribution`, `model: Capell\Search\Manifest\SearchLogModelContribution`, `overview-stat: Capell\Search\Manifest\SearchOverviewStatsContribution`, `route: Capell\Search\Manifest\SearchFrontendRouteContribution`, `scheduled-job: Capell\Search\Manifest\SearchLogPurgeScheduleContribution`, `setting: Capell\Search\Manifest\SearchSettingsContribution`.
@@ -77,7 +81,6 @@ Screenshot contract: `docs/screenshots.json`.
 
 ## Common Pitfalls
 
-- The full search route defaults to 30 requests per minute per authenticated user or IP; tune `capell-search.rate_limit.per_minute` for the deployment's traffic and search backend.
 - Run migrations before opening package resources or public routes.
 - Configure package settings before testing production-like workflows.
 - Review route middleware, throttling, signed URLs, and public-output safety before exposing routes.

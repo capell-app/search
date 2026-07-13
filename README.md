@@ -29,29 +29,25 @@ Status details:
 
 Screenshot contract: `docs/screenshots.json`.
 
-![Top searches widget](docs/screenshots/top-searches-widget.png)
-
-![Annotated search curation settings](docs/screenshots/search-curation-annotated.png)
-
-- Frontend search results page (frontend, optional).
-- Header search field (frontend, optional).
+- Frontend search results page (frontend, required).
+- Header search field (frontend, required).
 - Top searches widget (admin, required).
-- Trending searches widget (admin, optional).
-- Zero-result searches widget (admin, optional).
-- Site search settings screen (admin, optional).
+- Trending searches widget (admin, required).
+- Zero-result searches widget (admin, required).
+- Site search settings screen (admin, required).
 - Annotated search curation settings (admin, required).
 
 ## Technical Shape
 
 - Service providers: `Capell\Search\Providers\SearchServiceProvider`, `Capell\Search\Providers\AdminServiceProvider`.
 - Config files: `packages/search/config/capell-search.php`.
-- Migrations: `packages/search/database/migrations/2026_05_10_190868_01_create_search_logs_table.php`, `packages/search/database/migrations/2026_05_21_000002_add_fulltext_index_to_search_database_table.php`.
+- Migrations: `packages/search/database/migrations/2026_05_10_190868_01_create_search_logs_table.php`, `packages/search/database/migrations/2026_05_21_000002_add_fulltext_index_to_search_database_table.php`, `packages/search/database/migrations/2026_07_12_000001_encrypt_search_log_pii.php`.
 - Settings migrations: `packages/search/database/settings/2026_05_10_190869_01_add_search_settings.php`.
 - Settings classes: `SearchSettings`.
 - Models: `SearchLog`.
 - Filament classes: `SearchSettingsPage`, `SearchDashboardSettingsContributor`, `SearchSettingsSchema`, `BuildsSearchInsightsWindow`, `SearchOverviewStatsFilamentWidget`, `TopSearchesFilamentWidget`, `TrendingSearchesFilamentWidget`, `ZeroResultSearchesFilamentWidget`.
 - Route files: `packages/search/routes/web.php`.
-- Actions: `ApplySearchResultEnhancementsAction`, `BuildAutocompleteQuerySuggestionsAction`, `BuildSearchFacetGroupsAction`, `BuildSearchPageViewDataAction`, `BuildTopClickedResultsQueryAction`, `BuildTopSearchesQueryAction`, `BuildTrendingSearchesQueryAction`, `BuildZeroResultSearchesQueryAction`, `CanCollectSearchAnalyticsAction`, `CreatePromotedResultFromZeroResultSearchAction`, `CreateSearchVisitorIdentityAction`, `CreateSynonymFromZeroResultSearchAction`, `and 17 more`.
+- Actions: `ApplySearchResultEnhancementsAction`, `BuildAutocompleteQuerySuggestionsAction`, `BuildSearchFacetGroupsAction`, `BuildSearchPageViewDataAction`, `BuildTopClickedResultsQueryAction`, `BuildTopSearchesQueryAction`, `BuildTrendingSearchesQueryAction`, `BuildZeroResultSearchesQueryAction`, `CanCollectSearchAnalyticsAction`, `CreatePromotedResultFromZeroResultSearchAction`, `CreateSearchVisitorIdentityAction`, `CreateSynonymFromZeroResultSearchAction`, `and 18 more`.
 - Data objects: `AutocompleteQuerySuggestionData`, `AutocompleteSearchResponseData`, `AutocompleteSearchResultData`, `PromotedSearchResultData`, `SearchFacetGroupData`, `SearchFacetOptionData`, `SearchFilterData`, `SearchInsightsWindowData`, `SearchPageViewData`, `SearchQueryMetadataData`, `SearchRequestData`, `SearchResultData`, `and 3 more`.
 - Command signatures: `search:flush`, `search:index`, `search:purge`.
 - Console command classes: `FlushSearchCommand`, `IndexSearchCommand`, `PurgeSearchLogsCommand`.
@@ -64,7 +60,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 - Required tables: `search_logs`.
 - Models: `SearchLog`.
-- Migration files: `2026_05_10_190868_01_create_search_logs_table.php`, `2026_05_21_000002_add_fulltext_index_to_search_database_table.php`.
+- Migration files: `2026_05_10_190868_01_create_search_logs_table.php`, `2026_05_21_000002_add_fulltext_index_to_search_database_table.php`, `2026_07_12_000001_encrypt_search_log_pii.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
 - Deletion/retention behaviour: Docs gap unless the package has an explicit pruning command, retention setting, or tested cascade path.
 

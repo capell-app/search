@@ -29,12 +29,16 @@ Status details:
 
 Screenshot contract: `docs/screenshots.json`.
 
-- Frontend search results page (frontend, required).
-- Header search field (frontend, required).
+![Top searches widget](docs/screenshots/top-searches-widget.png)
+
+![Annotated search curation settings](docs/screenshots/search-curation-annotated.png)
+
+- Frontend search results page (frontend, optional).
+- Header search field (frontend, optional).
 - Top searches widget (admin, required).
-- Trending searches widget (admin, required).
-- Zero-result searches widget (admin, required).
-- Site search settings screen (admin, required).
+- Trending searches widget (admin, optional).
+- Zero-result searches widget (admin, optional).
+- Site search settings screen (admin, optional).
 - Annotated search curation settings (admin, required).
 
 ## Technical Shape

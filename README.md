@@ -2,7 +2,7 @@
 
 <!-- prettier-ignore-start -->
 
-## What This Extension Adds
+## What This Plugin Adds
 
 Search is an **Available**, **Schema-owning** Capell package in the **Capell Search & SEO** product group. It ships as `capell-app/search` and extends these surfaces: admin, frontend, console.
 
@@ -41,14 +41,14 @@ Screenshot contract: `docs/screenshots.json`.
 
 - Service providers: `Capell\Search\Providers\SearchServiceProvider`, `Capell\Search\Providers\AdminServiceProvider`.
 - Config files: `packages/search/config/capell-search.php`.
-- Migrations: `packages/search/database/migrations/2026_05_10_190868_01_create_search_logs_table.php`, `packages/search/database/migrations/2026_05_21_000002_add_fulltext_index_to_search_database_table.php`.
+- Migrations: `packages/search/database/migrations/2026_05_10_190868_01_create_search_logs_table.php`, `packages/search/database/migrations/2026_05_21_000002_add_fulltext_index_to_search_database_table.php`, `packages/search/database/migrations/2026_07_12_000001_encrypt_search_log_pii.php`.
 - Settings migrations: `packages/search/database/settings/2026_05_10_190869_01_add_search_settings.php`.
 - Settings classes: `SearchSettings`.
 - Models: `SearchLog`.
 - Filament classes: `SearchSettingsPage`, `SearchDashboardSettingsContributor`, `SearchSettingsSchema`, `BuildsSearchInsightsWindow`, `SearchOverviewStatsFilamentWidget`, `TopSearchesFilamentWidget`, `TrendingSearchesFilamentWidget`, `ZeroResultSearchesFilamentWidget`.
 - Route files: `packages/search/routes/web.php`.
-- Actions: `ApplySearchResultEnhancementsAction`, `BuildAutocompleteQuerySuggestionsAction`, `BuildSearchFacetGroupsAction`, `BuildTopClickedResultsQueryAction`, `BuildTopSearchesQueryAction`, `BuildTrendingSearchesQueryAction`, `BuildZeroResultSearchesQueryAction`, `CreatePromotedResultFromZeroResultSearchAction`, `CreateSynonymFromZeroResultSearchAction`, `FlushScoutSearchSourcesAction`, `GenerateSearchClickTokenAction`, `IndexScoutSearchSourcesAction`, `and 14 more`.
-- Data objects: `AutocompleteQuerySuggestionData`, `AutocompleteSearchResponseData`, `AutocompleteSearchResultData`, `PromotedSearchResultData`, `SearchFacetGroupData`, `SearchFacetOptionData`, `SearchFilterData`, `SearchInsightsWindowData`, `SearchQueryMetadataData`, `SearchRequestData`, `SearchResultData`, `SearchTermSummaryData`, `and 1 more`.
+- Actions: `ApplySearchResultEnhancementsAction`, `BuildAutocompleteQuerySuggestionsAction`, `BuildSearchFacetGroupsAction`, `BuildSearchPageViewDataAction`, `BuildTopClickedResultsQueryAction`, `BuildTopSearchesQueryAction`, `BuildTrendingSearchesQueryAction`, `BuildZeroResultSearchesQueryAction`, `CanCollectSearchAnalyticsAction`, `CreatePromotedResultFromZeroResultSearchAction`, `CreateSearchVisitorIdentityAction`, `CreateSynonymFromZeroResultSearchAction`, `and 18 more`.
+- Data objects: `AutocompleteQuerySuggestionData`, `AutocompleteSearchResponseData`, `AutocompleteSearchResultData`, `PromotedSearchResultData`, `SearchFacetGroupData`, `SearchFacetOptionData`, `SearchFilterData`, `SearchInsightsWindowData`, `SearchPageViewData`, `SearchQueryMetadataData`, `SearchRequestData`, `SearchResultData`, `and 3 more`.
 - Command signatures: `search:flush`, `search:index`, `search:purge`.
 - Console command classes: `FlushSearchCommand`, `IndexSearchCommand`, `PurgeSearchLogsCommand`.
 - Manifest contributions: `admin-page: Capell\Search\Manifest\SearchSettingsPageContribution`, `console-command: Capell\Search\Manifest\SearchConsoleCommandsContribution`, `dashboard-widget: Capell\Search\Manifest\TopSearchesWidgetContribution`, `dashboard-widget: Capell\Search\Manifest\TrendingSearchesWidgetContribution`, `dashboard-widget: Capell\Search\Manifest\ZeroResultSearchesWidgetContribution`, `health-check: Capell\Search\Manifest\SearchHealthContribution`, `model: Capell\Search\Manifest\SearchLogModelContribution`, `overview-stat: Capell\Search\Manifest\SearchOverviewStatsContribution`, `route: Capell\Search\Manifest\SearchFrontendRouteContribution`, `scheduled-job: Capell\Search\Manifest\SearchLogPurgeScheduleContribution`, `setting: Capell\Search\Manifest\SearchSettingsContribution`.
@@ -60,7 +60,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 - Required tables: `search_logs`.
 - Models: `SearchLog`.
-- Migration files: `2026_05_10_190868_01_create_search_logs_table.php`, `2026_05_21_000002_add_fulltext_index_to_search_database_table.php`.
+- Migration files: `2026_05_10_190868_01_create_search_logs_table.php`, `2026_05_21_000002_add_fulltext_index_to_search_database_table.php`, `2026_07_12_000001_encrypt_search_log_pii.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
 - Deletion/retention behaviour: Docs gap unless the package has an explicit pruning command, retention setting, or tested cascade path.
 
@@ -77,7 +77,6 @@ Screenshot contract: `docs/screenshots.json`.
 
 ## Common Pitfalls
 
-- The full search route defaults to 30 requests per minute per authenticated user or IP; tune `capell-search.rate_limit.per_minute` for the deployment's traffic and search backend.
 - Run migrations before opening package resources or public routes.
 - Configure package settings before testing production-like workflows.
 - Review route middleware, throttling, signed URLs, and public-output safety before exposing routes.

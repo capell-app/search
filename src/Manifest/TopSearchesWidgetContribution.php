@@ -11,6 +11,6 @@ final class TopSearchesWidgetContribution implements ExtensionContribution, Regi
 {
     public static function compatibleCapellApiVersion(): string
     {
-        return '^4.0';
+        return '^1.0';
     }
 }

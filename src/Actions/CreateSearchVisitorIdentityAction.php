@@ -49,8 +49,9 @@ final class CreateSearchVisitorIdentityAction
 
         $rotationDays = config('capell-search.visitor_hash_rotation_days', 30);
         $resolvedRotationDays = is_numeric($rotationDays) && (int) $rotationDays > 0 ? (int) $rotationDays : 30;
-        $period = intdiv(($at ?? now()->toImmutable())->getTimestamp(), $resolvedRotationDays * 86_400);
+        $rotationDate = $at ?? now()->toImmutable();
+        $period = sprintf('%d:%d', $rotationDate->year, intdiv($rotationDate->dayOfYear - 1, $resolvedRotationDays));
 
-        return hash_hmac('sha256', sprintf('capell-search:visitor:site:%d:period:%d', $siteId, $period), $rootSecret);
+        return hash_hmac('sha256', sprintf('capell-search:visitor:site:%d:period:%s', $siteId, $period), $rootSecret);
     }
 }

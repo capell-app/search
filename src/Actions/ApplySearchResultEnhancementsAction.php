@@ -257,7 +257,7 @@ final class ApplySearchResultEnhancementsAction
     {
         $resultPath = parse_url($result->url, PHP_URL_PATH);
         $clickHash = is_string($resultPath) && $resultPath !== ''
-            ? HashSearchRetentionValueAction::run($resultPath)
+            ? app(HashSearchRetentionValueAction::class)->handle($resultPath)
             : null;
         $clicks = $clickHash === null ? 0 : ($clickCounts[$clickHash] ?? 0);
 

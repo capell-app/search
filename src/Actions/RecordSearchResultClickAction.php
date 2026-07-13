@@ -132,7 +132,7 @@ final class RecordSearchResultClickAction
             return null;
         }
 
-        if (! hash_equals($queryHash, HashSearchRetentionValueAction::run($normalizedQuery))) {
+        if (! hash_equals($queryHash, app(HashSearchRetentionValueAction::class)->handle($normalizedQuery))) {
             return null;
         }
 

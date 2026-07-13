@@ -42,10 +42,19 @@ final class BuildTopClickedResultsQueryAction
 
         return $query
             ->get()
-            ->map(static fn (SearchLog $result): array => [
+            ->map(fn (SearchLog $result): array => [
                 'url' => (string) $result->clicked_result_url,
-                'clicks' => (int) $result->clicks,
+                'clicks' => $this->clickCount($result->getAttribute('clicks')),
             ])
             ->values();
+    }
+
+    private function clickCount(mixed $value): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        return is_string($value) && ctype_digit($value) ? (int) $value : 0;
     }
 }

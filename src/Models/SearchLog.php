@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Search\Models;
 
+use Capell\Search\Actions\HashSearchRetentionValueAction;
 use Capell\Search\Database\Factories\SearchLogFactory;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -36,6 +37,20 @@ final class SearchLog extends Model
     public function getTable(): string
     {
         return config('capell-search.logs.table_name', 'search_logs');
+    }
+
+    protected static function booted(): void
+    {
+        self::saving(static function (self $searchLog): void {
+            $clickedResultUrl = $searchLog->clicked_result_url;
+
+            if (is_string($clickedResultUrl) && $clickedResultUrl !== '') {
+                $searchLog->setAttribute(
+                    'clicked_result_hash',
+                    app(HashSearchRetentionValueAction::class)->handle($clickedResultUrl),
+                );
+            }
+        });
     }
 
     /**

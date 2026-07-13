@@ -142,18 +142,25 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         return CapellCore::isPackageInstalled(self::$packageName);
     }
 
+    private static function configuredRateLimit(string $key, int $default): int
+    {
+        $value = config($key, $default);
+
+        return max(1, is_int($value) ? $value : $default);
+    }
+
     private function registerPublicRateLimiters(): void
     {
         $searchName = config('capell-search.rate_limiter', 'capell-search-requests');
 
-        RateLimiter::for($searchName, static fn (Request $request): Limit => Limit::perMinute(
-            max(1, (int) config('capell-search.rate_limit.per_minute', 30)),
+        RateLimiter::for(is_string($searchName) ? $searchName : 'capell-search-requests', static fn (Request $request): Limit => Limit::perMinute(
+            self::configuredRateLimit('capell-search.rate_limit.per_minute', 30),
         )->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
 
         $name = config('capell-search.autocomplete.rate_limiter', 'capell-search-autocomplete');
 
-        RateLimiter::for($name, static fn (Request $request): Limit => Limit::perMinute(
-            max(1, (int) config('capell-search.autocomplete.rate_limit.per_minute', 120)),
+        RateLimiter::for(is_string($name) ? $name : 'capell-search-autocomplete', static fn (Request $request): Limit => Limit::perMinute(
+            self::configuredRateLimit('capell-search.autocomplete.rate_limit.per_minute', 120),
         )->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
     }
 

@@ -14,10 +14,11 @@ it('derives rotating visitor hashes per site before deferred collection', functi
         'HTTP_USER_AGENT' => 'Capell Test Browser',
     ]);
 
-    $first = CreateSearchVisitorIdentityAction::run($request, 1, CarbonImmutable::parse('2026-07-01'));
-    $samePeriod = CreateSearchVisitorIdentityAction::run($request, 1, CarbonImmutable::parse('2026-07-15'));
-    $otherSite = CreateSearchVisitorIdentityAction::run($request, 2, CarbonImmutable::parse('2026-07-15'));
-    $nextPeriod = CreateSearchVisitorIdentityAction::run($request, 1, CarbonImmutable::parse('2026-08-01'));
+    $action = app(CreateSearchVisitorIdentityAction::class);
+    $first = $action->handle($request, 1, CarbonImmutable::parse('2026-07-01'));
+    $samePeriod = $action->handle($request, 1, CarbonImmutable::parse('2026-07-15'));
+    $otherSite = $action->handle($request, 2, CarbonImmutable::parse('2026-07-15'));
+    $nextPeriod = $action->handle($request, 1, CarbonImmutable::parse('2026-08-01'));
 
     expect($first->ipHash)->toBe($samePeriod->ipHash)
         ->and($first->ipHash)->not->toBe($otherSite->ipHash)

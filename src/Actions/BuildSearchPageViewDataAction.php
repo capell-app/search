@@ -65,11 +65,13 @@ final readonly class BuildSearchPageViewDataAction
 
     private function resultsPerPage(): int
     {
-        return (int) ResolveSearchSettingAction::run(
+        $value = app(ResolveSearchSettingAction::class)->handle(
             'results_per_page',
             'capell-search.results_per_page',
             10,
         );
+
+        return is_int($value) ? $value : 10;
     }
 
     private function searchRequestData(string $query, int $page, int $perPage, Request $request): SearchRequestData
@@ -81,10 +83,17 @@ final readonly class BuildSearchPageViewDataAction
             query: $query,
             page: $page,
             perPage: $perPage,
-            siteId: is_object($site) ? (int) data_get($site, 'id') : null,
-            languageId: is_object($language) ? (int) data_get($language, 'id') : null,
-            filters: NormalizeSearchFiltersAction::run($request),
+            siteId: $this->modelId($site),
+            languageId: $this->modelId($language),
+            filters: app(NormalizeSearchFiltersAction::class)->handle($request),
         );
+    }
+
+    private function modelId(mixed $model): ?int
+    {
+        $identifier = is_object($model) ? data_get($model, 'id') : null;
+
+        return is_int($identifier) ? $identifier : null;
     }
 
     /**

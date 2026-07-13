@@ -12,11 +12,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $tableName = (string) config('capell-search.logs.table_name', 'search_logs');
-        Schema::table($tableName, static function (Blueprint $table): void {
-            $table->string('normalized_query_hash', 64)->nullable()->index();
-            $table->string('clicked_result_hash', 64)->nullable()->index();
-        });
+        $tableName = $this->searchLogsTable();
+        if (! Schema::hasColumn($tableName, 'normalized_query_hash') || ! Schema::hasColumn($tableName, 'clicked_result_hash')) {
+            Schema::table($tableName, static function (Blueprint $table) use ($tableName): void {
+                if (! Schema::hasColumn($tableName, 'normalized_query_hash')) {
+                    $table->string('normalized_query_hash', 64)->nullable()->index();
+                }
+
+                if (! Schema::hasColumn($tableName, 'clicked_result_hash')) {
+                    $table->string('clicked_result_hash', 64)->nullable()->index();
+                }
+            });
+        }
 
         $secret = config('capell-search.logs.hash_secret');
         $secret = is_string($secret) && $secret !== '' ? $secret : config('app.key');
@@ -42,7 +49,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        $tableName = (string) config('capell-search.logs.table_name', 'search_logs');
+        $tableName = $this->searchLogsTable();
         DB::table($tableName)->select(['id', 'query', 'clicked_result_url'])->orderBy('id')->each(
             static function (object $log) use ($tableName): void {
                 DB::table($tableName)->where('id', $log->id)->update([
@@ -54,5 +61,12 @@ return new class extends Migration
         Schema::table($tableName, static function (Blueprint $table): void {
             $table->dropColumn(['normalized_query_hash', 'clicked_result_hash']);
         });
+    }
+
+    private function searchLogsTable(): string
+    {
+        $configuredTable = config('capell-search.logs.table_name', 'search_logs');
+
+        return is_string($configuredTable) ? $configuredTable : 'search_logs';
     }
 };

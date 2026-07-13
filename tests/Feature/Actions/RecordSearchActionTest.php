@@ -62,7 +62,7 @@ test('logs valid searches with normalized query and hashed visitor data', functi
     expect($log->language_id)->toBe(20);
     expect($log->query)->toBe('laravel search');
     expect($log->normalized_query)->toBe(HashSearchRetentionValueAction::run('laravel search'));
-    expect($log->normalized_query_hash)->toBe(HashSearchRetentionValueAction::run('laravel search'));
+    expect($log->getAttribute('normalized_query_hash'))->toBe(HashSearchRetentionValueAction::run('laravel search'));
     expect($log->results_count)->toBe(7);
     expect($log->ip_hash)->toBe(searchVisitorIdentity()->ipHash)
         ->and($log->user_agent_hash)->toBe(searchVisitorIdentity()->userAgentHash);
@@ -243,7 +243,7 @@ test('binds a click token to one result and consumes the search log once', funct
 });
 
 /**
- * @return array{query: string, site_id: int|null, language_id: int|null, result_path: string, issued_at: int}
+ * @return array{query_hash: string, site_id: int|null, language_id: int|null, result_path: string, issued_at: int}
  */
 function searchClickTokenPayload(string $token): array
 {

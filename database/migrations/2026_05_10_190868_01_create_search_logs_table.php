@@ -22,8 +22,10 @@ return new class extends Migration
             $table->foreignId('language_id')->nullable()->index();
             $table->string('query');
             $table->string('normalized_query')->index();
+            $table->string('normalized_query_hash', 64)->nullable()->index();
             $table->unsignedInteger('results_count')->default(0);
             $table->string('clicked_result_url')->nullable();
+            $table->string('clicked_result_hash', 64)->nullable()->index();
             $table->string('ip_hash', 64)->nullable();
             $table->string('user_agent_hash', 64)->nullable();
             $table->timestamp('searched_at')->index();

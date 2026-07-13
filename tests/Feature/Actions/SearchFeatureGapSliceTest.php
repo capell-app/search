@@ -436,7 +436,7 @@ test('click boosts use cached click aggregates for the current site and language
     $aggregateQueries = 0;
 
     DB::listen(function (QueryExecuted $query) use (&$aggregateQueries): void {
-        if (str_contains($query->sql, 'clicked_result_url') && str_contains($query->sql, 'count(*)')) {
+        if (str_contains($query->sql, 'clicked_result_hash') && str_contains($query->sql, 'count(*)')) {
             $aggregateQueries++;
         }
     });
@@ -542,8 +542,10 @@ function createSearchLogsTableForEnhancementTests(): void
         $table->foreignId('language_id')->nullable()->index();
         $table->string('query');
         $table->string('normalized_query')->index();
+        $table->string('normalized_query_hash', 64)->nullable()->index();
         $table->unsignedInteger('results_count')->default(0);
         $table->string('clicked_result_url')->nullable();
+        $table->string('clicked_result_hash', 64)->nullable()->index();
         $table->string('ip_hash', 64)->nullable();
         $table->string('user_agent_hash', 64)->nullable();
         $table->timestamp('searched_at')->index();

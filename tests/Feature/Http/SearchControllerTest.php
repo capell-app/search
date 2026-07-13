@@ -625,7 +625,9 @@ test('controller defers search log writes until after the response', function ()
     ]);
     $site = Site::factory()->createOne();
     $request->attributes->set('site', $site);
-    $expectedVisitorIdentity = CreateSearchVisitorIdentityAction::run($request, (int) $site->getKey());
+    $siteKey = $site->getKey();
+    throw_unless(is_int($siteKey), RuntimeException::class, 'Expected an integer site key.');
+    $expectedVisitorIdentity = app(CreateSearchVisitorIdentityAction::class)->handle($request, $siteKey);
 
     (new SearchController)($request);
 
@@ -643,8 +645,8 @@ test('controller defers search log writes until after the response', function ()
     expect($log->query)->toBe('laravel search')
         ->and($log->results_count)->toBe(1)
         ->and($log->site_id)->toBe($site->getKey())
-        ->and($log->ip_hash)->toBe($expectedVisitorIdentity->ipHash)
-        ->and($log->user_agent_hash)->toBe($expectedVisitorIdentity->userAgentHash);
+        ->and($log->getAttribute('ip_hash'))->toBe($expectedVisitorIdentity->ipHash)
+        ->and($log->getAttribute('user_agent_hash'))->toBe($expectedVisitorIdentity->userAgentHash);
 });
 
 test('controller renders public filter facets with live counts', function (): void {

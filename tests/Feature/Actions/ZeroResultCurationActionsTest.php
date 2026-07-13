@@ -87,6 +87,7 @@ test('replaces duplicate promoted results for the same zero-result query and url
 });
 
 test('zero-result curation save failures are not swallowed', function (string $actionClass): void {
+    throw_unless(class_exists($actionClass), RuntimeException::class, 'Expected a valid curation action class.');
     $source = file_get_contents((string) (new ReflectionClass($actionClass))->getFileName());
 
     expect($source)->toBeString()

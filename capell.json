@@ -123,6 +123,7 @@
         "purge": "search:purge"
     },
     "actions": {
+        "install": "Capell\\Search\\Actions\\InstallSearchPackageAction",
         "applySearchResultEnhancements": "Capell\\Search\\Actions\\ApplySearchResultEnhancementsAction",
         "buildTopClickedResultsQuery": "Capell\\Search\\Actions\\BuildTopClickedResultsQueryAction",
         "buildTopSearchesQuery": "Capell\\Search\\Actions\\BuildTopSearchesQueryAction",

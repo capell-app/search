@@ -1,0 +1,40 @@
+{
+    "whatThisPluginAdds": {
+        "text": "Search adds public search, autocomplete, facets, synonyms, promoted results, spelling correction, and consent-aware search analytics.",
+        "evidence": [
+            "src/Actions/RunSearchAction.php",
+            "src/Actions/RunAutocompleteSearchAction.php",
+            "src/Actions/BuildSearchFacetGroupsAction.php",
+            "tests/Feature/Http/SearchControllerTest.php"
+        ]
+    },
+    "surfaceOutcome": {
+        "text": "Visitors can search indexed site content from the public search surface. Admins configure search behaviour and inspect top, trending, clicked, and zero-result queries.",
+        "evidence": [
+            "routes/web.php",
+            "src/Filament/Pages/SearchSettingsPage.php",
+            "src/Actions/BuildTopSearchesQueryAction.php",
+            "src/Actions/BuildZeroResultSearchesQueryAction.php"
+        ]
+    },
+    "whyItMatters": {
+        "developers": {
+            "text": "The searchable-source registry and Search contract keep indexing backends replaceable while Actions normalize, sanitize, enhance, and record queries.",
+            "evidence": [
+                "src/Support/SearchableSourceRegistry.php",
+                "src/Contracts/Search.php",
+                "src/Actions/SanitizeSearchResultAction.php",
+                "tests/Feature/Providers/SearchServiceProviderTest.php"
+            ]
+        },
+        "teams": {
+            "text": "Teams can help visitors find content and use failed or repeated searches to decide which synonyms, promoted results, or content gaps to address.",
+            "evidence": [
+                "docs/overview.admin.md",
+                "src/Actions/CreateSynonymFromZeroResultSearchAction.php",
+                "src/Actions/CreatePromotedResultFromZeroResultSearchAction.php",
+                "tests/Feature/Actions/ZeroResultCurationActionsTest.php"
+            ]
+        }
+    }
+}

@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Capell\Search\Actions;
 
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static string run(string $type, array<string, string>|null $configuredLabels = null)
  */
 final class ResolveSearchResultTypeLabelAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  array<string, string>|null  $configuredLabels

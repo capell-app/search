@@ -12,14 +12,16 @@ use Capell\Search\Data\SearchResultData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static SearchPageViewData run(Request $request)
  */
 final readonly class BuildSearchPageViewDataAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function __construct(private Search $search) {}
 
@@ -65,7 +67,7 @@ final readonly class BuildSearchPageViewDataAction
 
     private function resultsPerPage(): int
     {
-        $value = app(ResolveSearchSettingAction::class)->handle(
+        $value = ResolveSearchSettingAction::run(
             'results_per_page',
             'capell-search.results_per_page',
             10,
@@ -85,7 +87,7 @@ final readonly class BuildSearchPageViewDataAction
             perPage: $perPage,
             siteId: $this->modelId($site),
             languageId: $this->modelId($language),
-            filters: app(NormalizeSearchFiltersAction::class)->handle($request),
+            filters: NormalizeSearchFiltersAction::run($request),
         );
     }
 

@@ -67,7 +67,9 @@ test('builds public facet groups with counts and toggle urls', function (): void
         'page' => 4,
     ]);
 
-    $groups = (new BuildSearchFacetGroupsAction($search, $registry))->handle(
+    $groups = runBoundAction(
+        BuildSearchFacetGroupsAction::class,
+        new BuildSearchFacetGroupsAction($search, $registry),
         request: $request,
         query: 'capell',
         filters: new SearchFilterData(types: ['page']),

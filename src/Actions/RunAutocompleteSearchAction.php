@@ -12,14 +12,16 @@ use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchQueryMetadataData;
 use Capell\Search\Data\SearchResultData;
 use Illuminate\Http\Request;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static AutocompleteSearchResponseData run(Request $request)
  */
 final readonly class RunAutocompleteSearchAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function __construct(
         private NormalizeSearchFiltersAction $normalizeSearchFilters,
@@ -35,7 +37,7 @@ final readonly class RunAutocompleteSearchAction
             'capell-search.minimum_query_length',
             2,
         );
-        $filters = $this->normalizeSearchFilters->handle($request);
+        $filters = NormalizeSearchFiltersAction::run($request);
         $correctedQuery = ResolveCorrectedSearchQueryAction::run((string) $normalizedQuery);
         $metadata = new SearchQueryMetadataData(
             original: $query,

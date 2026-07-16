@@ -11,14 +11,16 @@ use Capell\Search\Data\SearchResultData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static Paginator<int, SearchResultData> run(SearchRequestData $data)
  */
 final readonly class RunSearchAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function __construct(private Search $search) {}
 

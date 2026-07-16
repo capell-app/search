@@ -7,11 +7,13 @@ namespace Capell\Search\Actions;
 use Capell\Search\Data\SearchVisitorIdentityData;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 final class CreateSearchVisitorIdentityAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(Request $request, int $siteId, ?CarbonImmutable $at = null): SearchVisitorIdentityData
     {

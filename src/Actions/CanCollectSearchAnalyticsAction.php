@@ -6,11 +6,13 @@ namespace Capell\Search\Actions;
 
 use Capell\Core\Models\Site;
 use Illuminate\Http\Request;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 final class CanCollectSearchAnalyticsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(Request $request): bool
     {

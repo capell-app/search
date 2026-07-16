@@ -10,14 +10,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Schema as SchemaFacade;
 use JsonException;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static ?SearchLog run(SearchLog|Request $request, string $query, ?string $url = null, ?string $token = null, ?string $type = null, ?int $position = null, ?string $surface = null)
  */
 final class RecordSearchResultClickAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(
         SearchLog|Request $request,
@@ -132,7 +134,7 @@ final class RecordSearchResultClickAction
             return null;
         }
 
-        if (! hash_equals($queryHash, app(HashSearchRetentionValueAction::class)->handle($normalizedQuery))) {
+        if (! hash_equals($queryHash, HashSearchRetentionValueAction::run($normalizedQuery))) {
             return null;
         }
 

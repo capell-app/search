@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace Capell\Search\Actions;
 
 use Capell\Search\Data\PromotedSearchResultData;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static list<PromotedSearchResultData> run(string $normalizedQuery)
  */
 final class ResolvePromotedSearchResultsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @return list<PromotedSearchResultData>

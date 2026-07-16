@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace Capell\Search\Actions;
 
 use Capell\Search\Settings\SearchSettings;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static array<string, mixed> run(string $zeroResultQuery, string $targetQuery)
  */
 final class CreateSynonymFromZeroResultSearchAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @return array<string, mixed>

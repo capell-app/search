@@ -28,10 +28,10 @@ test('indexes and flushes enabled scout searchable sources', function (): void {
         type: 'plain',
     ));
 
-    expect((new IndexScoutSearchSourcesAction($registry))->handle(chunk: 250))->toBe(['pages'])
+    expect(runBoundAction(IndexScoutSearchSourcesAction::class, new IndexScoutSearchSourcesAction($registry), chunk: 250))->toBe(['pages'])
         ->and(SearchMaintenanceScoutModel::$indexCalls)->toBe(1)
         ->and(SearchMaintenanceScoutModel::$indexedChunk)->toBe(250)
-        ->and((new FlushScoutSearchSourcesAction($registry))->handle())->toBe(['pages'])
+        ->and(runBoundAction(FlushScoutSearchSourcesAction::class, new FlushScoutSearchSourcesAction($registry)))->toBe(['pages'])
         ->and(SearchMaintenanceScoutModel::$flushCalls)->toBe(1);
 });
 
@@ -44,8 +44,8 @@ test('limits scout maintenance to a requested source key', function (): void {
         type: 'page',
     ));
 
-    expect((new IndexScoutSearchSourcesAction($registry))->handle(sourceKey: 'missing'))->toBe([])
+    expect(runBoundAction(IndexScoutSearchSourcesAction::class, new IndexScoutSearchSourcesAction($registry), sourceKey: 'missing'))->toBe([])
         ->and(SearchMaintenanceScoutModel::$indexCalls)->toBe(0)
-        ->and((new FlushScoutSearchSourcesAction($registry))->handle(sourceKey: 'pages'))->toBe(['pages'])
+        ->and(runBoundAction(FlushScoutSearchSourcesAction::class, new FlushScoutSearchSourcesAction($registry), sourceKey: 'pages'))->toBe(['pages'])
         ->and(SearchMaintenanceScoutModel::$flushCalls)->toBe(1);
 });

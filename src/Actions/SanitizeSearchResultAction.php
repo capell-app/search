@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace Capell\Search\Actions;
 
 use Capell\Search\Data\SearchResultData;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static ?SearchResultData run(SearchResultData $result)
  */
 final class SanitizeSearchResultAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(SearchResultData $result): ?SearchResultData
     {

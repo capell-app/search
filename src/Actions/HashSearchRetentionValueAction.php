@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Capell\Search\Actions;
 
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use RuntimeException;
 
 final class HashSearchRetentionValueAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(string $value): string
     {

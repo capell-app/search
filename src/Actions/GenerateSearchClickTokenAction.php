@@ -6,14 +6,16 @@ namespace Capell\Search\Actions;
 
 use Capell\Search\Data\SearchRequestData;
 use Illuminate\Support\Facades\Crypt;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static ?string run(SearchRequestData $data, string $resultUrl)
  */
 final class GenerateSearchClickTokenAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(SearchRequestData $data, string $resultUrl): ?string
     {

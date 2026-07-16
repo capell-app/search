@@ -12,14 +12,16 @@ use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static list<SearchFacetGroupData> run(Request $request, string $query, SearchFilterData $filters, ?int $siteId = null, ?int $languageId = null)
  */
 final readonly class BuildSearchFacetGroupsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function __construct(
         private Search $search,

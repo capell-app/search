@@ -47,7 +47,7 @@ final class SearchLog extends Model
             if (is_string($clickedResultUrl) && $clickedResultUrl !== '') {
                 $searchLog->setAttribute(
                     'clicked_result_hash',
-                    app(HashSearchRetentionValueAction::class)->handle($clickedResultUrl),
+                    HashSearchRetentionValueAction::run($clickedResultUrl),
                 );
             }
         });

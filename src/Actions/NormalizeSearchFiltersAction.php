@@ -8,11 +8,13 @@ use Capell\Search\Data\SearchableSourceData;
 use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Illuminate\Http\Request;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 final readonly class NormalizeSearchFiltersAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function __construct(private SearchableSourceRegistry $registry) {}
 

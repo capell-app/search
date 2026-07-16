@@ -627,7 +627,7 @@ test('controller defers search log writes until after the response', function ()
     $request->attributes->set('site', $site);
     $siteKey = $site->getKey();
     throw_unless(is_int($siteKey), RuntimeException::class, 'Expected an integer site key.');
-    $expectedVisitorIdentity = app(CreateSearchVisitorIdentityAction::class)->handle($request, $siteKey);
+    $expectedVisitorIdentity = CreateSearchVisitorIdentityAction::run($request, $siteKey);
 
     (new SearchController)($request);
 

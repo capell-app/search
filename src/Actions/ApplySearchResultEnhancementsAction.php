@@ -13,14 +13,16 @@ use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema as SchemaFacade;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static Paginator<int, SearchResultData> run(LengthAwarePaginator<int, SearchResultData> $results, string $normalizedQuery, ?int $siteId = null, ?int $languageId = null)
  */
 final class ApplySearchResultEnhancementsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     private const string CLICK_COUNTS_CACHE_PREFIX = 'capell-search:click-counts';
 
@@ -51,7 +53,7 @@ final class ApplySearchResultEnhancementsAction
         ?int $siteId = null,
         ?int $languageId = null,
     ): Paginator {
-        $promotedResults = (new ResolvePromotedSearchResultsAction)->handle($normalizedQuery);
+        $promotedResults = ResolvePromotedSearchResultsAction::run($normalizedQuery);
         $sourceWeights = $this->sourceWeights();
         $typeLabels = $this->typeLabels();
         $clickCounts = $this->clickCounts($siteId, $languageId);
@@ -257,7 +259,7 @@ final class ApplySearchResultEnhancementsAction
     {
         $resultPath = parse_url($result->url, PHP_URL_PATH);
         $clickHash = is_string($resultPath) && $resultPath !== ''
-            ? app(HashSearchRetentionValueAction::class)->handle($resultPath)
+            ? HashSearchRetentionValueAction::run($resultPath)
             : null;
         $clicks = $clickHash === null ? 0 : ($clickCounts[$clickHash] ?? 0);
 

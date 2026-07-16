@@ -8,14 +8,18 @@ use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchVisitorIdentityData;
 use Capell\Search\Models\SearchLog;
 use Illuminate\Support\Facades\Schema as SchemaFacade;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsJob;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static ?SearchLog run(SearchRequestData $data, int $resultsCount, ?SearchVisitorIdentityData $visitorIdentity = null)
  */
 final class RecordSearchAction
 {
-    use AsAction;
+    use AsFake;
+    use AsJob;
+    use AsObject;
 
     public function handle(
         SearchRequestData $data,

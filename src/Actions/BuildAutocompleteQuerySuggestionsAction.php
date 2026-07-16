@@ -7,14 +7,16 @@ namespace Capell\Search\Actions;
 use Capell\Search\Data\AutocompleteQuerySuggestionData;
 use Capell\Search\Models\SearchLog;
 use Illuminate\Support\Facades\Schema;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static list<AutocompleteQuerySuggestionData> run(string $query, int $limit = 5, ?int $siteId = null, ?int $languageId = null)
  */
 final class BuildAutocompleteQuerySuggestionsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @return list<AutocompleteQuerySuggestionData>

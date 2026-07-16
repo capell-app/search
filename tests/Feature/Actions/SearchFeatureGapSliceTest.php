@@ -101,7 +101,7 @@ test('runs expanded synonym queries and deduplicates results by url', function (
         }
     };
 
-    $results = (new RunSearchAction($search))->handle(new SearchRequestData(query: 'CMS hosting'));
+    $results = runBoundAction(RunSearchAction::class, new RunSearchAction($search), new SearchRequestData(query: 'CMS hosting'));
 
     expect($search->queries)->toBe([
         'cms hosting',
@@ -156,7 +156,7 @@ test('uses primary driver pagination beyond the first expanded search page', fun
         }
     };
 
-    $results = (new RunSearchAction($search))->handle(new SearchRequestData(
+    $results = runBoundAction(RunSearchAction::class, new RunSearchAction($search), new SearchRequestData(
         query: 'CMS hosting',
         page: 2,
         perPage: 5,
@@ -250,7 +250,7 @@ test('caps expanded search query breadth on the first page', function (): void {
         }
     };
 
-    (new RunSearchAction($search))->handle(new SearchRequestData(query: 'CMS hosting'));
+    runBoundAction(RunSearchAction::class, new RunSearchAction($search), new SearchRequestData(query: 'CMS hosting'));
 
     expect($search->queries)->toBe([
         'cms hosting',
@@ -317,7 +317,7 @@ test('runs typo corrected queries and deduplicates results by url', function ():
         }
     };
 
-    $results = (new RunSearchAction($search))->handle(new SearchRequestData(query: 'capel hosting'));
+    $results = runBoundAction(RunSearchAction::class, new RunSearchAction($search), new SearchRequestData(query: 'capel hosting'));
 
     expect($search->queries)->toBe([
         'capel hosting',

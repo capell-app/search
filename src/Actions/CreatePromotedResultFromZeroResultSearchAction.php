@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace Capell\Search\Actions;
 
 use Capell\Search\Settings\SearchSettings;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static list<array<string, mixed>> run(string $zeroResultQuery, string $title, string $url, string $excerpt = '', string $type = 'page', float $score = 1000.0)
  */
 final class CreatePromotedResultFromZeroResultSearchAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @return list<array<string, mixed>>

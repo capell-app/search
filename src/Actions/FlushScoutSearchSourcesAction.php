@@ -7,14 +7,16 @@ namespace Capell\Search\Actions;
 use Capell\Search\Data\SearchableSourceData;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static list<string> run(?string $sourceKey = null)
  */
 final readonly class FlushScoutSearchSourcesAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function __construct(private SearchableSourceRegistry $registry) {}
 

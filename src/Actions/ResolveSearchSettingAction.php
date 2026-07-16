@@ -7,12 +7,14 @@ namespace Capell\Search\Actions;
 use Capell\Search\Settings\SearchSettings;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema as SchemaFacade;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use Throwable;
 
 final class ResolveSearchSettingAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(string $settingKey, string $configKey, mixed $default): mixed
     {

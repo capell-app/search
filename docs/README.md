@@ -8,7 +8,7 @@ Start at the [package README](../README.md) when deciding whether to install thi
 
 | Doc                                                             | Use it for                                                                         |
 | --------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| [Admin Guide](admin-guide.md)                                   | Configure public search, curate queries, and use the search insight widgets.      |
+| [Admin Guide](admin-guide.md)                                   | Configure public search, curate queries, and use the search insight widgets.       |
 | [Credits And Acknowledgements](credits-and-acknowledgements.md) | Upstream services, dependencies, and acknowledgements.                             |
 | [Drivers And Logging](drivers-and-logging.md)                   | Focused package workflow, setup, troubleshooting, or implementation details.       |
 | [Overview](overview.md)                                         | Package boundary, runtime surfaces, install notes, and first troubleshooting path. |

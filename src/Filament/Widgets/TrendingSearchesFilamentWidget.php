@@ -52,7 +52,7 @@ final class TrendingSearchesFilamentWidget extends BaseWidget implements CapellF
     }
 
     /**
-     * @return Collection<int, array<string, int|string|float>>
+     * @return Collection<int, array{id: string, query: string, searches: int, trendPercentage: float}>
      */
     private function getRecords(): Collection
     {

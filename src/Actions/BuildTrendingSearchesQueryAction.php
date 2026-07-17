@@ -32,7 +32,9 @@ final class BuildTrendingSearchesQueryAction
         $currentSummaries = BuildTopSearchesQueryAction::run($window, $candidateLimit);
         $previousSearchCounts = $this->previousSearchCounts(
             $window,
-            $currentSummaries->pluck('normalizedQuery')->all(),
+            array_values($currentSummaries
+                ->map(fn (SearchTermSummaryData $summary): string => $summary->normalizedQuery)
+                ->all()),
         );
 
         $trendingSummaries = $currentSummaries

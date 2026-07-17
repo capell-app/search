@@ -68,10 +68,10 @@ test('top searches groups normalized queries by search count', function (): void
     $summaries = BuildTopSearchesQueryAction::run($window);
 
     expect($summaries)->toHaveCount(2);
-    expect($summaries[0]->normalizedQuery)->toBe('laravel search');
-    expect($summaries[0]->searches)->toBe(2);
-    expect($summaries[0]->resultsCount)->toBe(12);
-    expect($summaries[1]->normalizedQuery)->toBe('filament');
+    expect($summaries->firstOrFail()->normalizedQuery)->toBe('laravel search');
+    expect($summaries->firstOrFail()->searches)->toBe(2);
+    expect($summaries->firstOrFail()->resultsCount)->toBe(12);
+    expect($summaries->reverse()->firstOrFail()->normalizedQuery)->toBe('filament');
 });
 
 test('zero result searches only includes searches with no results', function (): void {
@@ -93,8 +93,8 @@ test('zero result searches only includes searches with no results', function ():
     $summaries = BuildZeroResultSearchesQueryAction::run($window);
 
     expect($summaries)->toHaveCount(1);
-    expect($summaries[0]->normalizedQuery)->toBe('missing page');
-    expect($summaries[0]->resultsCount)->toBe(0);
+    expect($summaries->sole()->normalizedQuery)->toBe('missing page');
+    expect($summaries->sole()->resultsCount)->toBe(0);
 });
 
 test('top clicked results aggregate existing clicked result urls', function (): void {
@@ -159,8 +159,8 @@ test('trending searches compares against the previous equivalent window', functi
     $summaries = BuildTrendingSearchesQueryAction::run($window);
 
     expect($summaries->pluck('normalizedQuery')->all())->toBe(['laravel', 'new search']);
-    expect($summaries[0]->trendPercentage)->toBe(200.0);
-    expect($summaries[1]->trendPercentage)->toBe(100.0);
+    expect($summaries->firstOrFail()->trendPercentage)->toBe(200.0);
+    expect($summaries->reverse()->firstOrFail()->trendPercentage)->toBe(100.0);
 });
 
 test('search insight actions filter by site when the window carries a site id', function (): void {

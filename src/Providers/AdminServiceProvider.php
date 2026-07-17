@@ -15,6 +15,7 @@ use Capell\Search\Console\Commands\FlushSearchCommand;
 use Capell\Search\Console\Commands\IndexSearchCommand;
 use Capell\Search\Console\Commands\PurgeSearchLogsCommand;
 use Capell\Search\Data\SearchInsightsWindowData;
+use Capell\Search\Data\SearchTermSummaryData;
 use Capell\Search\Filament\Settings\Contributors\SearchDashboardSettingsContributor;
 use Capell\Search\Filament\Widgets\TopSearchesFilamentWidget;
 use Capell\Search\Filament\Widgets\TrendingSearchesFilamentWidget;
@@ -185,8 +186,8 @@ final class AdminServiceProvider extends ServiceProvider
         );
         $topSearches = BuildTopSearchesQueryAction::run($window, null);
         $zeroResultSearches = BuildZeroResultSearchesQueryAction::run($window, null);
-        $totalSearches = (int) $topSearches->sum('searches');
-        $zeroResultTotal = (int) $zeroResultSearches->sum('searches');
+        $totalSearches = $topSearches->sum(fn (SearchTermSummaryData $summary): int => $summary->searches);
+        $zeroResultTotal = $zeroResultSearches->sum(fn (SearchTermSummaryData $summary): int => $summary->searches);
 
         $overview = [
             'totalSearches' => $totalSearches,

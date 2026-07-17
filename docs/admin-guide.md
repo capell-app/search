@@ -51,10 +51,10 @@ The same **Search curation** section also lets you correct common typos and prom
 
 ### Add when needed
 
-| Need                               | Enable                     |
-| ---------------------------------- | -------------------------- |
-| Different words for the same thing | **Synonyms**               |
-| Understand visitor intent          | Search dashboard widgets   |
+| Need                               | Enable                   |
+| ---------------------------------- | ------------------------ |
+| Different words for the same thing | **Synonyms**             |
+| Understand visitor intent          | Search dashboard widgets |
 
 ### Don't enable yet
 
@@ -62,15 +62,15 @@ The same **Search curation** section also lets you correct common typos and prom
 
 ### Who does what
 
-| Role       | First useful screen                            |
-| ---------- | ---------------------------------------------- |
+| Role       | First useful screen                              |
+| ---------- | ------------------------------------------------ |
 | Editor     | Search dashboard widgets and **Search curation** |
-| Site owner | **Search settings**: decide what is searchable |
+| Site owner | **Search settings**: decide what is searchable   |
 
 ## Troubleshooting for editors
 
-| What you see                     | What it means                                         | What to do                                           |
-| -------------------------------- | ----------------------------------------------------- | ---------------------------------------------------- |
-| A search returns nothing         | The content is not enabled, or visitors use different words | Enable the source, then add content or a curation rule    |
-| Results feel noisy or irrelevant | Too much low-value content is indexed                     | Narrow the enabled sources in **Search settings**          |
-| A new page isn't found in search | The source has not refreshed its index                    | Ask a developer to check the source's indexing behavior    |
+| What you see                     | What it means                                               | What to do                                              |
+| -------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------- |
+| A search returns nothing         | The content is not enabled, or visitors use different words | Enable the source, then add content or a curation rule  |
+| Results feel noisy or irrelevant | Too much low-value content is indexed                       | Narrow the enabled sources in **Search settings**       |
+| A new page isn't found in search | The source has not refreshed its index                      | Ask a developer to check the source's indexing behavior |

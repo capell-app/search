@@ -24,7 +24,6 @@ final readonly class RunAutocompleteSearchAction
     use AsObject;
 
     public function __construct(
-        private NormalizeSearchFiltersAction $normalizeSearchFilters,
         private Search $search,
     ) {}
 

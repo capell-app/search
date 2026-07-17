@@ -52,7 +52,7 @@ final class ZeroResultSearchesFilamentWidget extends BaseWidget implements Capel
     }
 
     /**
-     * @return Collection<int, array<string, int|string|float>>
+     * @return Collection<int, array{id: string, query: string, searches: int, resultsCount: int}>
      */
     private function getRecords(): Collection
     {

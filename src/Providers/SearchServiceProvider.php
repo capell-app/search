@@ -74,6 +74,8 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
 
     public function registeringPackage(): void
     {
+        parent::registeringPackage();
+
         $this->app->register(AdminServiceProvider::class);
     }
 

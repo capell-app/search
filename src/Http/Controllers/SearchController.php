@@ -9,7 +9,7 @@ use Capell\Core\Models\Language;
 use Capell\Core\Models\Layout;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\Theme;
-use Capell\Frontend\Support\CapellFrontendContext;
+use Capell\Frontend\Contracts\FrontendContextReader;
 use Capell\Search\Actions\BuildSearchPageViewDataAction;
 use Capell\Search\Actions\RecordSearchResultClickAction;
 use Capell\Search\Actions\RunAutocompleteSearchAction;
@@ -88,11 +88,11 @@ final class SearchController
      */
     private function frontendShellData(): ?array
     {
-        if (! app()->bound(CapellFrontendContext::class)) {
+        if (! app()->bound(FrontendContextReader::class)) {
             return null;
         }
 
-        $frontend = app(CapellFrontendContext::class);
+        $frontend = app(FrontendContextReader::class);
         $language = $frontend->language();
         $layout = $frontend->layout();
         $page = $frontend->page();

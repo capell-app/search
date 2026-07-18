@@ -7,7 +7,7 @@ use Capell\Core\Models\Layout;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\Theme;
-use Capell\Frontend\Support\CapellFrontendContext;
+use Capell\Frontend\Contracts\FrontendContextReader;
 use Capell\Frontend\Support\State\FrontendState;
 use Capell\Search\Actions\BuildSearchPageViewDataAction;
 use Capell\Search\Actions\CreateSearchVisitorIdentityAction;
@@ -519,15 +519,13 @@ test('controller wraps the search page in the frontend shell when context is ava
     ]);
 
     app()->instance(
-        CapellFrontendContext::class,
-        new CapellFrontendContext(
-            (new FrontendState)
-                ->withSite($site)
-                ->withLanguage($language)
-                ->withPage($page)
-                ->withLayout($layout)
-                ->withTheme($theme),
-        ),
+        FrontendContextReader::class,
+        (new FrontendState)
+            ->withSite($site)
+            ->withLanguage($language)
+            ->withPage($page)
+            ->withLayout($layout)
+            ->withTheme($theme),
     );
 
     $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => '']);

@@ -3,12 +3,15 @@
 declare(strict_types=1);
 
 use Capell\Admin\Support\Extensions\ExtensionManagementSurfaceRegistry;
+use Capell\Core\Facades\CapellCore;
+use Capell\Core\Support\CapellCoreManager;
 use Capell\Core\Support\Settings\SettingsSchemaRegistry;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Drivers\DatabaseSearch;
 use Capell\Search\Drivers\SiteDiscoverySearch;
 use Capell\Search\Enums\SearchDriver;
 use Capell\Search\Filament\Settings\SearchSettingsSchema;
+use Capell\Search\Models\SearchLog;
 use Capell\Search\Providers\SearchServiceProvider;
 use Capell\Search\Settings\SearchSettings;
 use Capell\Search\Support\SearchableSourceRegistry;
@@ -78,6 +81,42 @@ test('provider registers search settings as an extension management surface', fu
         ->surfacesForPackage(SearchServiceProvider::$packageName);
 
     expect($settingsSurfaces[0]->settingsGroup ?? null)->toBe('search');
+});
+
+test('provider registers installed surfaces during the package boot lifecycle', function (): void {
+    $core = CapellCore::getFacadeRoot();
+
+    expect($core)->toBeInstanceOf(CapellCoreManager::class);
+    assert($core instanceof CapellCoreManager);
+
+    $models = array_filter(
+        $core->getModels(),
+        static fn (string $model): bool => $model !== SearchLog::class,
+    );
+
+    $modelsProperty = new ReflectionProperty($core, 'models');
+    $modelsProperty->setValue($core, $models);
+
+    CapellCore::forcePackageInstalled(SearchServiceProvider::$packageName, false);
+
+    $provider = app()->getProvider(SearchServiceProvider::class);
+
+    expect($provider)
+        ->toBeInstanceOf(SearchServiceProvider::class)
+        ->and(CapellCore::isPackageInstalled(SearchServiceProvider::$packageName))->toBeFalse();
+    assert($provider instanceof SearchServiceProvider);
+
+    $provider->packageRegistered();
+
+    expect(CapellCore::getModels())->not->toContain(SearchLog::class);
+
+    CapellCore::forcePackageInstalled(SearchServiceProvider::$packageName);
+
+    expect(CapellCore::isPackageInstalled(SearchServiceProvider::$packageName))->toBeTrue();
+
+    $provider->packageBooted();
+
+    expect(CapellCore::getModels())->toContain(SearchLog::class);
 });
 
 test('provider registers configured searchable sources', function (): void {

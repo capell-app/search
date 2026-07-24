@@ -87,15 +87,18 @@
         },
         {
             "id": "search-curation-annotated",
-            "title": "Annotated search curation settings.",
+            "title": "Illustrative annotated search curation settings preview.",
             "package": "search",
-            "surface": "admin",
-            "targetType": "admin-surface",
-            "target": null,
+            "surface": "frontend",
+            "targetType": "frontend-url",
+            "target": "/screenshot-fixtures/catalogue/search/search-curation-annotated",
             "required": true,
-            "notes": "Annotated marketplace explainer derived from the Search settings surface to show synonyms, typo corrections, and promoted results.",
+            "notes": "Illustrative deterministic catalogue fixture, not a live package UI capture. Annotated marketplace explainer derived from the Search settings surface to show synonyms, typo corrections, and promoted results.",
             "useCase": "A site owner understands how Search curation controls query intent and promoted answers.",
-            "screenshotPath": "packages/search/docs/screenshots/search-curation-annotated.png"
+            "screenshotPath": "packages/search/docs/screenshots/search-curation-annotated.png",
+            "url": "/screenshot-fixtures/catalogue/search/search-curation-annotated",
+            "colorSchemes": ["light", "dark"],
+            "fixtureKind": "illustrative-catalogue"
         }
     ]
 }

@@ -90,18 +90,6 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         });
 
         $this->registerSearchBinding();
-
-        $this->app->booted(function (): void {
-            if (! $this->isPackageInstalled()) {
-                return;
-            }
-
-            $this
-                ->registerModels()
-                ->registerSettings()
-                ->registerGeneratedOutputCoverage()
-                ->registerProtectedTables();
-        });
     }
 
     public function packageBooted(): void
@@ -111,6 +99,12 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         if (! $this->isPackageInstalled()) {
             return;
         }
+
+        $this
+            ->registerModels()
+            ->registerSettings()
+            ->registerGeneratedOutputCoverage()
+            ->registerProtectedTables();
 
         if (! class_exists(RegisterHeaderSearchHook::class) || ! $this->app->bound(FrontendHookRegistrar::class)) {
             return;

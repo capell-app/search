@@ -137,6 +137,17 @@ return [
         'type_column' => 'type',
         'chunk' => 500,
     ],
+    'health' => [
+        'scout_indexes' => [
+            // 'pages' => [
+            //     'model' => App\Models\Page::class,
+            //     'index' => null,
+            //     'database_count_method' => 'searchableDocumentCount',
+            //     'query' => 'A stable published page title',
+            //     'expected_model' => ['column' => 'slug', 'value' => 'stable-page'],
+            // ],
+        ],
+    ],
     'logs' => [
         'table_name' => 'search_logs',
         'retention_days' => 30,

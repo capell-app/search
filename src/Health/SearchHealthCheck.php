@@ -7,8 +7,10 @@ namespace Capell\Search\Health;
 use Capell\Core\Contracts\Extensions\ChecksExtensionHealth;
 use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
 use Capell\Core\Facades\CapellCore;
+use Capell\Search\Actions\ProbeScoutIndexHealthAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Models\SearchLog;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -34,6 +36,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
             $check->searchDriverCheck(),
             $check->searchLogWriteCheck(),
             $check->loggingConfigurationCheck(),
+            $check->scoutIndexHealthCheck(),
         ]);
     }
 
@@ -157,6 +160,70 @@ final class SearchHealthCheck implements ChecksExtensionHealth
         );
     }
 
+    public function scoutIndexHealthCheck(): DoctorCheckResultData
+    {
+        if (config('capell-search.driver') !== 'scout' || config('scout.driver') !== 'typesense') {
+            return new DoctorCheckResultData(
+                label: 'Scout index health',
+                passed: true,
+                message: 'Scout index probes were skipped because the active search stack is not Scout with Typesense.',
+            );
+        }
+
+        $configuredProbes = config('capell-search.health.scout_indexes', []);
+
+        if (! is_array($configuredProbes) || $configuredProbes === []) {
+            return new DoctorCheckResultData(
+                label: 'Scout index health',
+                passed: true,
+                message: 'No Scout index health probes are configured.',
+            );
+        }
+
+        $failures = [];
+
+        foreach ($configuredProbes as $key => $probe) {
+            $label = is_string($key) ? $key : sprintf('probe %d', $key + 1);
+            $normalizedProbe = $this->normalizeScoutIndexProbe($probe);
+
+            if ($normalizedProbe === null) {
+                $failures[] = sprintf('%s has invalid configuration', $label);
+
+                continue;
+            }
+
+            try {
+                $result = resolve(ProbeScoutIndexHealthAction::class)->handle($normalizedProbe);
+
+                if ($result['database_count'] !== $result['index_count']) {
+                    $failures[] = sprintf(
+                        '%s document count differs (database: %d, index: %d)',
+                        $label,
+                        $result['database_count'],
+                        $result['index_count'],
+                    );
+                }
+
+                if (! $result['sample_matched']) {
+                    $failures[] = sprintf('%s sample query did not return the expected model', $label);
+                }
+            } catch (Throwable $exception) {
+                $failures[] = sprintf('%s index could not be queried: %s', $label, $exception->getMessage());
+            }
+        }
+
+        return new DoctorCheckResultData(
+            label: 'Scout index health',
+            passed: $failures === [],
+            message: $failures === []
+                ? sprintf('%d configured Scout index probe(s) passed.', count($configuredProbes))
+                : implode('; ', $failures) . '.',
+            remediation: $failures === []
+                ? null
+                : 'Create or rebuild the affected Typesense index, then confirm its searchable model scope and sample query configuration.',
+        );
+    }
+
     public function hasSearchLogTable(): bool
     {
         return Schema::hasTable($this->searchLogTableName());
@@ -176,6 +243,56 @@ final class SearchHealthCheck implements ChecksExtensionHealth
             && (int) $minimumQueryLength > 0
             && is_numeric($retentionDays)
             && (int) $retentionDays > 0;
+    }
+
+    /**
+     * @return array{model: class-string<Model>, query: string, expected_model: array{column: string, value: int|string}, index?: string|null, database_count_method?: string}|null
+     */
+    private function normalizeScoutIndexProbe(mixed $probe): ?array
+    {
+        if (! is_array($probe)) {
+            return null;
+        }
+
+        $modelClass = $probe['model'] ?? null;
+        $query = $probe['query'] ?? null;
+
+        $expectedModel = $probe['expected_model'] ?? null;
+        $expectedColumn = is_array($expectedModel) ? ($expectedModel['column'] ?? null) : null;
+        $expectedValue = is_array($expectedModel) ? ($expectedModel['value'] ?? null) : null;
+        $index = $probe['index'] ?? null;
+        $databaseCountMethod = $probe['database_count_method'] ?? null;
+
+        if (! is_string($modelClass)
+            || ! is_a($modelClass, Model::class, true)
+            || ! is_string($query)
+            || trim($query) === ''
+            || ! is_string($expectedColumn)
+            || $expectedColumn === ''
+            || (! is_int($expectedValue) && ! is_string($expectedValue))
+            || ($index !== null && ! is_string($index))
+            || ($databaseCountMethod !== null && ! is_string($databaseCountMethod))) {
+            return null;
+        }
+
+        $normalized = [
+            'model' => $modelClass,
+            'query' => $query,
+            'expected_model' => [
+                'column' => $expectedColumn,
+                'value' => $expectedValue,
+            ],
+        ];
+
+        if ($index !== null) {
+            $normalized['index'] = $index;
+        }
+
+        if ($databaseCountMethod !== null) {
+            $normalized['database_count_method'] = $databaseCountMethod;
+        }
+
+        return $normalized;
     }
 
     private function searchLogTableName(): string

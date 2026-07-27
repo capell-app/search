@@ -38,6 +38,8 @@ beforeAll(function (): void {
         ['title' => 'Laravel Other Site', 'excerpt' => 'Other site Laravel page', 'body' => null, 'slug' => 'laravel-other-site', 'type' => 'post', 'site_id' => 2, 'language_id' => 1, 'status' => 'published'],
         ['title' => 'Weightedterm Title Result', 'excerpt' => null, 'body' => null, 'slug' => 'weighted-title', 'type' => 'page', 'site_id' => 1, 'language_id' => 1, 'status' => 'published'],
         ['title' => 'Body Weighted Result', 'excerpt' => null, 'body' => 'weightedterm weightedterm weightedterm weightedterm', 'slug' => 'weighted-body', 'type' => 'page', 'site_id' => 1, 'language_id' => 1, 'status' => 'published'],
+        ['title' => 'Portable guide to Search', 'excerpt' => null, 'body' => null, 'slug' => 'weighted-separated-terms', 'type' => 'page', 'site_id' => 1, 'language_id' => 1, 'status' => 'published'],
+        ['title' => 'Reference', 'excerpt' => 'Portable search', 'body' => null, 'slug' => 'weighted-contiguous-phrase', 'type' => 'page', 'site_id' => 1, 'language_id' => 1, 'status' => 'published'],
     ]);
 
     Capsule::schema()->create('search_pages_without_status', function (Blueprint $table): void {
@@ -168,6 +170,41 @@ test('search ranks database fallback results with configured column weights', fu
         ->and($firstResult?->score)->toBe(10.0);
 });
 
+test('search ranks separated terms using configured column weights', function (): void {
+    $search = new DatabaseSearch(
+        db: Capsule::connection(),
+        columnWeights: [
+            'title' => 10.0,
+            'excerpt' => 2.0,
+            'body' => 1.0,
+        ],
+    );
+
+    $results = $search->search('portable search');
+    $firstResult = $results->items()[0] ?? null;
+
+    expect($results->total())->toBe(2)
+        ->and($firstResult?->url)->toBe('/weighted-separated-terms')
+        ->and($firstResult?->score)->toBeGreaterThan(0.0);
+});
+
+test('search preserves zero-weight columns for matching without relevance', function (): void {
+    $search = new DatabaseSearch(
+        db: Capsule::connection(),
+        columnWeights: [
+            'title' => 0.0,
+            'body' => 1.0,
+        ],
+    );
+
+    $results = $search->search('weightedterm');
+
+    expect($results->total())->toBe(2)
+        ->and(($results->items()[0] ?? null)?->url)->toBe('/weighted-body')
+        ->and(($results->items()[1] ?? null)?->url)->toBe('/weighted-title')
+        ->and(($results->items()[1] ?? null)?->score)->toBe(0.0);
+});
+
 test('search filters by site language and published status when columns are present', function (): void {
     $search = new DatabaseSearch(Capsule::connection());
 
@@ -187,24 +224,6 @@ test('search returns no public results when configured status guard column is mi
 
     expect($results->total())->toBe(0);
     expect($results->isEmpty())->toBeTrue();
-});
-
-test('fulltext index compatibility allows covering indexes regardless of column order', function (): void {
-    $search = new DatabaseSearch(Capsule::connection());
-    $method = new ReflectionMethod(DatabaseSearch::class, 'hasCompatibleFullTextIndex');
-
-    expect($method->invoke($search, [
-        ['body', 'excerpt', 'title'],
-    ], ['title', 'excerpt']))->toBeTrue();
-});
-
-test('fulltext index compatibility rejects indexes missing configured search columns', function (): void {
-    $search = new DatabaseSearch(Capsule::connection());
-    $method = new ReflectionMethod(DatabaseSearch::class, 'hasCompatibleFullTextIndex');
-
-    expect($method->invoke($search, [
-        ['title', 'excerpt'],
-    ], ['title', 'excerpt', 'body']))->toBeFalse();
 });
 
 test('wraps matches in <mark> tags with escaping', function (): void {

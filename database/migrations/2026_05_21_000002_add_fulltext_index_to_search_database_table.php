@@ -2,7 +2,11 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Data\Database\DatabaseIndexDefinition;
+use Capell\Core\Enums\Database\DatabaseCapability;
+use Capell\Core\Facades\CapellDatabase;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -16,7 +20,6 @@ return new class extends Migration
             return;
         }
 
-        $grammar = DB::connection()->getQueryGrammar();
         $tableName = (string) config('capell-search.database.table', 'pages');
         $columns = $this->searchColumns($tableName);
 
@@ -25,12 +28,14 @@ return new class extends Migration
         }
 
         try {
-            DB::statement(sprintf(
-                'ALTER TABLE %s ADD FULLTEXT %s (%s)',
-                $grammar->wrapTable($tableName),
-                $grammar->wrap($this->indexName),
-                collect($columns)->map(static fn (string $column): string => $grammar->wrap($column))->implode(', '),
-            ));
+            $connection = Schema::getConnection();
+            $index = CapellDatabase::for($connection)->schemaDialect()->fullTextIndex(
+                new DatabaseIndexDefinition($tableName, $this->indexName, $columns),
+            );
+
+            if ($index !== null) {
+                DB::statement($index->sql, $index->bindings);
+            }
         } catch (Throwable) {
             // Existing installations may already have a compatible fulltext index.
         }
@@ -42,15 +47,12 @@ return new class extends Migration
             return;
         }
 
-        $grammar = DB::connection()->getQueryGrammar();
         $tableName = (string) config('capell-search.database.table', 'pages');
 
         try {
-            DB::statement(sprintf(
-                'ALTER TABLE %s DROP INDEX %s',
-                $grammar->wrapTable($tableName),
-                $grammar->wrap($this->indexName),
-            ));
+            Schema::table($tableName, function (Blueprint $table): void {
+                $table->dropIndex($this->indexName);
+            });
         } catch (Throwable) {
             // Index may not exist on this connection.
         }
@@ -59,13 +61,16 @@ return new class extends Migration
     private function canManageFullTextIndex(): bool
     {
         $tableName = (string) config('capell-search.database.table', 'pages');
+        $connection = Schema::getConnection();
 
-        return in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)
+        return CapellDatabase::for($connection)
+            ->schemaDialect()
+            ->supports(DatabaseCapability::FullTextIndex, $connection)
             && Schema::hasTable($tableName);
     }
 
     /**
-     * @return list<string>
+     * @return list<non-empty-string>
      */
     private function searchColumns(string $tableName): array
     {
@@ -76,7 +81,9 @@ return new class extends Migration
 
         return array_values(array_filter(
             $configuredColumns,
-            static fn (mixed $column): bool => is_string($column) && in_array($column, $availableColumns, true),
+            static fn (mixed $column): bool => is_string($column)
+                && $column !== ''
+                && in_array($column, $availableColumns, true),
         ));
     }
 };

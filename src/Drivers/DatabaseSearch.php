@@ -87,17 +87,18 @@ class DatabaseSearch implements Search
 
         $builder = $this->db->table($this->table);
         $fullTextSearch = $this->fullTextSearch($this->db, $builder, $columns, $query);
-        $builder->whereRaw($fullTextSearch->predicate->sql, $fullTextSearch->predicate->bindings);
+        $fullTextSearch->predicate->applyWhere($builder);
 
         $this->applyContextFilters($builder, $availableColumns, $siteId, $languageId);
         $this->applySearchFilters($builder, $availableColumns, $filters);
 
         $total = (clone $builder)->count();
 
-        $builder->select('*')->selectRaw(
+        $builder->select('*');
+        (new SqlFragment(
             $fullTextSearch->relevance->sql . ' as search_score',
             $fullTextSearch->relevance->bindings,
-        );
+        ))->applySelect($builder);
 
         $builder->orderByDesc(new Expression('search_score'));
 

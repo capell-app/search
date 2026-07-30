@@ -1,4 +1,4 @@
-@props ([
+@props([
     'clickTrackingTokens' => [],
     'highlightedResults' => null,
     'results',
@@ -11,13 +11,9 @@
     data-site-search-click-url="{{ route('capell-frontend.search.click') }}"
 >
     @if ($query === '')
-        <p class="text-on-surface-variant">
-            {{ __('capell-search::generic.empty_query') }}
-        </p>
+        <p class="text-on-surface-variant">{{ __('capell-search::generic.empty_query') }}</p>
     @elseif ($results->isEmpty())
-        <p class="text-on-surface-variant">
-            {{ __('capell-search::generic.no_results', ['query' => $query]) }}
-        </p>
+        <p class="text-on-surface-variant">{{ __('capell-search::generic.no_results', ['query' => $query]) }}</p>
     @else
         <p class="text-on-surface-variant mb-4 text-sm">
             {{
@@ -59,9 +55,7 @@
                     <p class="text-on-surface-variant mt-1 text-sm">
                         {!! $highlightedResult['excerpt'] ?? e($result->excerpt) !!}
                     </p>
-                    <p class="text-outline-variant mt-2 text-xs uppercase">
-                        {{ $result->typeLabel ?? $result->type }}
-                    </p>
+                    <p class="text-outline-variant mt-2 text-xs uppercase">{{ $result->typeLabel ?? $result->type }}</p>
                 </li>
             @endforeach
         </ol>
@@ -71,63 +65,42 @@
 
 @once
     <script>
-        ;(() => {
+        (() => {
             if (window.capellSearchClickBeaconInitialized) {
-                return
+                return;
             }
 
-            window.capellSearchClickBeaconInitialized = true
+            window.capellSearchClickBeaconInitialized = true;
 
             document.addEventListener('click', (event) => {
-                const trackedLink = event.target.closest(
-                    '[data-site-search-click]',
-                )
+                const trackedLink = event.target.closest('[data-site-search-click]');
 
                 if (!trackedLink) {
-                    return
+                    return;
                 }
 
-                const trackingContainer = trackedLink.closest(
-                    '[data-site-search-click-url]',
-                )
-                const url = trackingContainer?.getAttribute(
-                    'data-site-search-click-url',
-                )
+                const trackingContainer = trackedLink.closest('[data-site-search-click-url]');
+                const url = trackingContainer?.getAttribute('data-site-search-click-url');
 
                 if (!url) {
-                    return
+                    return;
                 }
 
-                const body = new FormData()
-                body.set(
-                    'query',
-                    trackedLink.getAttribute('data-site-search-query') || '',
-                )
-                body.set('url', trackedLink.href)
-                body.set(
-                    'token',
-                    trackedLink.getAttribute('data-site-search-token') || '',
-                )
-                body.set(
-                    'type',
-                    trackedLink.getAttribute('data-site-search-type') || '',
-                )
-                body.set(
-                    'position',
-                    trackedLink.getAttribute('data-site-search-position') || '',
-                )
-                body.set(
-                    'surface',
-                    trackedLink.getAttribute('data-site-search-surface') || '',
-                )
+                const body = new FormData();
+                body.set('query', trackedLink.getAttribute('data-site-search-query') || '');
+                body.set('url', trackedLink.href);
+                body.set('token', trackedLink.getAttribute('data-site-search-token') || '');
+                body.set('type', trackedLink.getAttribute('data-site-search-type') || '');
+                body.set('position', trackedLink.getAttribute('data-site-search-position') || '');
+                body.set('surface', trackedLink.getAttribute('data-site-search-surface') || '');
 
                 fetch(url, {
                     method: 'POST',
                     body,
                     mode: 'no-cors',
                     keepalive: true,
-                }).catch(() => {})
-            })
-        })()
+                }).catch(() => {});
+            });
+        })();
     </script>
 @endonce

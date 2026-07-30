@@ -43,6 +43,12 @@ use Capell\Search\Models\SearchLog;
 use Capell\Search\Settings\SearchSettings;
 use Pest\Expectation;
 
+it('requires the Core release that owns full-text compatibility cache invalidation', function (): void {
+    $composer = capell_json_file_array(__DIR__ . '/../../composer.json');
+
+    expect(data_get($composer, 'require.capell-app/core'))->toBe('^1.0.25');
+});
+
 it('declares implemented search gap features contributions and actions', function (): void {
     $manifest = capell_json_file_array(__DIR__ . '/../../capell.json');
     $screenshots = data_get($manifest, 'marketplace.screenshots', []);

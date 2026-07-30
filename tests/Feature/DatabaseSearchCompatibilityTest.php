@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-use Capell\Core\Data\Database\DatabaseIndexDefinition;
-use Capell\Core\Data\Database\DatabaseSearchExpression;
 use Capell\Core\Data\Database\SqlFragment;
-use Capell\Core\Facades\CapellDatabase;
+use Capell\Search\Data\DatabaseSearchExpression;
 use Capell\Search\Drivers\DatabaseSearch;
+use Capell\Search\Support\DatabaseFullText;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -31,16 +30,17 @@ afterEach(function (): void {
     Schema::dropIfExists(SEARCH_COMPATIBILITY_TABLE);
 });
 
-it('uses the Core full-text seam with a portable behavioral fallback', function (): void {
+it('uses the Search-owned full-text seam with a portable behavioral fallback', function (): void {
     $columns = ['title', 'excerpt', 'body'];
     $connection = DB::connection();
     $grammar = $connection->getQueryGrammar();
-    $indexDefinition = new DatabaseIndexDefinition(
+    $fullText = new DatabaseFullText;
+    $index = $fullText->createIndex(
+        $connection,
         SEARCH_COMPATIBILITY_TABLE,
         SEARCH_COMPATIBILITY_INDEX,
         $columns,
     );
-    $index = CapellDatabase::for($connection)->schemaDialect()->fullTextIndex($indexDefinition);
 
     if ($index !== null) {
         DB::statement($index->sql, $index->bindings);
@@ -70,9 +70,10 @@ it('uses the Core full-text seam with a portable behavioral fallback', function 
         table: SEARCH_COMPATIBILITY_TABLE,
     );
     $results = $search->search('port search');
-    $fullTextSearch = CapellDatabase::fullTextSearch(
+    $fullTextSearch = $fullText->search(
         $connection,
-        $indexDefinition,
+        SEARCH_COMPATIBILITY_TABLE,
+        SEARCH_COMPATIBILITY_INDEX,
         array_map(
             static fn (string $column): DatabaseSearchExpression => new DatabaseSearchExpression(
                 SqlFragment::raw($grammar->wrap($column)),
@@ -85,4 +86,31 @@ it('uses the Core full-text seam with a portable behavioral fallback', function 
     expect($results->total())->toBe(1)
         ->and(($results->items()[0] ?? null)?->url)->toBe('/portable-search')
         ->and($fullTextSearch->native)->toBe($index !== null);
+});
+
+it('keeps weighted fallback behavior inside the Search package', function (): void {
+    $connection = DB::connection();
+    $grammar = $connection->getQueryGrammar();
+    $fullText = (new DatabaseFullText)->search(
+        $connection,
+        SEARCH_COMPATIBILITY_TABLE,
+        'missing_fulltext_index',
+        [
+            new DatabaseSearchExpression(
+                SqlFragment::raw($grammar->wrap('title')),
+                2.0,
+            ),
+            new DatabaseSearchExpression(
+                SqlFragment::raw($grammar->wrap('excerpt')),
+                0.0,
+            ),
+        ],
+        'portable search',
+    );
+
+    expect($fullText->native)->toBeFalse()
+        ->and($fullText->predicate->sql)->toContain('LIKE')
+        ->and($fullText->predicate->bindings)->toHaveCount(4)
+        ->and($fullText->relevance->bindings)->toContain(2.0)
+        ->and($fullText->relevance->bindings)->not->toContain(0.0);
 });

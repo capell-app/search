@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Capell\Search\Drivers;
 
-use Capell\Core\Data\Database\DatabaseFullTextSearch;
-use Capell\Core\Data\Database\DatabaseIndexDefinition;
-use Capell\Core\Data\Database\DatabaseSearchExpression;
 use Capell\Core\Data\Database\SqlFragment;
-use Capell\Core\Facades\CapellDatabase;
 use Capell\Search\Contracts\Search;
+use Capell\Search\Data\DatabaseFullTextSearch;
+use Capell\Search\Data\DatabaseSearchExpression;
 use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchResultData;
+use Capell\Search\Support\DatabaseFullText;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Connection;
@@ -218,9 +217,10 @@ class DatabaseSearch implements Search
             $columns,
         );
 
-        return CapellDatabase::fullTextSearch(
+        return (new DatabaseFullText)->search(
             $connection,
-            new DatabaseIndexDefinition($this->table, self::FULL_TEXT_INDEX, $columns),
+            $this->table,
+            self::FULL_TEXT_INDEX,
             $expressions,
             $query,
         );

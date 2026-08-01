@@ -35,15 +35,15 @@ Screenshot contract: `docs/screenshots.json`.
 
 ![Top searches widget](docs/screenshots/top-searches-widget.png)
 
-![Annotated search curation settings](docs/screenshots/search-curation-annotated.png)
+![Illustrative annotated search curation settings preview](docs/screenshots/search-curation-annotated.png)
 
-- Frontend search results page (frontend, optional).
-- Header search field (frontend, optional).
-- Top searches widget (admin, required).
-- Trending searches widget (admin, optional).
-- Zero-result searches widget (admin, optional).
-- Site search settings screen (admin, optional).
-- Annotated search curation settings (admin, required).
+- Frontend search results page (frontend, supplementary evidence).
+- Header search field (frontend, supplementary evidence).
+- Top searches widget (admin, required evidence).
+- Trending searches widget (admin, supplementary evidence).
+- Zero-result searches widget (admin, supplementary evidence).
+- Site search settings screen (admin, supplementary evidence).
+- Illustrative annotated search curation settings preview (frontend, required evidence).
 
 ## Technical Shape
 
@@ -56,11 +56,11 @@ Screenshot contract: `docs/screenshots.json`.
 - Filament classes: `SearchSettingsPage`, `SearchDashboardSettingsContributor`, `SearchSettingsSchema`, `BuildsSearchInsightsWindow`, `SearchOverviewStatsFilamentWidget`, `TopSearchesFilamentWidget`, `TrendingSearchesFilamentWidget`, `ZeroResultSearchesFilamentWidget`.
 - Route files: `packages/search/routes/web.php`.
 - Extension contracts: `Search`.
-- Actions: `ApplySearchResultEnhancementsAction`, `BuildAutocompleteQuerySuggestionsAction`, `BuildSearchFacetGroupsAction`, `BuildSearchPageViewDataAction`, `BuildTopClickedResultsQueryAction`, `BuildTopSearchesQueryAction`, `BuildTrendingSearchesQueryAction`, `BuildZeroResultSearchesQueryAction`, `CanCollectSearchAnalyticsAction`, `CreatePromotedResultFromZeroResultSearchAction`, `CreateSearchVisitorIdentityAction`, `CreateSynonymFromZeroResultSearchAction`, `and 20 more`.
-- Data objects: `AutocompleteQuerySuggestionData`, `AutocompleteSearchResponseData`, `AutocompleteSearchResultData`, `PromotedSearchResultData`, `SearchFacetGroupData`, `SearchFacetOptionData`, `SearchFilterData`, `SearchInsightsWindowData`, `SearchPageViewData`, `SearchQueryMetadataData`, `SearchRequestData`, `SearchResultData`, `and 3 more`.
+- Actions: `ApplySearchResultEnhancementsAction`, `BuildAutocompleteQuerySuggestionsAction`, `BuildSearchFacetGroupsAction`, `BuildSearchPageViewDataAction`, `BuildTopClickedResultsQueryAction`, `BuildTopSearchesQueryAction`, `BuildTrendingSearchesQueryAction`, `BuildZeroResultSearchesQueryAction`, `CanCollectSearchAnalyticsAction`, `CreatePromotedResultFromZeroResultSearchAction`, `CreateSearchVisitorIdentityAction`, `CreateSynonymFromZeroResultSearchAction`, `and 21 more`.
+- Data objects: `AutocompleteQuerySuggestionData`, `AutocompleteSearchResponseData`, `AutocompleteSearchResultData`, `DatabaseFullTextSearch`, `DatabaseSearchExpression`, `PromotedSearchResultData`, `SearchFacetGroupData`, `SearchFacetOptionData`, `SearchFilterData`, `SearchInsightsWindowData`, `SearchPageViewData`, `SearchQueryMetadataData`, `and 5 more`.
 - Command signatures: `search:flush`, `search:index`, `search:purge`.
 - Manifest action API: `applySearchResultEnhancements: Capell\Search\Actions\ApplySearchResultEnhancementsAction`, `buildTopClickedResultsQuery: Capell\Search\Actions\BuildTopClickedResultsQueryAction`, `buildTopSearchesQuery: Capell\Search\Actions\BuildTopSearchesQueryAction`, `buildTrendingSearchesQuery: Capell\Search\Actions\BuildTrendingSearchesQueryAction`, `buildZeroResultSearchesQuery: Capell\Search\Actions\BuildZeroResultSearchesQueryAction`, `createPromotedResultFromZeroResultSearch: Capell\Search\Actions\CreatePromotedResultFromZeroResultSearchAction`, `createSynonymFromZeroResultSearch: Capell\Search\Actions\CreateSynonymFromZeroResultSearchAction`, `flushScoutSearchSources: Capell\Search\Actions\FlushScoutSearchSourcesAction`, `indexScoutSearchSources: Capell\Search\Actions\IndexScoutSearchSourcesAction`, `install: Capell\Search\Actions\InstallSearchPackageAction`, `normalizeSearchQuery: Capell\Search\Actions\NormalizeSearchQueryAction`, `purgeSearchLogs: Capell\Search\Actions\PurgeSearchLogsAction`, `and 5 more`.
-- Scheduled commands: `search:purge (monthly)`.
+- Scheduled commands: `search:purge (monthly; package registered)`.
 - Console command classes: `FlushSearchCommand`, `IndexSearchCommand`, `PurgeSearchLogsCommand`.
 - Manifest contributions: `admin-page: Capell\Search\Manifest\SearchSettingsPageContribution`, `console-command: Capell\Search\Manifest\SearchConsoleCommandsContribution`, `dashboard-widget: Capell\Search\Manifest\TopSearchesWidgetContribution`, `dashboard-widget: Capell\Search\Manifest\TrendingSearchesWidgetContribution`, `dashboard-widget: Capell\Search\Manifest\ZeroResultSearchesWidgetContribution`, `health-check: Capell\Search\Manifest\SearchHealthContribution`, `model: Capell\Search\Manifest\SearchLogModelContribution`, `overview-stat: Capell\Search\Manifest\SearchOverviewStatsContribution`, `route: Capell\Search\Manifest\SearchFrontendRouteContribution`, `scheduled-job: Capell\Search\Manifest\SearchLogPurgeScheduleContribution`, `setting: Capell\Search\Manifest\SearchSettingsContribution`.
 - Health checks: `Capell\Search\Health\SearchHealthCheck`.
@@ -74,7 +74,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Core record references in migrations: `sites via site_id`, `languages via language_id`.
 - Migration files: `2026_05_10_190868_01_create_search_logs_table.php`, `2026_05_21_000002_add_fulltext_index_to_search_database_table.php`, `2026_07_12_000001_encrypt_search_log_pii.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
-- Deletion/retention behaviour: migrations declare null-on-delete relationships; retention is scheduled through `search:purge` (monthly).
+- Deletion/retention behaviour: migrations declare null-on-delete relationships; retention is scheduled through `search:purge` (monthly; registered by the package provider).
 
 ## Install Impact
 
@@ -86,7 +86,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Database changes: package migrations are declared.
 - Config: `config/capell-search.php`.
 - Settings: `Capell\Search\Settings\SearchSettings`.
-- Queues or schedules: scheduled commands `search:purge (monthly)`.
+- Queues or schedules: scheduled commands `search:purge (monthly; package registered)`.
 - Cache tags: `search`.
 - Commands: `search:flush`, `search:index`, `search:purge`.
 
@@ -96,7 +96,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Run migrations before opening package resources or public routes.
 - Review package configuration before production-like verification: `config/capell-search.php`, `Capell\Search\Settings\SearchSettings`.
 - Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
-- Register the host scheduler so these declared commands run at their documented frequencies: `search:purge (monthly)`.
+- Keep the host Laravel scheduler running so package-registered schedules can execute: `search:purge (monthly; package registered)`.
 - Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
 - Custom write integrations must preserve invalidation for `search` cache tags.
 
@@ -114,7 +114,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 1. Install the package: `composer require capell-app/search`.
 2. Run the required setup: `php artisan migrate`.
-3. Open the package admin page or resource and verify Search is available.
+3. Open `/screenshot-fixtures/catalogue/search/search-curation-annotated` and confirm the public output renders without admin state.
 
 ## Next Steps
 

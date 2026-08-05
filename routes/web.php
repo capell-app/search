@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 
 Route::name('capell-frontend.')
-    ->middleware(['web', 'frontend.resolve'])
+    ->middleware('web')
     ->group(function (): void {
         $searchRoutePath = config('capell-search.route_path', 'search');
         $searchRateLimiter = config('capell-search.rate_limiter', 'capell-search-requests');

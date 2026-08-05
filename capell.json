@@ -258,6 +258,12 @@
                 "caption": "Search curation controls"
             },
             {
+                "path": "docs/screenshots/frontend-search-results-page.png",
+                "alt": "Seeded public Search results page for the query capell",
+                "caption": "Route-backed public search results",
+                "required": true
+            },
+            {
                 "path": "docs/screenshots/top-searches-widget.png",
                 "alt": "Top searches admin insight widget",
                 "caption": "Top search analytics"

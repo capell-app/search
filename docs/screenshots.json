@@ -13,8 +13,8 @@
             "targetType": "frontend-url",
             "target": null,
             "url": "/search?q=capell",
-            "required": false,
-            "notes": "Optional Beta evidence target. The current file is an empty host shell rather than proof of Search results; replace it with an independently captured seeded results page before using it as release or Marketplace evidence.",
+            "required": true,
+            "notes": "Captured from the seeded public Search route `/search?q=capell` on the isolated Packages workbench; the light/dark outputs contain real ranked results and the package header surface.",
             "useCase": "A visitor searches seeded public content and sees ranked results and pagination.",
             "screenshotPath": "packages/search/docs/screenshots/frontend-search-results-page.png",
             "darkScreenshotPath": "packages/search/docs/screenshots/frontend-search-results-page-dark.png"

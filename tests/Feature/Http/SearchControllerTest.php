@@ -238,7 +238,9 @@ test('autocomplete route is lightly throttled', function (): void {
 test('full search route is throttled', function (): void {
     $route = Route::getRoutes()->getByName('capell-frontend.search');
 
-    expect($route?->gatherMiddleware())->toContain('throttle:capell-search-requests');
+    expect($route?->gatherMiddleware())
+        ->toContain('throttle:capell-search-requests')
+        ->not->toContain('frontend.resolve');
 });
 
 test('click tracking route is csrf exempt for cached frontend beacons', function (): void {

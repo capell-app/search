@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Search\Actions;
 
+use Capell\DiscoveryFoundation\Actions\ResolveTypoCorrectionAction;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
@@ -84,31 +85,7 @@ final class ResolveCorrectedSearchQueryAction
             return null;
         }
 
-        $maxDistance = $this->typoMaxDistance();
-        $tokens = preg_split('/\s+/', $query) ?: [];
-        $correctedTokens = [];
-        $changed = false;
-
-        foreach ($tokens as $token) {
-            if (! is_string($token) || mb_strlen($token) < 4) {
-                $correctedTokens[] = (string) $token;
-
-                continue;
-            }
-
-            $correction = $this->nearestTerm($token, $terms, $maxDistance);
-
-            if ($correction !== null && $correction !== $token) {
-                $correctedTokens[] = $correction;
-                $changed = true;
-
-                continue;
-            }
-
-            $correctedTokens[] = $token;
-        }
-
-        return $changed ? NormalizeSearchQueryAction::run(implode(' ', $correctedTokens)) : null;
+        return ResolveTypoCorrectionAction::run($query, $terms, $this->typoMaxDistance());
     }
 
     /**
@@ -136,35 +113,6 @@ final class ResolveCorrectedSearchQueryAction
         $configuredDistance = ResolveSearchSettingAction::run('typo_max_distance', 'capell-search.typo_max_distance', 1);
 
         return is_numeric($configuredDistance) ? max(0, min(3, (int) $configuredDistance)) : 1;
-    }
-
-    /**
-     * @param  list<string>  $terms
-     */
-    private function nearestTerm(string $token, array $terms, int $maxDistance): ?string
-    {
-        $nearestTerm = null;
-        $nearestDistance = $maxDistance + 1;
-
-        foreach ($terms as $term) {
-            if (abs(mb_strlen($term) - mb_strlen($token)) > $maxDistance) {
-                continue;
-            }
-
-            $distance = levenshtein($token, $term);
-            if ($distance > $maxDistance) {
-                continue;
-            }
-
-            if ($distance >= $nearestDistance) {
-                continue;
-            }
-
-            $nearestTerm = $term;
-            $nearestDistance = $distance;
-        }
-
-        return $nearestTerm;
     }
 
     private function phrasePattern(string $phrase): string

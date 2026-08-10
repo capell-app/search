@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Search\Actions;
 
+use Capell\DiscoveryFoundation\Actions\NormalizeSearchTextAction;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
@@ -17,6 +18,6 @@ final class NormalizeSearchQueryAction
 
     public function handle(string $query): string
     {
-        return trim((string) preg_replace('/\s+/', ' ', mb_strtolower($query)));
+        return NormalizeSearchTextAction::run($query);
     }
 }

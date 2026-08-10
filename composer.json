@@ -7,13 +7,14 @@
         "php": "^8.4",
         "capell-app/admin": "^1.0",
         "capell-app/core": "^1.0.25",
+        "capell-app/discovery-foundation": "^1.0",
         "capell-app/frontend": "^1.0",
         "lorisleiva/laravel-actions": "^2.8",
         "spatie/laravel-data": "^4.5",
         "spatie/laravel-package-tools": "^1.14.1"
     },
     "suggest": {
-        "capell-app/site-discovery": "Enables public URL registry generated-output coverage reporting for search-indexable URLs.",
+        "capell-app/site-discovery": "Enables sitemap generated-output coverage reporting for search-indexable URLs.",
         "laravel/scout": "Enables Scout-backed public search across registered searchable sources.",
         "typesense/typesense-php": "Provides the Typesense client when host applications configure Scout to use Typesense."
     },

@@ -276,7 +276,7 @@ test('result click beacon does not require a csrf token', function (): void {
     expect($html)
         ->toContain('window.capellSearchClickBeaconInitialized')
         ->toContain("mode: 'no-cors'")
-        ->toContain("body.set(\n                    'token',")
+        ->toContain("body.set('token',")
         ->not()->toContain('csrf-token')
         ->not()->toContain('X-CSRF-TOKEN');
 });

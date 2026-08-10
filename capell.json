@@ -18,6 +18,7 @@
         "requires": [
             "capell-app/admin",
             "capell-app/core",
+            "capell-app/discovery-foundation",
             "capell-app/frontend"
         ],
         "supports": [

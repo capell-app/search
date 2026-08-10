@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Capell\Search\Support\SiteDiscovery;
 
+use Capell\DiscoveryFoundation\Data\PublicUrlRegistryEntryData;
+use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
 use Capell\SiteDiscovery\Contracts\GeneratedOutputCoverageSource;
-use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
-use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
 use Illuminate\Support\Collection;
 
 final class SearchGeneratedOutputCoverageSource implements GeneratedOutputCoverageSource

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Capell\Search\Drivers;
 
+use Capell\DiscoveryFoundation\Actions\BuildPublicUrlRegistryAction;
+use Capell\DiscoveryFoundation\Data\PublicUrlRegistryEntryData;
+use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchResultData;
-use Capell\SiteDiscovery\Actions\BuildPublicUrlRegistryAction;
-use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
-use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;

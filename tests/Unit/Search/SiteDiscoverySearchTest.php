@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
+use Capell\DiscoveryFoundation\Data\PublicUrlRegistryEntryData;
+use Capell\DiscoveryFoundation\Enums\PublicUrlContentType;
+use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
 use Capell\Search\Data\SearchResultData;
 use Capell\Search\Drivers\SiteDiscoverySearch;
-use Capell\SiteDiscovery\Data\PublicUrlRegistryEntryData;
-use Capell\SiteDiscovery\Enums\PublicUrlContentType;
-use Capell\SiteDiscovery\Enums\PublicUrlIndexability;
 use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Support\Collection;
 

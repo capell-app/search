@@ -33,17 +33,18 @@ Evidence: [`src/Support/SearchableSourceRegistry.php`](src/Support/SearchableSou
 
 Screenshot contract: `docs/screenshots.json`.
 
+![Frontend search results page](docs/screenshots/frontend-search-results-page.png)
+
 ![Top searches widget](docs/screenshots/top-searches-widget.png)
 
-![Illustrative annotated search curation settings preview](docs/screenshots/search-curation-annotated.png)
-
-- Frontend search results page (frontend, supplementary evidence).
+- Frontend search results page (frontend, required evidence).
 - Header search field (frontend, supplementary evidence).
 - Top searches widget (admin, required evidence).
 - Trending searches widget (admin, supplementary evidence).
 - Zero-result searches widget (admin, supplementary evidence).
 - Site search settings screen (admin, supplementary evidence).
 - Illustrative annotated search curation settings preview (frontend, required evidence).
+- Top searches widget with admin sidebar menu open (admin, supplementary evidence).
 
 ## Technical Shape
 
@@ -78,7 +79,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 ## Install Impact
 
-- Required packages: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`.
+- Required packages: `capell-app/admin`, `capell-app/core`, `capell-app/discovery-foundation`, `capell-app/frontend`.
 - Admin navigation: declares `admin-page: SearchSettingsPageContribution`; each Filament page or resource controls its own navigation visibility.
 - Admin/editor extensions: `dashboard-widget: TopSearchesWidgetContribution`, `dashboard-widget: TrendingSearchesWidgetContribution`, `dashboard-widget: ZeroResultSearchesWidgetContribution`, `overview-stat: SearchOverviewStatsContribution`.
 - Permissions: none declared in `capell.json`.
@@ -92,7 +93,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 ## Common Pitfalls
 
-- Keep required Capell packages on compatible v4 releases: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`.
+- Keep required Capell packages on compatible v4 releases: `capell-app/admin`, `capell-app/core`, `capell-app/discovery-foundation`, `capell-app/frontend`.
 - Run migrations before opening package resources or public routes.
 - Review package configuration before production-like verification: `config/capell-search.php`, `Capell\Search\Settings\SearchSettings`.
 - Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
@@ -114,7 +115,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 1. Install the package: `composer require capell-app/search`.
 2. Run the required setup: `php artisan migrate`.
-3. Open `/screenshot-fixtures/catalogue/search/search-curation-annotated` and confirm the public output renders without admin state.
+3. Open `/search?q=capell` and confirm the public output renders without admin state.
 
 ## Next Steps
 
@@ -128,7 +129,7 @@ Screenshot contract: `docs/screenshots.json`.
 - [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
 - [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
-- Related packages: [Seo Suite](../seo-suite/README.md), [Site Discovery](../site-discovery/README.md), [Url Manager](../url-manager/README.md).
+- Related packages: [Discovery Foundation](../discovery-foundation/README.md), [Seo Suite](../seo-suite/README.md), [Site Discovery](../site-discovery/README.md), [Url Manager](../url-manager/README.md).
 - Focused tests: `vendor/bin/pest packages/search/tests --configuration=phpunit.xml`.
 
 <!-- prettier-ignore-end -->

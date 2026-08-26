@@ -213,6 +213,10 @@ class ScoutSearch implements Search
     }
 
     /**
+     * A payload is only public when it explicitly declares itself so. A
+     * source that hasn't declared any recognised visibility flag is denied
+     * by default, rather than assumed publishable.
+     *
      * @param  array<string, mixed>  $row
      */
     private function isPublicSearchPayload(array $row): bool
@@ -223,23 +227,37 @@ class ScoutSearch implements Search
             return false;
         }
 
+        $hasVisibilitySignal = false;
+
         foreach (['is_public', 'published', 'is_published'] as $flag) {
-            if (array_key_exists($flag, $row) && $row[$flag] !== true) {
-                return false;
+            if (array_key_exists($flag, $row)) {
+                $hasVisibilitySignal = true;
+
+                if ($row[$flag] !== true) {
+                    return false;
+                }
             }
         }
 
         foreach (['private', 'is_private'] as $flag) {
-            if (array_key_exists($flag, $row) && $row[$flag] === true) {
+            if (array_key_exists($flag, $row)) {
+                $hasVisibilitySignal = true;
+
+                if ($row[$flag] === true) {
+                    return false;
+                }
+            }
+        }
+
+        if (array_key_exists('visibility', $row)) {
+            $hasVisibilitySignal = true;
+
+            if ($row['visibility'] !== 'public') {
                 return false;
             }
         }
 
-        if (array_key_exists('visibility', $row) && $row['visibility'] !== 'public') {
-            return false;
-        }
-
-        return true;
+        return $hasVisibilitySignal;
     }
 
     /**

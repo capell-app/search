@@ -62,6 +62,7 @@ test('searches every enabled registered source and merges results', function ():
             'title' => 'Capell Search',
             'excerpt' => 'Search package result.',
             'slug' => 'capell-search',
+            'is_public' => true,
         ],
     ]);
 
@@ -89,12 +90,14 @@ test('honors engine relevance scores when ranking scout results', function (): v
             'excerpt' => 'Capell Capell Capell',
             'slug' => 'local-score',
             '_rankingScore' => 0.2,
+            'is_public' => true,
         ],
         [
             'title' => 'Capell Search Engine Winner',
             'excerpt' => 'Capell',
             'slug' => 'engine-score',
             '_rankingScore' => 0.9,
+            'is_public' => true,
         ],
     ]);
 
@@ -123,6 +126,7 @@ test('preserves scout engine totals beyond the fetched page window', function ()
             'excerpt' => 'Search package result.',
             'slug' => 'capell-search',
             '__engine_total' => 37,
+            'is_public' => true,
         ],
     ]);
 
@@ -147,6 +151,7 @@ test('preserves absolute urls from searchable payloads', function (): void {
             'title' => 'Capell Search',
             'excerpt' => 'Search package result.',
             'url' => 'https://capell-app.test/search-result',
+            'is_public' => true,
         ],
     ]);
 
@@ -171,6 +176,7 @@ test('site-scoped source filters records to the resolved site', function (): voi
             'excerpt' => 'Result belonging to another site.',
             'slug' => 'other-site',
             'site_id' => 2,
+            'is_public' => true,
         ],
     ]);
 
@@ -196,6 +202,7 @@ test('site-agnostic source ignores the resolved site filter', function (): void 
             'excerpt' => 'Site-agnostic showcase result.',
             'slug' => 'showcase-item',
             'site_id' => 2,
+            'is_public' => true,
         ],
     ]);
 
@@ -249,4 +256,34 @@ test('excludes unpublished and private payloads from public Scout results', func
 
     expect($results->total())->toBe(1)
         ->and(collect($results->items())->pluck('url')->all())->toBe(['/capell-public-search']);
+});
+
+test('excludes payloads that declare no recognised visibility flag', function (): void {
+    $registry = new SearchableSourceRegistry;
+    $registry->register(new SearchableSourceData(
+        key: 'primary',
+        label: 'Primary',
+        modelClass: SearchAdditionalCoverageScoutModel::class,
+        type: 'primary',
+        enabledByDefault: true,
+    ));
+
+    SearchAdditionalCoverageScoutModel::fakeRecords([
+        [
+            'title' => 'Capell Undeclared Search',
+            'excerpt' => 'No is_public, published, private, or visibility key at all.',
+            'slug' => 'capell-undeclared-search',
+        ],
+        [
+            'title' => 'Capell Declared Public Search',
+            'excerpt' => 'Explicitly declared public.',
+            'slug' => 'capell-declared-public-search',
+            'is_public' => true,
+        ],
+    ]);
+
+    $results = (new ScoutSearch($registry))->search('Capell');
+
+    expect($results->total())->toBe(1)
+        ->and(collect($results->items())->pluck('url')->all())->toBe(['/capell-declared-public-search']);
 });

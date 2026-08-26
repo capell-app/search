@@ -11,6 +11,7 @@ use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
@@ -34,6 +35,10 @@ final readonly class BuildSearchPageViewDataAction
             perPage: $this->resultsPerPage(),
             request: $request,
         );
+
+        if ($data->siteId === null) {
+            return $this->emptySearchPageViewData($query, $data, $request);
+        }
 
         $results = RunSearchAction::run($data)->withPath($request->url());
         $facetGroups = BuildSearchFacetGroupsAction::run(
@@ -62,6 +67,27 @@ final readonly class BuildSearchPageViewDataAction
                     $result->url => GenerateSearchClickTokenAction::run($data, $result->url),
                 ])
                 ->all(),
+        );
+    }
+
+    /**
+     * Site resolution failed for this request (no `site` route/request attribute
+     * could be resolved to an id). Refuse to search rather than falling through
+     * to an unscoped, cross-site query: return a safe empty result set instead.
+     */
+    private function emptySearchPageViewData(string $query, SearchRequestData $data, Request $request): SearchPageViewData
+    {
+        /** @var list<SearchResultData> $items */
+        $items = [];
+
+        $results = (new Paginator($items, 0, $data->perPage, $data->page))->withPath($request->url());
+
+        return new SearchPageViewData(
+            query: $query,
+            results: $results,
+            highlightedResults: new Collection,
+            facetGroups: [],
+            clickTrackingTokens: [],
         );
     }
 

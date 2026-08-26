@@ -25,6 +25,7 @@ it('maps scout search results to normalized result data', function (): void {
             'body' => 'Capell CMS search coverage',
             'path' => 'docs/capell',
             'kind' => 'guide',
+            'is_public' => true,
         ],
     ]);
 

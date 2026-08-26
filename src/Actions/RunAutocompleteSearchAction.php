@@ -47,14 +47,7 @@ final readonly class RunAutocompleteSearchAction
         );
 
         if ($normalizedQuery === '' || mb_strlen((string) $normalizedQuery) < $minimumLength) {
-            return new AutocompleteSearchResponseData(
-                query: $query,
-                minimumLength: $minimumLength,
-                results: [],
-                querySuggestions: [],
-                allResultsUrl: $this->allResultsUrl($query, $filters),
-                metadata: $metadata,
-            );
+            return $this->emptyResponse($query, $minimumLength, $filters, $metadata);
         }
 
         $limit = max(1, min(20, $this->integerConfig('capell-search.autocomplete.limit', 6)));
@@ -62,6 +55,12 @@ final readonly class RunAutocompleteSearchAction
         $language = $request->attributes->get('language');
         $siteId = is_object($site) ? $this->integerOrNull(data_get($site, 'id')) : null;
         $languageId = is_object($language) ? $this->integerOrNull(data_get($language, 'id')) : null;
+
+        if ($siteId === null) {
+            // Site resolution failed for this request: refuse to search rather
+            // than falling through to an unscoped, cross-site autocomplete query.
+            return $this->emptyResponse($query, $minimumLength, $filters, $metadata);
+        }
 
         $results = $this->search->search(
             query: (string) $normalizedQuery,
@@ -97,6 +96,22 @@ final readonly class RunAutocompleteSearchAction
                 siteId: $siteId,
                 languageId: $languageId,
             ),
+            allResultsUrl: $this->allResultsUrl($query, $filters),
+            metadata: $metadata,
+        );
+    }
+
+    private function emptyResponse(
+        string $query,
+        int $minimumLength,
+        SearchFilterData $filters,
+        SearchQueryMetadataData $metadata,
+    ): AutocompleteSearchResponseData {
+        return new AutocompleteSearchResponseData(
+            query: $query,
+            minimumLength: $minimumLength,
+            results: [],
+            querySuggestions: [],
             allResultsUrl: $this->allResultsUrl($query, $filters),
             metadata: $metadata,
         );

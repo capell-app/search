@@ -75,6 +75,39 @@ test('autocomplete returns no results for blank or too-short queries', function 
     ]);
 })->with(['', 'c']);
 
+test('autocomplete refuses to search and returns empty results when site context cannot be resolved', function (): void {
+    app()->instance(Search::class, new class implements Search
+    {
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+            ?SearchFilterData $filters = null,
+        ): LengthAwarePaginator {
+            throw new RuntimeException('Search should not run when site context cannot be resolved.');
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return str_replace('Search', '<mark>Search</mark>', e($text));
+        }
+    });
+
+    // A valid, long-enough query, but deliberately no 'site' request attribute:
+    // simulates site resolution having failed upstream of the action.
+    $request = Request::create('/search/autocomplete', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Capell']);
+    $response = (new SearchController)->autocomplete($request);
+
+    expect($response->getData(true))->toMatchArray([
+        'query' => 'Capell',
+        'minimumLength' => 2,
+        'results' => [],
+        'allResultsUrl' => route('capell-frontend.search', ['q' => 'Capell'], false),
+    ]);
+});
+
 test('autocomplete returns limited public-safe results without writing search logs', function (): void {
     config()->set('capell-search.autocomplete.limit', 1);
     config()->set('capell-search.promoted_results', [
@@ -136,6 +169,7 @@ test('autocomplete returns limited public-safe results without writing search lo
     });
 
     $request = Request::create('/search/autocomplete', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Capell']);
+    $request->attributes->set('site', searchControllerTestSite());
     $response = (new SearchController)->autocomplete($request);
     $payload = searchControllerJsonPayload($response);
     $results = searchControllerPayloadResults($payload);
@@ -182,6 +216,7 @@ test('autocomplete returns corrected query metadata and popular query suggestion
 
     SearchLog::query()->insert([
         [
+            'site_id' => 1,
             'query' => 'Capel migration',
             'normalized_query' => 'capel migration',
             'results_count' => 2,
@@ -190,6 +225,7 @@ test('autocomplete returns corrected query metadata and popular query suggestion
             'updated_at' => now(),
         ],
         [
+            'site_id' => 1,
             'query' => 'Capel marketplace',
             'normalized_query' => 'capel marketplace',
             'results_count' => 3,
@@ -219,6 +255,7 @@ test('autocomplete returns corrected query metadata and popular query suggestion
     });
 
     $request = Request::create('/search/autocomplete', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'capel']);
+    $request->attributes->set('site', searchControllerTestSite());
     $payload = searchControllerJsonPayload((new SearchController)->autocomplete($request));
     $metadata = searchControllerPayloadArray($payload, 'metadata');
     $suggestions = searchControllerPayloadSuggestions($payload);
@@ -356,6 +393,51 @@ test('click tracking endpoint enforces its configured rate limiter', function ()
     $this->post('/_search-click-rate-limit-test', $payload)->assertTooManyRequests();
 });
 
+test('click tracking route is not locked by an unregistered rate limiter', function (): void {
+    Schema::dropIfExists('search_logs');
+    Schema::create('search_logs', function (Blueprint $table): void {
+        $table->id();
+        $table->foreignId('site_id')->nullable()->index();
+        $table->foreignId('language_id')->nullable()->index();
+        $table->string('query');
+        $table->string('normalized_query')->index();
+        $table->string('normalized_query_hash', 64)->nullable()->index();
+        $table->unsignedInteger('results_count')->default(0);
+        $table->string('clicked_result_url')->nullable();
+        $table->string('clicked_result_hash', 64)->nullable()->index();
+        $table->string('ip_hash', 64)->nullable();
+        $table->string('user_agent_hash', 64)->nullable();
+        $table->timestamp('searched_at')->index();
+        $table->timestamps();
+    });
+
+    $searchData = new SearchRequestData(query: 'Laravel Search');
+    $log = SearchLog::query()->create([
+        'query' => 'Laravel Search',
+        'normalized_query' => HashSearchRetentionValueAction::run('laravel search'),
+        'normalized_query_hash' => HashSearchRetentionValueAction::run('laravel search'),
+        'results_count' => 1,
+        'searched_at' => now(),
+    ]);
+    $token = GenerateSearchClickTokenAction::run($searchData, '/laravel-search');
+
+    // Deliberately does NOT call RateLimiter::for('capell-search-clicks', ...)
+    // itself, and does NOT disable middleware: this exercises the real
+    // 'throttle:capell-search-clicks' middleware from routes/web.php against
+    // whatever SearchServiceProvider::registerPublicRateLimiters() registered
+    // at boot. An unregistered named limiter resolves to 0 max attempts and
+    // locks the endpoint on the very first request, which this guards against.
+    $this
+        ->post(route('capell-frontend.search.click'), [
+            'query' => 'Laravel Search',
+            'url' => '/laravel-search',
+            'token' => $token,
+        ])
+        ->assertNoContent();
+
+    expect($log->refresh()->clicked_result_url)->toBe('/laravel-search');
+});
+
 test('controller uses configured page view when it exists', function (): void {
     config()->set('capell-search.page_view', 'capell-search::components.form');
 
@@ -419,6 +501,7 @@ test('builds reusable search page view data through an action boundary', functio
     });
 
     $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Laravel Search']);
+    $request->attributes->set('site', searchControllerTestSite());
     $viewData = BuildSearchPageViewDataAction::run($request);
     $payload = $viewData->toViewData();
 
@@ -436,6 +519,39 @@ test('builds reusable search page view data through an action boundary', functio
             'query',
             'results',
         ]);
+});
+
+test('builds an empty search page view when site context cannot be resolved', function (): void {
+    app()->instance(Search::class, new class implements Search
+    {
+        public function search(
+            string $query,
+            int $perPage = 10,
+            int $page = 1,
+            ?int $siteId = null,
+            ?int $languageId = null,
+            ?SearchFilterData $filters = null,
+        ): LengthAwarePaginator {
+            throw new RuntimeException('Search should not run when site context cannot be resolved.');
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return $text;
+        }
+    });
+
+    // A valid, non-blank query, but deliberately no 'site' request attribute:
+    // simulates site resolution having failed upstream of the action.
+    $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Laravel Search']);
+    $viewData = BuildSearchPageViewDataAction::run($request);
+
+    expect($viewData->query)->toBe('Laravel Search')
+        ->and($viewData->results)->toBeInstanceOf(LengthAwarePaginator::class)
+        ->and($viewData->results->total())->toBe(0)
+        ->and($viewData->highlightedResults)->toBeEmpty()
+        ->and($viewData->facetGroups)->toBe([])
+        ->and($viewData->clickTrackingTokens)->toBe([]);
 });
 
 test('controller returns the search page view with an empty paginator for a blank query', function (): void {
@@ -579,6 +695,7 @@ test('controller passes normalized valid searches to the site search service', f
     });
 
     $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => '  Laravel   Search  ', 'page' => '2']);
+    $request->attributes->set('site', searchControllerTestSite());
     $view = (new SearchController)($request);
 
     expect($recordedSearch->queries)->toBe(['laravel search']);
@@ -704,6 +821,7 @@ test('controller renders public filter facets with live counts', function (): vo
         'q' => 'Laravel',
         'type' => ['page'],
     ]);
+    $request->attributes->set('site', searchControllerTestSite());
     $view = (new SearchController)($request);
     $html = $view->render();
 
@@ -746,6 +864,7 @@ test('public search markup does not expose package identifiers', function (): vo
     });
 
     $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Laravel']);
+    $request->attributes->set('site', searchControllerTestSite());
     $html = (new SearchController)($request)->render();
 
     expect($html)
@@ -829,4 +948,16 @@ function searchControllerStringKeyedArray(array $values): array
     }
 
     return $result;
+}
+
+/**
+ * An in-memory site so tests can populate the `site` request attribute the
+ * frontend resolver would normally set, without touching the database.
+ */
+function searchControllerTestSite(): Site
+{
+    $site = new Site;
+    $site->setRawAttributes(['id' => 1, 'name' => 'Capell']);
+
+    return $site;
 }

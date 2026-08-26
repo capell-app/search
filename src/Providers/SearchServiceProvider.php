@@ -158,6 +158,12 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         RateLimiter::for(is_string($name) ? $name : 'capell-search-autocomplete', static fn (Request $request): Limit => Limit::perMinute(
             self::configuredRateLimit('capell-search.autocomplete.rate_limit.per_minute', 120),
         )->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
+
+        $clickName = config('capell-search.click_tracking.rate_limiter', 'capell-search-clicks');
+
+        RateLimiter::for(is_string($clickName) ? $clickName : 'capell-search-clicks', static fn (Request $request): Limit => Limit::perMinute(
+            self::configuredRateLimit('capell-search.click_tracking.rate_limit.per_minute', 60),
+        )->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
     }
 
     private function registerSearchBinding(): self

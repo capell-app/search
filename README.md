@@ -44,7 +44,6 @@ Screenshot contract: `docs/screenshots.json`.
 - Zero-result searches widget (admin, supplementary evidence).
 - Site search settings screen (admin, supplementary evidence).
 - Illustrative annotated search curation settings preview (frontend, required evidence).
-- Top searches widget with admin sidebar menu open (admin, supplementary evidence).
 
 ## Technical Shape
 

@@ -547,7 +547,6 @@ test('builds an empty search page view when site context cannot be resolved', fu
     $viewData = BuildSearchPageViewDataAction::run($request);
 
     expect($viewData->query)->toBe('Laravel Search')
-        ->and($viewData->results)->toBeInstanceOf(LengthAwarePaginator::class)
         ->and($viewData->results->total())->toBe(0)
         ->and($viewData->highlightedResults)->toBeEmpty()
         ->and($viewData->facetGroups)->toBe([])

@@ -49,7 +49,7 @@ final readonly class BuildSearchPageViewDataAction
             languageId: $data->languageId,
         );
 
-        if (CanCollectSearchAnalyticsAction::run($request) && $data->siteId !== null) {
+        if (CanCollectSearchAnalyticsAction::run($request)) {
             RecordSearchAction::dispatchAfterResponse(
                 $data,
                 $results->total(),

@@ -31,7 +31,7 @@ final class SearchLog extends Model
 
     protected static string $factory = SearchLogFactory::class;
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
     #[Override]
     public function getTable(): string
@@ -39,6 +39,7 @@ final class SearchLog extends Model
         return config('capell-search.logs.table_name', 'search_logs');
     }
 
+    #[Override]
     protected static function booted(): void
     {
         self::saving(static function (self $searchLog): void {

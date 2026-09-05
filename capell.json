@@ -43,7 +43,15 @@
                 "capell-frontend.search",
                 "capell-frontend.search.autocomplete",
                 "capell-frontend.search.click"
-            ]
+            ],
+            "surface": "frontend"
+        },
+        {
+            "type": "agent-capability",
+            "class": "Capell\\Search\\Manifest\\SearchAgentToolContribution",
+            "providerBucket": "runtime",
+            "context": "public",
+            "surface": "frontend"
         },
         {
             "type": "model",

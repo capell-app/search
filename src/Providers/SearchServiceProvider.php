@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Search\Providers;
 
+use Capell\Core\Contracts\Agent\AgentPageSearch;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Settings\SettingsGroupMetadata;
@@ -18,6 +19,7 @@ use Capell\Search\Drivers\ScoutSearch;
 use Capell\Search\Drivers\SiteDiscoverySearch;
 use Capell\Search\Enums\SearchDriver;
 use Capell\Search\Filament\Settings\SearchSettingsSchema;
+use Capell\Search\Integrations\Agent\AgentPageSearchAdapter;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Settings\SearchSettings;
 use Capell\Search\Support\RenderHooks\RegisterHeaderSearchHook;
@@ -72,6 +74,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         }
     }
 
+    #[Override]
     public function registeringPackage(): void
     {
         parent::registeringPackage();
@@ -99,6 +102,8 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         if (! $this->isPackageInstalled()) {
             return;
         }
+
+        $this->registerAgentPageSearchBinding();
 
         $this
             ->registerModels()
@@ -206,6 +211,28 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
                 languageColumn: config('capell-search.database.language_column', 'language_id'),
                 statusColumn: config('capell-search.database.status_column', 'status'),
                 publishedStatus: config('capell-search.database.published_status', 'published'),
+            );
+        });
+
+        return $this;
+    }
+
+    private function registerAgentPageSearchBinding(): self
+    {
+        if (! interface_exists(AgentPageSearch::class) || ! class_exists(AgentPageSearchAdapter::class)) {
+            return $this;
+        }
+
+        $this->app->bindIf(AgentPageSearch::class, function (Application $app): AgentPageSearch {
+            $perPage = ResolveSearchSettingAction::run(
+                'results_per_page',
+                'capell-search.results_per_page',
+                10,
+            );
+
+            return new AgentPageSearchAdapter(
+                search: $app->make(Search::class),
+                perPage: is_int($perPage) ? max(1, min(100, $perPage)) : 10,
             );
         });
 

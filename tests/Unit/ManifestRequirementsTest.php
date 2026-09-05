@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Contracts\Agent\DefinesAgentTool;
 use Capell\Core\Contracts\Extensions\ChecksExtensionHealth;
 use Capell\Core\Contracts\Extensions\ExtensionContribution;
 use Capell\Core\Contracts\Extensions\RegistersExtensionFilamentWidget;
@@ -28,6 +29,7 @@ use Capell\Search\Filament\Widgets\TopSearchesFilamentWidget;
 use Capell\Search\Filament\Widgets\TrendingSearchesFilamentWidget;
 use Capell\Search\Filament\Widgets\ZeroResultSearchesFilamentWidget;
 use Capell\Search\Health\SearchHealthCheck;
+use Capell\Search\Manifest\SearchAgentToolContribution;
 use Capell\Search\Manifest\SearchConsoleCommandsContribution;
 use Capell\Search\Manifest\SearchFrontendRouteContribution;
 use Capell\Search\Manifest\SearchHealthContribution;
@@ -85,6 +87,14 @@ it('declares implemented search gap features contributions and actions', functio
                 'capell-frontend.search.autocomplete',
                 'capell-frontend.search.click',
             ],
+            'surface' => 'frontend',
+        ])
+        ->and(data_get($manifest, 'contributes'))->toContain([
+            'type' => 'agent-capability',
+            'class' => SearchAgentToolContribution::class,
+            'providerBucket' => 'runtime',
+            'context' => 'public',
+            'surface' => 'frontend',
         ])
         ->and(data_get($manifest, 'contributes'))->toContain([
             'type' => 'model',
@@ -164,6 +174,20 @@ it('declares implemented search gap features contributions and actions', functio
         ->and(data_get($manifest, 'capabilities'))->toContain(
             'search-site-discovery-indexing',
         )
+        ->and(class_implements(SearchAgentToolContribution::class))->toContain(DefinesAgentTool::class)
+        ->and(SearchAgentToolContribution::agentToolDefinition()->toPublicArray())->toBe([
+            'name' => 'site.search',
+            'description' => __('capell-search::agent.tools.site_search'),
+            'inputSchema' => [
+                'type' => 'object',
+                'properties' => ['q' => ['type' => 'string', 'maxLength' => 200]],
+                'required' => ['q'],
+                'additionalProperties' => false,
+            ],
+            'outputSchema' => ['type' => 'object'],
+            'effect' => 'read',
+            'binding' => ['type' => 'endpoint', 'target' => '/agent/v1/search'],
+        ])
         ->and(class_implements(SearchFrontendRouteContribution::class))->toContain(RegistersExtensionRoute::class)
         ->and(class_implements(TopSearchesWidgetContribution::class))->toContain(RegistersExtensionFilamentWidget::class)
         ->and(class_implements(TrendingSearchesWidgetContribution::class))->toContain(RegistersExtensionFilamentWidget::class)

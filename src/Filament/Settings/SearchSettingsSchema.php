@@ -19,9 +19,11 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Override;
 
 final class SearchSettingsSchema implements HasSchema
 {
+    #[Override]
     public static function make(Schema $configurator): array
     {
         return [
@@ -38,35 +40,47 @@ final class SearchSettingsSchema implements HasSchema
                             ->label(__('capell-search::settings.show_header_search')),
                         'capell-search::settings.show_header_search_helper',
                     ),
-                    Select::make('driver')
-                        ->label(__('capell-search::settings.driver'))
-                        ->options(SearchDriver::class)
-                        ->required(),
-                    TextInput::make('results_per_page')
-                        ->label(__('capell-search::settings.results_per_page'))
-                        ->integer()
-                        ->minValue(1)
-                        ->maxValue(50),
+                    HelperText::apply(
+                        Select::make('driver')
+                            ->label(__('capell-search::settings.driver'))
+                            ->options(SearchDriver::class)
+                            ->required(),
+                        'capell-search::settings.driver_helper',
+                    ),
+                    HelperText::apply(
+                        TextInput::make('results_per_page')
+                            ->label(__('capell-search::settings.results_per_page'))
+                            ->integer()
+                            ->minValue(1)
+                            ->maxValue(50),
+                        'capell-search::settings.results_per_page_helper',
+                    ),
                     HelperText::apply(
                         Toggle::make('record_search_logs')
                             ->label(__('capell-search::settings.record_search_logs')),
                         'capell-search::settings.record_search_logs_helper',
                     ),
-                    TextInput::make('log_retention_days')
-                        ->label(__('capell-search::settings.log_retention_days'))
-                        ->integer()
-                        ->minValue(1)
-                        ->suffix(__('capell-admin::form.days')),
+                    HelperText::apply(
+                        TextInput::make('log_retention_days')
+                            ->label(__('capell-search::settings.log_retention_days'))
+                            ->integer()
+                            ->minValue(1)
+                            ->suffix(__('capell-admin::form.days')),
+                        'capell-search::settings.log_retention_days_helper',
+                    ),
                     HelperText::apply(
                         Toggle::make('hash_visitor_data')
                             ->label(__('capell-search::settings.hash_visitor_data')),
                         'capell-search::settings.hash_visitor_data_helper',
                     ),
-                    TextInput::make('minimum_query_length')
-                        ->label(__('capell-search::settings.minimum_query_length'))
-                        ->integer()
-                        ->minValue(1)
-                        ->maxValue(10),
+                    HelperText::apply(
+                        TextInput::make('minimum_query_length')
+                            ->label(__('capell-search::settings.minimum_query_length'))
+                            ->integer()
+                            ->minValue(1)
+                            ->maxValue(10),
+                        'capell-search::settings.minimum_query_length_helper',
+                    ),
                     ...self::searchableSourceToggles(),
                 ]),
             Section::make(__('capell-search::settings.curation'))
@@ -99,26 +113,44 @@ final class SearchSettingsSchema implements HasSchema
                         ->label(__('capell-search::settings.promoted_results'))
                         ->helperText(__('capell-search::settings.promoted_results_helper'))
                         ->schema([
-                            TagsInput::make('queries')
-                                ->label(__('capell-search::settings.promoted_queries'))
-                                ->required(),
-                            TextInput::make('title')
-                                ->label(__('capell-search::settings.promoted_title'))
-                                ->required(),
-                            TextInput::make('url')
-                                ->label(__('capell-search::settings.promoted_url'))
-                                ->required(),
-                            Textarea::make('excerpt')
-                                ->label(__('capell-search::settings.promoted_excerpt'))
-                                ->rows(2)
-                                ->columnSpanFull(),
-                            TextInput::make('type')
-                                ->label(__('capell-search::settings.promoted_type'))
-                                ->default('page'),
-                            TextInput::make('score')
-                                ->label(__('capell-search::settings.promoted_score'))
-                                ->numeric()
-                                ->default(1000.0),
+                            HelperText::apply(
+                                TagsInput::make('queries')
+                                    ->label(__('capell-search::settings.promoted_queries'))
+                                    ->required(),
+                                'capell-search::settings.promoted_queries_helper',
+                            ),
+                            HelperText::apply(
+                                TextInput::make('title')
+                                    ->label(__('capell-search::settings.promoted_title'))
+                                    ->required(),
+                                'capell-search::settings.promoted_title_helper',
+                            ),
+                            HelperText::apply(
+                                TextInput::make('url')
+                                    ->label(__('capell-search::settings.promoted_url'))
+                                    ->required(),
+                                'capell-search::settings.promoted_url_helper',
+                            ),
+                            HelperText::apply(
+                                Textarea::make('excerpt')
+                                    ->label(__('capell-search::settings.promoted_excerpt'))
+                                    ->rows(2)
+                                    ->columnSpanFull(),
+                                'capell-search::settings.promoted_excerpt_helper',
+                            ),
+                            HelperText::apply(
+                                TextInput::make('type')
+                                    ->label(__('capell-search::settings.promoted_type'))
+                                    ->default('page'),
+                                'capell-search::settings.promoted_type_helper',
+                            ),
+                            HelperText::apply(
+                                TextInput::make('score')
+                                    ->label(__('capell-search::settings.promoted_score'))
+                                    ->numeric()
+                                    ->default(1000.0),
+                                'capell-search::settings.promoted_score_helper',
+                            ),
                         ])
                         ->defaultItems(0)
                         ->collapsible()

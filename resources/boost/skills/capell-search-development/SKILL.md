@@ -1,6 +1,6 @@
 ---
 name: capell-search-development
-description: Use when editing Capell Search drivers, frontend search, logging, or insights.
+description: Frontend search route, search drivers, result click tracking, query logs, and admin insights. Use when editing Capell Search drivers, frontend search, logging, or insights.
 ---
 
 # Capell Search

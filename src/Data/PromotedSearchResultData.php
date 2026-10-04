@@ -22,9 +22,14 @@ final class PromotedSearchResultData extends Data
 
     public function toSearchResult(): SearchResultData
     {
+        // Preserve schemes for the public URL policy applied by ApplySearchResultEnhancementsAction.
+        $url = parse_url($this->url, PHP_URL_SCHEME) !== null
+            ? $this->url
+            : '/' . ltrim($this->url, '/');
+
         return new SearchResultData(
             title: $this->title,
-            url: '/' . ltrim($this->url, '/'),
+            url: $url,
             excerpt: $this->excerpt,
             type: $this->type,
             score: $this->score,

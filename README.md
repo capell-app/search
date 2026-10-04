@@ -10,8 +10,6 @@ Search adds public search, autocomplete, facets, synonyms, promoted results, spe
 
 Visitors can search indexed site content from the public search surface. Admins configure search behaviour and inspect top, trending, clicked, and zero-result queries.
 
-Evidence: [`src/Actions/RunSearchAction.php`](src/Actions/RunSearchAction.php), [`src/Actions/RunAutocompleteSearchAction.php`](src/Actions/RunAutocompleteSearchAction.php), [`src/Actions/BuildSearchFacetGroupsAction.php`](src/Actions/BuildSearchFacetGroupsAction.php), [`tests/Feature/Http/SearchControllerTest.php`](tests/Feature/Http/SearchControllerTest.php), [`routes/web.php`](routes/web.php), [`src/Filament/Pages/SearchSettingsPage.php`](src/Filament/Pages/SearchSettingsPage.php), [`src/Actions/BuildTopSearchesQueryAction.php`](src/Actions/BuildTopSearchesQueryAction.php), [`src/Actions/BuildZeroResultSearchesQueryAction.php`](src/Actions/BuildZeroResultSearchesQueryAction.php).
-
 Status details:
 
 - Status: Available
@@ -26,8 +24,6 @@ Status details:
 **For developers:** The searchable-source registry and Search contract keep indexing backends replaceable while Actions normalize, sanitize, enhance, and record queries.
 
 **For teams:** Teams can help visitors find content and use failed or repeated searches to decide which synonyms, promoted results, or content gaps to address.
-
-Evidence: [`src/Support/SearchableSourceRegistry.php`](src/Support/SearchableSourceRegistry.php), [`src/Contracts/Search.php`](src/Contracts/Search.php), [`src/Actions/SanitizeSearchResultAction.php`](src/Actions/SanitizeSearchResultAction.php), [`tests/Feature/Providers/SearchServiceProviderTest.php`](tests/Feature/Providers/SearchServiceProviderTest.php), [`docs/overview.admin.md`](docs/overview.admin.md), [`src/Actions/CreateSynonymFromZeroResultSearchAction.php`](src/Actions/CreateSynonymFromZeroResultSearchAction.php), [`src/Actions/CreatePromotedResultFromZeroResultSearchAction.php`](src/Actions/CreatePromotedResultFromZeroResultSearchAction.php), [`tests/Feature/Actions/ZeroResultCurationActionsTest.php`](tests/Feature/Actions/ZeroResultCurationActionsTest.php).
 
 ## Screens And Workflow
 
@@ -61,6 +57,7 @@ Screenshot contract: `docs/screenshots.json`.
 - `packages/search/database/migrations/2026_05_10_190868_01_create_search_logs_table.php`
 - `packages/search/database/migrations/2026_05_21_000002_add_fulltext_index_to_search_database_table.php`
 - `packages/search/database/migrations/2026_07_12_000001_encrypt_search_log_pii.php`
+- `packages/search/database/migrations/2026_09_29_120000_remove_implicit_timestamp_updates_from_search.php`
 
 ### Settings migrations
 
@@ -128,6 +125,8 @@ Screenshot contract: `docs/screenshots.json`.
 - `RunAutocompleteSearchAction`
 - `RunSearchAction`
 - `SanitizeSearchResultAction`
+- `SeedSearchScreenshotFixtureAction`
+- `SeedSearchScreenshotWidgetAction`
 
 ### Data objects
 
@@ -151,6 +150,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 ### Command signatures
 
+- `capell:search:screenshot-fixture`
 - `search:flush`
 - `search:index`
 - `search:purge`
@@ -184,6 +184,7 @@ Screenshot contract: `docs/screenshots.json`.
 - `FlushSearchCommand`
 - `IndexSearchCommand`
 - `PurgeSearchLogsCommand`
+- `SeedSearchScreenshotFixtureCommand`
 
 ### Manifest contributions
 
@@ -194,6 +195,7 @@ Screenshot contract: `docs/screenshots.json`.
 - `dashboard-widget: Capell\Search\Manifest\TrendingSearchesWidgetContribution`
 - `dashboard-widget: Capell\Search\Manifest\ZeroResultSearchesWidgetContribution`
 - `health-check: Capell\Search\Manifest\SearchHealthContribution`
+- `migration: Capell\Search\Manifest\SearchMigrationsContribution`
 - `model: Capell\Search\Manifest\SearchLogModelContribution`
 - `overview-stat: Capell\Search\Manifest\SearchOverviewStatsContribution`
 - `route: Capell\Search\Manifest\SearchFrontendRouteContribution`
@@ -227,7 +229,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Required tables: `search_logs`.
 - Models: `SearchLog`.
 - Core record references in migrations: `sites via site_id`, `languages via language_id`.
-- Migration files: `2026_05_10_190868_01_create_search_logs_table.php`, `2026_05_21_000002_add_fulltext_index_to_search_database_table.php`, `2026_07_12_000001_encrypt_search_log_pii.php`.
+- Migration files: `2026_05_10_190868_01_create_search_logs_table.php`, `2026_05_21_000002_add_fulltext_index_to_search_database_table.php`, `2026_07_12_000001_encrypt_search_log_pii.php`, `2026_09_29_120000_remove_implicit_timestamp_updates_from_search.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
 - Deletion/retention behaviour: migrations declare null-on-delete relationships; retention is scheduled through `search:purge` (monthly; registered by the package provider).
 
@@ -243,7 +245,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Settings: `Capell\Search\Settings\SearchSettings`.
 - Queues or schedules: scheduled commands `search:purge (monthly; package registered)`.
 - Cache tags: `search`.
-- Commands: `search:flush`, `search:index`, `search:purge`.
+- Commands: `capell:search:screenshot-fixture`, `search:flush`, `search:index`, `search:purge`.
 
 ## Common Pitfalls
 
@@ -284,6 +286,5 @@ Screenshot contract: `docs/screenshots.json`.
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
 - [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
 - Related packages: [Discovery Foundation](../discovery-foundation/README.md), [Seo Suite](../seo-suite/README.md), [Site Discovery](../site-discovery/README.md), [Url Manager](../url-manager/README.md).
-- Focused tests: `vendor/bin/pest packages/search/tests --configuration=phpunit.xml`.
 
 <!-- prettier-ignore-end -->

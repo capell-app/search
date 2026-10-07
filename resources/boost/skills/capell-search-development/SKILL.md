@@ -18,4 +18,4 @@ Frontend search route, search drivers, result click tracking, query logs, and ad
 - Keep drivers behind contracts; do not hard-code one search backend.
 - Query logging must respect settings and privacy expectations.
 - Frontend search should stay cache-safe and site-scoped.
-- Run `vendor/bin/pest packages/search/tests`.
+- Verify customisations in the consuming application's test suite.

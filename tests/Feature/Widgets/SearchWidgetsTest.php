@@ -10,7 +10,7 @@ use Capell\Search\Filament\Widgets\TrendingSearchesFilamentWidget;
 use Capell\Search\Filament\Widgets\ZeroResultSearchesFilamentWidget;
 use Capell\Search\Models\SearchLog;
 use Capell\Tests\Fixtures\Models\User;
-use Filament\Panel;
+use Filament\Facades\Filament;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -81,6 +81,7 @@ test('search evidence renders different real widget states from the same query l
     } finally {
         putenv('CAPELL_SCREENSHOT_FIXTURE');
     }
+
     $top = Livewire::test(TopSearchesFilamentWidget::class)
         ->assertSee('Top searches')->assertSee('Screenshot publishing guide')->assertSee('Screenshot missing guide')->html();
     $trending = Livewire::test(TrendingSearchesFilamentWidget::class)
@@ -94,7 +95,7 @@ test('search evidence renders different real widget states from the same query l
 
 test('widget fixture routes render their own populated component instead of the dashboard', function (): void {
     $this->actingAs(User::factory()->create());
-    filament()->registerPanel(Panel::make()->id('admin')->path('admin')->default());
+    Filament::setCurrentPanel(Filament::getDefaultPanel());
     View::addNamespace('workbench', dirname(__DIR__, 5) . '/workbench/resources/views');
     require dirname(__DIR__, 3) . '/workbench/routes/screenshot-fixtures.php';
     putenv('CAPELL_SCREENSHOT_FIXTURE=record-state');

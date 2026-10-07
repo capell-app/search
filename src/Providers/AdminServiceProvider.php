@@ -8,7 +8,7 @@ use Capell\Admin\Contracts\DashboardSettingsContributor;
 use Capell\Admin\Data\Extensions\ExtensionManagementSurfaceData;
 use Capell\Admin\Enums\DashboardEnum;
 use Capell\Admin\Facades\CapellAdmin;
-use Capell\Core\Facades\CapellCore;
+use Capell\Core\Support\Packages\RegistersInstalledRuntime;
 use Capell\Search\Actions\BuildTopSearchesQueryAction;
 use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
 use Capell\Search\Console\Commands\FlushSearchCommand;
@@ -23,38 +23,33 @@ use Capell\Search\Filament\Widgets\TrendingSearchesFilamentWidget;
 use Capell\Search\Filament\Widgets\ZeroResultSearchesFilamentWidget;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\ServiceProvider;
 use Override;
 use Spatie\Permission\PermissionRegistrar;
 
 final class AdminServiceProvider extends ServiceProvider
 {
+    use RegistersInstalledRuntime;
+
     private const string REQUEST_SEARCH_OVERVIEW_CACHE_KEY = 'capell.search.admin.overview';
 
     #[Override]
     public function register(): void
     {
-        //
+        $this->registerInstalledRuntime(SearchServiceProvider::$packageName, 'admin');
     }
 
-    public function boot(): void
+    protected function bootInstalledRuntime(): void
     {
-        if (! $this->isPackageInstalled()) {
-            return;
-        }
-
         $this->registerDashboardSettingsContributor()
             ->registerCommands()
             ->registerExtensionPages()
             ->registerOverviewStats()
             ->registerDashboardFilamentWidgets()
             ->registerSchedule();
-    }
-
-    private function isPackageInstalled(): bool
-    {
-        return CapellCore::isPackageInstalled(SearchServiceProvider::$packageName);
     }
 
     private function registerDashboardSettingsContributor(): self
@@ -82,11 +77,11 @@ final class AdminServiceProvider extends ServiceProvider
 
     private function registerCommands(): self
     {
-        if (! $this->app->runningInConsole()) {
+        if (! class_exists(PurgeSearchLogsCommand::class)) {
             return $this;
         }
 
-        if (! class_exists(PurgeSearchLogsCommand::class)) {
+        if (! $this->app->runningInConsole()) {
             return $this;
         }
 
@@ -104,6 +99,17 @@ final class AdminServiceProvider extends ServiceProvider
         }
 
         $this->commands($commands);
+
+        if (
+            $this->app instanceof Application
+            && $this->app->isBooted()
+            && $this->app->bound('installed-runtime.initially-installed')
+            && $this->app->make('installed-runtime.initially-installed') === false
+        ) {
+            foreach ($commands as $command) {
+                Artisan::registerCommand($this->app->make($command));
+            }
+        }
 
         return $this;
     }

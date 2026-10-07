@@ -32,8 +32,10 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\RateLimiter;
 use Override;
+use ReflectionProperty;
 use Spatie\LaravelPackageTools\Package;
 
 final class SearchServiceProvider extends AbstractPackageServiceProvider
@@ -71,9 +73,6 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             ]);
         }
 
-        if (file_exists(__DIR__ . '/../../routes/web.php')) {
-            $package->hasRoute('web');
-        }
     }
 
     #[Override]
@@ -99,17 +98,20 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
     }
 
     #[Override]
-    public function packageBooted(): void
+    protected function bootPackage(): self
     {
         $this->registerPublicRateLimiters();
 
-        if (! $this->isPackageInstalled()) {
-            return;
-        }
+        return $this;
+    }
 
+    #[Override]
+    protected function bootInstalledRuntime(): void
+    {
         $this->registerAgentPageSearchBinding();
 
         $this
+            ->registerRoutes()
             ->registerModels()
             ->registerSettings()
             ->registerGeneratedOutputCoverage()
@@ -152,6 +154,21 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         $value = config($key, $default);
 
         return max(1, is_int($value) ? $value : $default);
+    }
+
+    private function registerRoutes(): self
+    {
+        $router = $this->app->make(Router::class);
+        $groups = new ReflectionProperty(Router::class, 'groupStack');
+        $previous = $groups->getValue($router);
+        $groups->setValue($router, []);
+        try {
+            $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
+        } finally {
+            $groups->setValue($router, $previous);
+        }
+
+        return $this;
     }
 
     private function registerPublicRateLimiters(): void

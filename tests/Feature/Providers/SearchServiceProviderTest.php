@@ -114,9 +114,17 @@ test('provider registers installed surfaces during the package boot lifecycle', 
 
     expect(CapellCore::isPackageInstalled(SearchServiceProvider::$packageName))->toBeTrue();
 
-    $provider->packageBooted();
+    $bootInstalledRuntime = new ReflectionMethod(SearchServiceProvider::class, 'bootInstalledRuntime');
+    $bootInstalledRuntime->invoke($provider);
 
     expect(CapellCore::getModels())->toContain(SearchLog::class);
+});
+
+test('late installation does not register search commands in an HTTP application', function (): void {
+    $source = file_get_contents(__DIR__ . '/../../../src/Providers/AdminServiceProvider.php');
+
+    expect($source)->toBeString()
+        ->and($source)->toMatch('/if \(! \$this->app->runningInConsole\(\)\) \{\s*return \$this;\s*\}\s*\n\s*\$commands/');
 });
 
 test('provider registers configured searchable sources', function (): void {

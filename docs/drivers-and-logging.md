@@ -40,11 +40,11 @@ Scout sources are registered through `capell-search.searchables`. Each source mu
 ],
 ```
 
-Use the package commands for explicit maintenance:
+Run the package commands in your installed Capell application:
 
 ```bash
-vendor/bin/testbench search:index --source=articles --chunk=500
-vendor/bin/testbench search:flush --source=articles
+php artisan search:index --source=articles --chunk=500
+php artisan search:flush --source=articles
 ```
 
 When a source model changes public visibility, site/language assignment, URL, title, or body payload, that source should either rely on Scout's model observer behavior or dispatch its own searchable/unsearchable update. The Search package's health check proves the configured driver resolves and query logs are writable; it does not contact remote Meili/Typesense services or prove external index freshness.
@@ -115,9 +115,3 @@ Use package actions instead of writing `SearchLog` rows directly:
 Hash visitor data unless a product requirement says otherwise.
 
 Click-through counts are cached briefly on the frontend hot path and scoped to the active site when search receives a site context. Recording a result click through `RecordSearchResultClickAction` invalidates the all-site cache and the clicked log's site-specific cache so boosted result ordering catches up without waiting for the TTL.
-
-## Verification
-
-```bash
-vendor/bin/pest packages/search/tests --configuration=phpunit.xml
-```

@@ -4,11 +4,12 @@
     "scenarios": {
         "default": {
             "source": {
-                "ref": "origin/main",
-                "commit": "646068b2d21e233ea517c342d62bc0eca1762192",
+                "ref": "HEAD",
+                "commit": "9e36c2cd9c49db1e23e7c49e79f07c9361e2e0ba",
                 "providers": {
-                    "Providers/AdminServiceProvider.php": "333a35f334280562a95ea83454da482c46f6c42eeda59eff8665f26ee31578d7",
-                    "Providers/SearchServiceProvider.php": "5e323b496255ff0421c663f37b0389cf10c98d654594921b00e4a8be890bbe77"
+                    "Providers/AdminServiceProvider.php": "5b96cdad27677cec1cbc4256bcb0bdb118590b4c8f05b8ddebbf622442c672dd",
+                    "Providers/ConsoleServiceProvider.php": "1c87e0afe84a22c7cc25a42d7a6674b507e7ca124749af12d36543d6a612fdf8",
+                    "Providers/SearchServiceProvider.php": "6413c6133d575d924e667708347a5ecd283bbb34221e887dd9faac92c89507a7"
                 }
             },
             "disabledContributions": [
@@ -165,7 +166,12 @@
                 "listeners": [],
                 "gates": [],
                 "policies": [],
-                "commands": [],
+                "commands": [
+                    "capell:search:screenshot-fixture",
+                    "search:flush",
+                    "search:index",
+                    "search:purge"
+                ],
                 "view-namespaces": ["capell-search"],
                 "config-keys": [
                     "capell-search",

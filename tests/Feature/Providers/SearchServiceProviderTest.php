@@ -12,10 +12,12 @@ use Capell\Search\Drivers\SiteDiscoverySearch;
 use Capell\Search\Enums\SearchDriver;
 use Capell\Search\Filament\Settings\SearchSettingsSchema;
 use Capell\Search\Models\SearchLog;
+use Capell\Search\Providers\ConsoleServiceProvider;
 use Capell\Search\Providers\SearchServiceProvider;
 use Capell\Search\Settings\SearchSettings;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Application;
 
 test('provider binds site discovery as the default search driver', function (): void {
     app()->register(SearchServiceProvider::class);
@@ -121,10 +123,12 @@ test('provider registers installed surfaces during the package boot lifecycle', 
 });
 
 test('late installation does not register search commands in an HTTP application', function (): void {
-    $source = file_get_contents(__DIR__ . '/../../../src/Providers/AdminServiceProvider.php');
+    $application = Mockery::mock(Application::class);
+    $application->shouldReceive('runningInConsole')->once()->andReturnFalse();
+    $application->shouldNotReceive('afterResolving');
+    $application->shouldNotReceive('make');
 
-    expect($source)->toBeString()
-        ->and($source)->toMatch('/if \(! \$this->app->runningInConsole\(\)\) \{\s*return \$this;\s*\}\s*\n\s*\$commands/');
+    (new ConsoleServiceProvider($application))->register();
 });
 
 test('provider registers configured searchable sources', function (): void {

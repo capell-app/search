@@ -29,8 +29,8 @@
         "conflicts": []
     },
     "providers": {
-        "metadata": [],
-        "install": [],
+        "metadata": ["Capell\\Search\\Providers\\SearchServiceProvider"],
+        "install": ["Capell\\Search\\Providers\\ConsoleServiceProvider"],
         "runtime": ["Capell\\Search\\Providers\\SearchServiceProvider"],
         "admin": ["Capell\\Search\\Providers\\AdminServiceProvider"],
         "frontend": []

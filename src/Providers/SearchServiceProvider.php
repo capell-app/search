@@ -80,6 +80,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
     {
         parent::registeringPackage();
 
+        $this->app->register(ConsoleServiceProvider::class);
         $this->app->register(AdminServiceProvider::class);
     }
 

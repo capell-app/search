@@ -11,10 +11,7 @@ use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Support\Packages\RegistersInstalledRuntime;
 use Capell\Search\Actions\BuildTopSearchesQueryAction;
 use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
-use Capell\Search\Console\Commands\FlushSearchCommand;
-use Capell\Search\Console\Commands\IndexSearchCommand;
 use Capell\Search\Console\Commands\PurgeSearchLogsCommand;
-use Capell\Search\Console\Commands\SeedSearchScreenshotFixtureCommand;
 use Capell\Search\Data\SearchInsightsWindowData;
 use Capell\Search\Data\SearchTermSummaryData;
 use Capell\Search\Filament\Settings\Contributors\SearchDashboardSettingsContributor;
@@ -23,9 +20,7 @@ use Capell\Search\Filament\Widgets\TrendingSearchesFilamentWidget;
 use Capell\Search\Filament\Widgets\ZeroResultSearchesFilamentWidget;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\ServiceProvider;
 use Override;
 use Spatie\Permission\PermissionRegistrar;
@@ -45,7 +40,6 @@ final class AdminServiceProvider extends ServiceProvider
     protected function bootInstalledRuntime(): void
     {
         $this->registerDashboardSettingsContributor()
-            ->registerCommands()
             ->registerExtensionPages()
             ->registerOverviewStats()
             ->registerDashboardFilamentWidgets()
@@ -71,45 +65,6 @@ final class AdminServiceProvider extends ServiceProvider
             settingsGroup: 'search',
             icon: 'heroicon-o-magnifying-glass',
         ));
-
-        return $this;
-    }
-
-    private function registerCommands(): self
-    {
-        if (! class_exists(PurgeSearchLogsCommand::class)) {
-            return $this;
-        }
-
-        if (! $this->app->runningInConsole()) {
-            return $this;
-        }
-
-        $commands = [
-            SeedSearchScreenshotFixtureCommand::class,
-            PurgeSearchLogsCommand::class,
-        ];
-
-        if (class_exists(IndexSearchCommand::class)) {
-            $commands[] = IndexSearchCommand::class;
-        }
-
-        if (class_exists(FlushSearchCommand::class)) {
-            $commands[] = FlushSearchCommand::class;
-        }
-
-        $this->commands($commands);
-
-        if (
-            $this->app instanceof Application
-            && $this->app->isBooted()
-            && $this->app->bound('installed-runtime.initially-installed')
-            && $this->app->make('installed-runtime.initially-installed') === false
-        ) {
-            foreach ($commands as $command) {
-                Artisan::registerCommand($this->app->make($command));
-            }
-        }
 
         return $this;
     }

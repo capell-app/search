@@ -44,12 +44,18 @@ use Capell\Search\Manifest\TrendingSearchesWidgetContribution;
 use Capell\Search\Manifest\ZeroResultSearchesWidgetContribution;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Settings\SearchSettings;
+use Composer\Semver\Intervals;
+use Composer\Semver\VersionParser;
 use Pest\Expectation;
 
 it('requires the Core release that owns full-text compatibility cache invalidation', function (): void {
     $composer = capell_json_file_array(__DIR__ . '/../../composer.json');
 
-    expect(data_get($composer, 'require.capell-app/core'))->toBe('^1.0.25');
+    $constraint = data_get($composer, 'require.capell-app/core');
+    throw_unless(is_string($constraint), RuntimeException::class, 'Search must declare its Core constraint.');
+    $parser = new VersionParser;
+
+    expect(Intervals::isSubsetOf($parser->parseConstraints($constraint), $parser->parseConstraints('>=1.0.25')))->toBeTrue();
 });
 
 it('declares implemented search gap features contributions and actions', function (): void {

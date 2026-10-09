@@ -26,16 +26,37 @@ it('serves a real header control and indexed autocomplete results', function ():
     putenv('CAPELL_SCREENSHOT_APP_PATH=' . base_path());
 
     try {
-        $page = app(SeedSearchScreenshotFixtureAction::class)->handle();
-        app(SeedSearchScreenshotFixtureAction::class)->handle();
+        $page = resolve(SeedSearchScreenshotFixtureAction::class)->handle();
+        resolve(SeedSearchScreenshotFixtureAction::class)->handle();
         $request = Request::create('/search/autocomplete', 'GET', ['q' => 'Capell publishing guide']);
         $request->attributes->set('site', $page->site);
         $site = $page->site;
         throw_unless($site instanceof Site, RuntimeException::class, 'The Search screenshot page has no site.');
         $request->attributes->set('language', $site->language);
-        $response = app(SearchController::class)->autocomplete($request);
+        $response = resolve(SearchController::class)->autocomplete($request);
         expect(collect(searchAutocompleteResults($response->getData(true)))->pluck('title')->all())->toContain('Capell publishing guide');
         $this->get(searchSuppressedCaptureUrl('header-search-field'))->assertOk()->assertSee('data-site-search-trigger', false)->assertSee('data-site-search-input', false)->assertSee('publishing guide');
+    } finally {
+        putenv('CAPELL_SCREENSHOT_FIXTURE');
+        putenv('CAPELL_SCREENSHOT_APP_PATH');
+    }
+});
+
+it('renders the public search fixture with an indexed result inside the frontend shell', function (): void {
+    require __DIR__ . '/../../workbench/routes/screenshot-fixtures.php';
+    Site::factory()->withTranslations()->create();
+    putenv('CAPELL_SCREENSHOT_FIXTURE=record-state');
+    putenv('CAPELL_SCREENSHOT_APP_PATH=' . base_path());
+
+    try {
+        $this->get('/screenshot-fixtures/search/results?q=Capell+publishing+guide')
+            ->assertOk()
+            ->assertSee('Capell publishing guide')
+            ->assertSee('search-layout', false);
+
+        $entry = ScreenshotManifest::entry(__DIR__ . '/../../docs/screenshots.json', 'frontend-search-results-page');
+        expect($entry['target'] ?? null)->toBe('/screenshot-fixtures/search/results')
+            ->and($entry['url'] ?? null)->toBe('/search?q=Capell+publishing+guide');
     } finally {
         putenv('CAPELL_SCREENSHOT_FIXTURE');
         putenv('CAPELL_SCREENSHOT_APP_PATH');

@@ -13,7 +13,14 @@ final class SeedSearchScreenshotWidgetAction
     {
         throw_unless(app()->environment('local', 'testing') && getenv('CAPELL_SCREENSHOT_FIXTURE') === 'record-state', RuntimeException::class, 'Search screenshot fixtures require the disposable screenshot environment.');
 
-        foreach (['Screenshot publishing guide' => 8, 'Screenshot missing guide' => 0] as $query => $results) {
+        foreach ([
+            'Screenshot publishing guide' => 8,
+            'Screenshot missing guide' => 0,
+            'Screenshot SEO audit' => 6,
+            'Screenshot theme setup' => 5,
+            'Screenshot block library' => 4,
+            'Screenshot page editor' => 3,
+        ] as $query => $results) {
             SearchLog::query()->updateOrCreate([
                 'normalized_query' => mb_strtolower($query),
                 'site_id' => null,

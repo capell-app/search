@@ -10,6 +10,7 @@ use Capell\Search\Filament\Widgets\TrendingSearchesFilamentWidget;
 use Capell\Search\Filament\Widgets\ZeroResultSearchesFilamentWidget;
 use Capell\Search\Models\SearchLog;
 use Capell\Tests\Fixtures\Models\User;
+use Capell\Tests\Support\ScreenshotManifest;
 use Filament\Facades\Filament;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
@@ -78,6 +79,14 @@ test('search evidence renders different real widget states from the same query l
     putenv('CAPELL_SCREENSHOT_FIXTURE=record-state');
     try {
         (new SeedSearchScreenshotWidgetAction)->handle();
+        expect(SearchLog::all()->pluck('query')->intersect([
+            'Screenshot publishing guide',
+            'Screenshot missing guide',
+            'Screenshot SEO audit',
+            'Screenshot theme setup',
+            'Screenshot block library',
+            'Screenshot page editor',
+        ])->count())->toBe(6);
     } finally {
         putenv('CAPELL_SCREENSHOT_FIXTURE');
     }
@@ -101,9 +110,12 @@ test('widget fixture routes render their own populated component instead of the 
     putenv('CAPELL_SCREENSHOT_FIXTURE=record-state');
 
     try {
-        $this->get('/screenshot-fixtures/search/widgets/top')->assertOk()->assertSee('Top searches')->assertSee('Screenshot publishing guide')->assertDontSee('Trending searches');
+        $this->get('/screenshot-fixtures/search/widgets/top')->assertOk()->assertSee('Top searches')->assertSee('Screenshot publishing guide')->assertDontSee('Trending searches')->assertSee('fi-layout', false)->assertSee('fi-page-header', false);
         $this->get('/screenshot-fixtures/search/widgets/trending')->assertOk()->assertSee('Trending searches')->assertSee('Screenshot publishing guide')->assertDontSee('Zero result searches');
         $this->get('/screenshot-fixtures/search/widgets/zero-results')->assertOk()->assertSee('Zero result searches')->assertSee('Screenshot missing guide')->assertDontSee('Screenshot publishing guide');
+
+        $entry = ScreenshotManifest::entry(dirname(__DIR__, 3) . '/docs/screenshots.json', 'top-searches-widget');
+        expect($entry['waitFor'] ?? null)->toBe('.fi-page:has(.fi-ta:has-text("Top searches")) tbody tr');
     } finally {
         putenv('CAPELL_SCREENSHOT_FIXTURE');
     }

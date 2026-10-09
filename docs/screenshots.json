@@ -11,10 +11,10 @@
             "package": "search",
             "surface": "frontend",
             "targetType": "frontend-url",
-            "target": null,
-            "url": "/search?q=capell",
+            "target": "/screenshot-fixtures/search/results",
+            "url": "/search?q=Capell+publishing+guide",
             "required": true,
-            "notes": "Captured from the seeded public Search route `/search?q=capell` on the isolated Packages workbench; the light/dark outputs contain real ranked results and the package header surface.",
+            "notes": "Captured from the package-owned themed results fixture; the light/dark outputs contain indexed ranked results inside the real frontend shell.",
             "useCase": "A visitor searches seeded public content and sees ranked results and pagination.",
             "screenshotPath": "packages/search/docs/screenshots/frontend-search-results-page.png",
             "darkScreenshotPath": "packages/search/docs/screenshots/frontend-search-results-page-dark.png"
@@ -54,7 +54,7 @@
             "darkScreenshotPath": "packages/search/docs/screenshots/top-searches-widget-dark.png",
             "url": "/screenshot-fixtures/search/widgets/top",
             "scenario": "frontend-page",
-            "waitFor": ".fi-ta:has-text(\"Top searches\") tbody tr"
+            "waitFor": ".fi-page:has(.fi-ta:has-text(\"Top searches\")) tbody tr"
         },
         {
             "id": "trending-searches-widget",

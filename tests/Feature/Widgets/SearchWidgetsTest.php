@@ -9,7 +9,7 @@ use Capell\Search\Filament\Widgets\TopSearchesFilamentWidget;
 use Capell\Search\Filament\Widgets\TrendingSearchesFilamentWidget;
 use Capell\Search\Filament\Widgets\ZeroResultSearchesFilamentWidget;
 use Capell\Search\Models\SearchLog;
-use Capell\Tests\Fixtures\Models\User;
+use Capell\Tests\Support\Concerns\CreatesAdminUser;
 use Capell\Tests\Support\ScreenshotManifest;
 use Filament\Facades\Filament;
 use Illuminate\Database\Schema\Blueprint;
@@ -17,6 +17,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Livewire\Livewire;
+
+uses(CreatesAdminUser::class);
 
 beforeEach(function (): void {
     config()->set('capell-search.logs.table_name', 'search_logs');
@@ -68,6 +70,8 @@ test('dashboard settings contributor exposes site search widget keys', function 
 });
 
 test('site search dashboard widgets render', function (string $widgetClass): void {
+    $this->actingAsAdmin();
+
     Livewire::test($widgetClass)->assertOk();
 })->with([
     TopSearchesFilamentWidget::class,
@@ -76,6 +80,8 @@ test('site search dashboard widgets render', function (string $widgetClass): voi
 ]);
 
 test('search evidence renders different real widget states from the same query logs', function (): void {
+    $this->actingAsAdmin();
+
     putenv('CAPELL_SCREENSHOT_FIXTURE=record-state');
     try {
         (new SeedSearchScreenshotWidgetAction)->handle();
@@ -103,7 +109,7 @@ test('search evidence renders different real widget states from the same query l
 });
 
 test('widget fixture routes render their own populated component instead of the dashboard', function (): void {
-    $this->actingAs(User::factory()->create());
+    $this->actingAsAdmin();
     Filament::setCurrentPanel(Filament::getDefaultPanel());
     View::addNamespace('workbench', dirname(__DIR__, 5) . '/workbench/resources/views');
     require dirname(__DIR__, 3) . '/workbench/routes/screenshot-fixtures.php';

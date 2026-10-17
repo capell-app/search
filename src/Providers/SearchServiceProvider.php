@@ -7,6 +7,7 @@ namespace Capell\Search\Providers;
 use Capell\Core\Contracts\Agent\AgentPageSearch;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
+use Capell\Core\Support\Packages\RouteGroupIsolation;
 use Capell\Core\Support\Settings\SettingsGroupMetadata;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Events\FrontendRenderPreparing;
@@ -35,7 +36,6 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\RateLimiter;
 use Override;
-use ReflectionProperty;
 use Spatie\LaravelPackageTools\Package;
 
 final class SearchServiceProvider extends AbstractPackageServiceProvider
@@ -144,12 +144,6 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         });
     }
 
-    #[Override]
-    protected function isPackageInstalled(): bool
-    {
-        return CapellCore::isPackageInstalled(self::$packageName);
-    }
-
     private static function configuredRateLimit(string $key, int $default): int
     {
         $value = config($key, $default);
@@ -159,15 +153,9 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
 
     private function registerRoutes(): self
     {
-        $router = $this->app->make(Router::class);
-        $groups = new ReflectionProperty(Router::class, 'groupStack');
-        $previous = $groups->getValue($router);
-        $groups->setValue($router, []);
-        try {
+        RouteGroupIsolation::run($this->app->make(Router::class), function (): void {
             $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
-        } finally {
-            $groups->setValue($router, $previous);
-        }
+        });
 
         return $this;
     }

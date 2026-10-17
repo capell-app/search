@@ -8,6 +8,7 @@ use Capell\Search\Actions\ResolveExpandedSearchQueriesAction;
 use Capell\Search\Actions\ResolvePromotedSearchResultsAction;
 use Capell\Search\Enums\SearchDriver;
 use Capell\Search\Settings\SearchSettings;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 beforeEach(function (): void {
@@ -86,20 +87,21 @@ test('replaces duplicate promoted results for the same zero-result query and url
         ->and($promotions[1]['title'])->toBe('New title');
 });
 
-test('zero-result curation save failures are not swallowed', function (string $actionClass): void {
-    throw_unless(class_exists($actionClass), RuntimeException::class, 'Expected a valid curation action class.');
-    $source = file_get_contents((string) (new ReflectionClass($actionClass))->getFileName());
-
-    expect($source)->toBeString()
-        ->and($source)->toContain('->save();')
-        ->and($source)->not->toContain('catch (Throwable)')
-        ->and($source)->not->toContain('catch (\\Throwable)')
-        ->and($source)->not->toContain('catch (Exception)')
-        ->and($source)->not->toContain('catch (\\Exception)');
-})->with([
-    'synonym curation' => [CreateSynonymFromZeroResultSearchAction::class],
-    'promoted-result curation' => [CreatePromotedResultFromZeroResultSearchAction::class],
-]);
+test('zero-result curation reports persistence failures to the caller', function (bool $synonym): void {
+    // Simulate unavailable persistence at the database boundary, leaving the Action real.
+    DB::statement('CREATE TRIGGER reject_curation BEFORE UPDATE ON settings BEGIN SELECT RAISE(ABORT, \'curation storage unavailable\'); END');
+    try {
+        expect(function () use ($synonym): void {
+            if ($synonym) {
+                CreateSynonymFromZeroResultSearchAction::run('misspelled topic', 'correct topic');
+            } else {
+                CreatePromotedResultFromZeroResultSearchAction::run('missing topic', 'Curated topic', '/curated-topic');
+            }
+        })->toThrow(QueryException::class, 'curation storage unavailable');
+    } finally {
+        DB::statement('DROP TRIGGER reject_curation');
+    }
+})->with(['synonym curation' => true, 'promoted-result curation' => false]);
 
 function seedSearchSetting(string $name, mixed $payload): void
 {

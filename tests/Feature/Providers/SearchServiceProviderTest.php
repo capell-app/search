@@ -4,39 +4,82 @@ declare(strict_types=1);
 
 use Capell\Admin\Support\Extensions\ExtensionManagementSurfaceRegistry;
 use Capell\Core\Facades\CapellCore;
-use Capell\Core\Support\CapellCoreManager;
+use Capell\Core\Models\Language;
+use Capell\Core\Models\Site;
 use Capell\Core\Support\Settings\SettingsSchemaRegistry;
+use Capell\DiscoveryFoundation\Contracts\PublicUrlContributor;
 use Capell\Search\Contracts\Search;
-use Capell\Search\Drivers\DatabaseSearch;
-use Capell\Search\Drivers\SiteDiscoverySearch;
+use Capell\Search\Data\SearchResultData;
 use Capell\Search\Enums\SearchDriver;
 use Capell\Search\Filament\Settings\SearchSettingsSchema;
 use Capell\Search\Models\SearchLog;
-use Capell\Search\Providers\ConsoleServiceProvider;
 use Capell\Search\Providers\SearchServiceProvider;
 use Capell\Search\Settings\SearchSettings;
 use Capell\Search\Support\SearchableSourceRegistry;
+use Capell\Search\Tests\Fixtures\ProviderSearchUrlContributor;
+use Capell\Tests\Support\InstalledRuntimeParity;
+use Capell\Tests\Support\InstalledRuntimeState;
+use Capell\Tests\Support\InstalledRuntimeTestCase;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Application;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Symfony\Component\Process\Process;
 
-test('provider binds site discovery as the default search driver', function (): void {
+function searchProviderSources(): void
+{
+    Schema::create('provider_search_entries', function (Blueprint $table): void {
+        $table->id();
+        $table->string('title');
+        $table->string('slug');
+        $table->string('status');
+        $table->text('excerpt');
+        $table->text('body');
+    });
+    DB::table('provider_search_entries')->insert([
+        'title' => 'Provider marker database',
+        'slug' => 'database-marker',
+        'status' => 'published',
+        'excerpt' => '',
+        'body' => '',
+    ]);
+    config()->set('capell-search.database.table', 'provider_search_entries');
+    $language = Language::factory()->english()->create(['status' => true]);
+    $site = Site::factory()->withTranslations($language)->create(['status' => true]);
+    app()->instance(ProviderSearchUrlContributor::class, new ProviderSearchUrlContributor($site, $language));
+    app()->tag(ProviderSearchUrlContributor::class, PublicUrlContributor::TAG);
+}
+
+/** @return list<string> */
+function searchProviderResultTitles(): array
+{
+    return array_values(array_map(
+        static fn (SearchResultData $result): string => $result->title,
+        resolve(Search::class)->search('Provider marker')->items(),
+    ));
+}
+
+test('provider returns site discovery as the default search driver', function (): void {
+    searchProviderSources();
     app()->register(SearchServiceProvider::class);
 
-    expect(resolve(Search::class))->toBeInstanceOf(SiteDiscoverySearch::class);
+    expect(searchProviderResultTitles())->toBe(['Provider marker registry']);
 });
 
-test('provider binds the configured database search driver', function (): void {
+test('provider returns the configured database search driver', function (): void {
+    searchProviderSources();
     app()->register(SearchServiceProvider::class);
     config()->set('capell-search.driver', SearchDriver::Database->value);
 
-    expect(resolve(Search::class))->toBeInstanceOf(DatabaseSearch::class);
+    expect(searchProviderResultTitles())->toBe(['Provider marker database']);
 });
 
-test('provider binds the site discovery search driver', function (): void {
+test('provider returns the site discovery search driver', function (): void {
+    searchProviderSources();
     app()->register(SearchServiceProvider::class);
     config()->set('capell-search.driver', SearchDriver::SiteDiscovery->value);
 
-    expect(resolve(Search::class))->toBeInstanceOf(SiteDiscoverySearch::class);
+    expect(searchProviderResultTitles())->toBe(['Provider marker registry']);
 });
 
 test('provider prefers the settings driver over config', function (): void {
@@ -44,11 +87,12 @@ test('provider prefers the settings driver over config', function (): void {
     $settings->driver = SearchDriver::Database;
 
     app()->instance(SearchSettings::class, $settings);
+    searchProviderSources();
     app()->register(SearchServiceProvider::class);
 
     config()->set('capell-search.driver', SearchDriver::Scout->value);
 
-    expect(resolve(Search::class))->toBeInstanceOf(DatabaseSearch::class);
+    expect(searchProviderResultTitles())->toBe(['Provider marker database']);
 });
 
 test('site search settings expose defaults', function (): void {
@@ -85,50 +129,45 @@ test('provider registers search settings as an extension management surface', fu
     expect($settingsSurfaces[0]->settingsGroup ?? null)->toBe('search');
 });
 
-test('provider registers installed surfaces during the package boot lifecycle', function (): void {
-    $core = CapellCore::getFacadeRoot();
+test('provider registers search logs only through the installed package lifecycle', function (): void {
+    InstalledRuntimeState::run(function (): void {
+        $manifest = InstalledRuntimeParity::manifest('search');
+        InstalledRuntimeTestCase::boot($manifest, false, sourceRoot: dirname(__DIR__, 3));
+        expect(CapellCore::getModels())->not->toContain(SearchLog::class);
 
-    expect($core)->toBeInstanceOf(CapellCoreManager::class);
-    assert($core instanceof CapellCoreManager);
-
-    $models = array_filter(
-        $core->getModels(),
-        static fn (string $model): bool => $model !== SearchLog::class,
-    );
-
-    $modelsProperty = new ReflectionProperty($core, 'models');
-    $modelsProperty->setValue($core, $models);
-
-    CapellCore::forcePackageInstalled(SearchServiceProvider::$packageName, false);
-
-    $provider = app()->getProvider(SearchServiceProvider::class);
-
-    expect($provider)
-        ->toBeInstanceOf(SearchServiceProvider::class)
-        ->and(CapellCore::isPackageInstalled(SearchServiceProvider::$packageName))->toBeFalse();
-    assert($provider instanceof SearchServiceProvider);
-
-    $provider->packageRegistered();
-
-    expect(CapellCore::getModels())->not->toContain(SearchLog::class);
-
-    CapellCore::forcePackageInstalled(SearchServiceProvider::$packageName);
-
-    expect(CapellCore::isPackageInstalled(SearchServiceProvider::$packageName))->toBeTrue();
-
-    $bootInstalledRuntime = new ReflectionMethod(SearchServiceProvider::class, 'bootInstalledRuntime');
-    $bootInstalledRuntime->invoke($provider);
-
-    expect(CapellCore::getModels())->toContain(SearchLog::class);
+        InstalledRuntimeTestCase::boot($manifest, true, sourceRoot: dirname(__DIR__, 3));
+        expect(CapellCore::getModels())->toContain(SearchLog::class);
+    });
 });
 
-test('late installation does not register search commands in an HTTP application', function (): void {
-    $application = Mockery::mock(Application::class);
-    $application->shouldReceive('runningInConsole')->once()->andReturnFalse();
-    $application->shouldNotReceive('afterResolving');
-    $application->shouldNotReceive('make');
-
-    (new ConsoleServiceProvider($application))->register();
+test('late installation does not expose search commands in an HTTP application', function (): void {
+    $root = dirname(__DIR__, 5);
+    $process = new Process([PHP_BINARY, '-r', <<<'PHP'
+require 'vendor/autoload.php';
+$app = new class(getcwd()) extends Illuminate\Foundation\Application {
+    #[Override]
+    public function runningInConsole(): bool { return false; }
+};
+$app->instance('config', new Illuminate\Config\Repository);
+$app->instance('env', 'testing');
+Illuminate\Support\Facades\Facade::setFacadeApplication($app);
+$events = new Illuminate\Events\Dispatcher($app);
+$app->instance('events', $events);
+$kernel = new Illuminate\Foundation\Console\Kernel($app, $events);
+$app->instance(Illuminate\Contracts\Console\Kernel::class, $kernel);
+$app->boot();
+$app->bootstrapWith([]);
+$kernel->all();
+$app->register(Capell\Search\Providers\ConsoleServiceProvider::class);
+echo json_encode(array_keys($kernel->all()), JSON_THROW_ON_ERROR);
+PHP], $root);
+    $process->run();
+    expect($process->getExitCode())->toBe(0, $process->getErrorOutput());
+    $commands = capell_json_array($process->getOutput());
+    $manifest = capell_json_file_array(dirname(__DIR__, 3) . '/capell.json');
+    foreach (capell_test_array($manifest['commands']) as $name) {
+        expect($commands)->not->toContain($name);
+    }
 });
 
 test('provider registers configured searchable sources', function (): void {

@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Contracts\Pageable;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Layout;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\Theme;
 use Capell\Frontend\Contracts\FrontendContextReader;
+use Capell\Frontend\Data\FrontendRenderPayload;
 use Capell\Frontend\Support\State\FrontendState;
 use Capell\Search\Actions\BuildSearchPageViewDataAction;
 use Capell\Search\Actions\CreateSearchVisitorIdentityAction;
@@ -23,6 +25,7 @@ use Capell\Search\Providers\SearchServiceProvider;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -33,6 +36,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Symfony\Component\Process\Process;
 
 beforeEach(function (): void {
     app()->register(SearchServiceProvider::class);
@@ -287,22 +291,15 @@ test('click tracking route is csrf exempt for cached frontend beacons', function
         ->and($route?->excludedMiddleware())->toContain(VerifyCsrfToken::class);
 });
 
-test('header click beacon does not require a csrf token', function (): void {
+test('header click beacon preserves navigation and posts anonymous tracking data', function (): void {
     $html = view('capell-search::components.header.search-dialog')->render();
-    $script = file_get_contents(__DIR__ . '/../../../resources/dist/search-modal.js');
-
-    throw_unless(is_string($script), RuntimeException::class, 'Expected search modal script to be readable.');
-
-    expect($html)
-        ->toContain('vendor/capell-search/search-modal.js')
-        ->not()->toContain('csrf-token')
-        ->not()->toContain('X-CSRF-TOKEN')
-        ->and($script)
-        ->toContain("mode: 'no-cors'")
-        ->not()->toContain('csrf-token')
-        ->not()->toContain('X-CSRF-TOKEN');
+    expect($html)->toContain('vendor/capell-search/search-modal.js')
+        ->not->toContain('csrf-token', 'X-CSRF-TOKEN');
+    $process = new Process(['node', __DIR__ . '/../../Support/click-beacon-outcomes.mjs']);
+    $process->setTimeout(30);
+    $process->run();
+    expect($process->getExitCode())->toBe(0, $process->getOutput() . $process->getErrorOutput());
 });
-
 test('result click beacon does not require a csrf token', function (): void {
     $html = view('capell-search::components.results', [
         'clickTrackingTokens' => [],
@@ -310,12 +307,20 @@ test('result click beacon does not require a csrf token', function (): void {
         'results' => new Paginator(new Collection, 0, 5, 1),
     ])->render();
 
-    expect($html)
-        ->toContain('window.capellSearchClickBeaconInitialized')
-        ->toContain("mode: 'no-cors'")
-        ->toContain("body.set('token',")
-        ->not()->toContain('csrf-token')
-        ->not()->toContain('X-CSRF-TOKEN');
+    if ($html === '') {
+        throw new RuntimeException('Expected rendered search results.');
+    }
+    $document = new DOMDocument;
+    @$document->loadHTML($html);
+    $script = $document->getElementsByTagName('script')->item(0);
+    if (! $script instanceof DOMElement) {
+        throw new RuntimeException('Expected the rendered results click beacon.');
+    }
+    $process = new Process(['node', __DIR__ . '/../../Support/result-click-beacon-outcomes.mjs']);
+    $process->setInput($script->textContent);
+    $process->setTimeout(30);
+    $process->run();
+    expect($process->getExitCode())->toBe(0, $process->getOutput() . $process->getErrorOutput());
 });
 
 test('click tracking endpoint records result clicks by token', function (): void {
@@ -582,16 +587,80 @@ test('controller returns the search page view with an empty paginator for a blan
     expect($view->getData()['results']->total())->toBe(0);
 });
 
-test('controller does not hide frontend shell failures behind a broad throwable catch', function (): void {
-    $source = file_get_contents(__DIR__ . '/../../../src/Http/Controllers/SearchController.php');
+test('reports frontend shell failures to the caller', function (): void {
+    config()->set('capell-search.page_view', null);
+    $reader = new class implements FrontendContextReader
+    {
+        #[Override]
+        public function site(): ?Site
+        {
+            return null;
+        }
 
-    throw_unless(is_string($source), RuntimeException::class, 'Expected SearchController source to be readable.');
+        #[Override]
+        public function language(): ?Language
+        {
+            return null;
+        }
 
-    expect($source)
-        ->not()->toContain('use Throwable;')
-        ->not()->toContain('catch (Throwable)');
+        #[Override]
+        public function page(): ?Pageable
+        {
+            return null;
+        }
+
+        #[Override]
+        public function layout(): ?Layout
+        {
+            throw new RuntimeException('Shell context unavailable');
+        }
+
+        #[Override]
+        public function theme(): ?Theme
+        {
+            return null;
+        }
+
+        #[Override]
+        public function params(): array
+        {
+            return [];
+        }
+
+        #[Override]
+        public function slug(): ?string
+        {
+            return null;
+        }
+
+        #[Override]
+        public function isError(): bool
+        {
+            return false;
+        }
+
+        #[Override]
+        public function setFrontendData(string $key, mixed $value): self
+        {
+            return $this;
+        }
+
+        #[Override]
+        public function getFrontendData(?string $key = null): mixed
+        {
+            return null;
+        }
+
+        #[Override]
+        public function renderPayload(): FrontendRenderPayload
+        {
+            return new FrontendState()->renderPayload();
+        }
+    };
+    app()->instance(FrontendContextReader::class, $reader);
+    expect(fn (): View => (new SearchController)(Request::create('/search')))
+        ->toThrow(RuntimeException::class, 'Shell context unavailable');
 });
-
 test('controller wraps the search page in the frontend shell when context is available', function (): void {
     app()->instance(Search::class, new class implements Search
     {

@@ -46,6 +46,7 @@ Screenshot contract: `docs/screenshots.json`.
 ### Service providers
 
 - `Capell\Search\Providers\SearchServiceProvider`
+- `Capell\Search\Providers\ConsoleServiceProvider`
 - `Capell\Search\Providers\AdminServiceProvider`
 
 ### Config files
@@ -270,7 +271,7 @@ Screenshot contract: `docs/screenshots.json`.
 ## Quick Start
 
 1. Install the package: `composer require capell-app/search`.
-2. Open `/search?q=capell` and confirm the public output renders without admin state.
+2. Open `/search?q=Capell+publishing+guide` and confirm the public output renders without admin state.
 
 ## Next Steps
 

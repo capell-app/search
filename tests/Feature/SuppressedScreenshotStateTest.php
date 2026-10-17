@@ -11,6 +11,7 @@ use Capell\Tests\Support\Concerns\CreatesAdminUser;
 use Capell\Tests\Support\ScreenshotManifest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Livewire\Blaze\Blaze;
 
 uses(CreatesAdminUser::class);
 
@@ -43,16 +44,26 @@ it('serves a real header control and indexed autocomplete results', function ():
 });
 
 it('renders the public search fixture with an indexed result inside the frontend shell', function (): void {
+    expect(Blaze::isEnabled())->toBeTrue();
+
     require __DIR__ . '/../../workbench/routes/screenshot-fixtures.php';
     Site::factory()->withTranslations()->create();
     putenv('CAPELL_SCREENSHOT_FIXTURE=record-state');
     putenv('CAPELL_SCREENSHOT_APP_PATH=' . base_path());
 
     try {
-        $this->get('/screenshot-fixtures/search/results?q=Capell+publishing+guide')
-            ->assertOk()
-            ->assertSee('Capell publishing guide')
-            ->assertSee('search-layout', false);
+        // Exercise the seeded preview cache and then a repeated public render.
+        for ($render = 0; $render < 2; $render++) {
+            $this->get('/screenshot-fixtures/search/results?q=Capell+publishing+guide')
+                ->assertOk()
+                ->assertSee('Capell publishing guide')
+                ->assertSee('search-layout', false)
+                ->assertDontSee('data-capell-authoring', false)
+                ->assertDontSee('$__blaze', false)
+                ->assertDontSee('capell-app/search', false);
+
+            expect(Blaze::isEnabled())->toBeTrue();
+        }
 
         $entry = ScreenshotManifest::entry(__DIR__ . '/../../docs/screenshots.json', 'frontend-search-results-page');
         expect($entry['target'] ?? null)->toBe('/screenshot-fixtures/search/results')

@@ -20,9 +20,11 @@ use Filament\Facades\Filament;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Workbench\App\Actions\AssertScreenshotFixtureEnvironmentAction;
 
 Route::middleware(['web', 'auth'])->get('/screenshot-fixtures/search/widgets/{widget}', static function (string $widget): View {
     abort_unless(app()->environment('local', 'testing') && getenv('CAPELL_SCREENSHOT_FIXTURE') === 'record-state', 403);
+    resolve(AssertScreenshotFixtureEnvironmentAction::class)->handle();
 
     $class = match ($widget) {
         'top' => TopSearchesFilamentWidget::class,

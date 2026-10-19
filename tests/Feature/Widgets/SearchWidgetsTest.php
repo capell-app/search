@@ -82,6 +82,8 @@ test('site search dashboard widgets render', function (string $widgetClass): voi
 test('search evidence renders different real widget states from the same query logs', function (): void {
     $this->actingAsAdmin();
 
+    $previousPath = getenv('CAPELL_SCREENSHOT_APP_PATH');
+    putenv('CAPELL_SCREENSHOT_APP_PATH=' . base_path());
     putenv('CAPELL_SCREENSHOT_FIXTURE=record-state');
     try {
         (new SeedSearchScreenshotWidgetAction)->handle();
@@ -95,6 +97,7 @@ test('search evidence renders different real widget states from the same query l
         ])->count())->toBe(6);
     } finally {
         putenv('CAPELL_SCREENSHOT_FIXTURE');
+        putenv($previousPath === false ? 'CAPELL_SCREENSHOT_APP_PATH' : 'CAPELL_SCREENSHOT_APP_PATH=' . $previousPath);
     }
 
     $top = Livewire::test(TopSearchesFilamentWidget::class)
@@ -113,6 +116,8 @@ test('widget fixture routes render their own populated component instead of the 
     Filament::setCurrentPanel(Filament::getDefaultPanel());
     View::addNamespace('workbench', dirname(__DIR__, 5) . '/workbench/resources/views');
     require dirname(__DIR__, 3) . '/workbench/routes/screenshot-fixtures.php';
+    $previousPath = getenv('CAPELL_SCREENSHOT_APP_PATH');
+    putenv('CAPELL_SCREENSHOT_APP_PATH=' . base_path());
     putenv('CAPELL_SCREENSHOT_FIXTURE=record-state');
 
     try {
@@ -124,6 +129,7 @@ test('widget fixture routes render their own populated component instead of the 
         expect($entry['waitFor'] ?? null)->toBe('.fi-page:has(.fi-ta:has-text("Top searches")) tbody tr');
     } finally {
         putenv('CAPELL_SCREENSHOT_FIXTURE');
+        putenv($previousPath === false ? 'CAPELL_SCREENSHOT_APP_PATH' : 'CAPELL_SCREENSHOT_APP_PATH=' . $previousPath);
     }
 });
 

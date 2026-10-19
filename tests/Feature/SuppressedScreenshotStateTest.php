@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
 use Capell\Search\Actions\SeedSearchScreenshotFixtureAction;
@@ -14,6 +15,10 @@ use Illuminate\Support\Facades\Artisan;
 use Livewire\Blaze\Blaze;
 
 uses(CreatesAdminUser::class);
+
+beforeEach(function (): void {
+    $this->actingAsAdmin(['email' => 'admin@example.com']);
+});
 
 it('reaches the package specific settings form', function (): void {
     $this->actingAsAdmin();
@@ -47,7 +52,8 @@ it('renders the public search fixture with an indexed result inside the frontend
     expect(Blaze::isEnabled())->toBeTrue();
 
     require __DIR__ . '/../../workbench/routes/screenshot-fixtures.php';
-    Site::factory()->withTranslations()->create();
+    $site = Site::factory()->withTranslations()->create();
+    SiteDomain::factory()->site($site)->language($site->language)->default()->create();
     putenv('CAPELL_SCREENSHOT_FIXTURE=record-state');
     putenv('CAPELL_SCREENSHOT_APP_PATH=' . base_path());
 
@@ -111,3 +117,22 @@ function searchAutocompleteResults(mixed $payload): array
 
     return $results;
 }
+
+it('rejects an invalid explicit site selector before fixture writes', function (): void {
+    Site::factory()->withTranslations()->create();
+    $previous = getenv('CAPELL_SCREENSHOT_SITE_ID');
+    $fixture = getenv('CAPELL_SCREENSHOT_FIXTURE');
+    $path = getenv('CAPELL_SCREENSHOT_APP_PATH');
+    putenv('CAPELL_SCREENSHOT_SITE_ID=invalid');
+    putenv('CAPELL_SCREENSHOT_FIXTURE=record-state');
+    putenv('CAPELL_SCREENSHOT_APP_PATH=' . base_path());
+    $before = Page::query()->count();
+    try {
+        expect(fn () => resolve(SeedSearchScreenshotFixtureAction::class)->handle())->toThrow(RuntimeException::class, 'valid selected site')
+            ->and(Page::query()->count())->toBe($before);
+    } finally {
+        putenv($previous === false ? 'CAPELL_SCREENSHOT_SITE_ID' : 'CAPELL_SCREENSHOT_SITE_ID=' . $previous);
+        putenv($fixture === false ? 'CAPELL_SCREENSHOT_FIXTURE' : 'CAPELL_SCREENSHOT_FIXTURE=' . $fixture);
+        putenv($path === false ? 'CAPELL_SCREENSHOT_APP_PATH' : 'CAPELL_SCREENSHOT_APP_PATH=' . $path);
+    }
+});

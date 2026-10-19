@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Capell\Search\Actions;
 
+use Capell\ScreenshotFixtures\FixtureState;
 use Capell\Search\Models\SearchLog;
-use RuntimeException;
 
 final class SeedSearchScreenshotWidgetAction
 {
     public function handle(): void
     {
-        throw_unless(app()->environment('local', 'testing') && getenv('CAPELL_SCREENSHOT_FIXTURE') === 'record-state', RuntimeException::class, 'Search screenshot fixtures require the disposable screenshot environment.');
+        SeedSearchScreenshotFixtureAction::assertDisposableScreenshotEnvironment();
+
+        require_once dirname(__DIR__, 4) . '/scripts/screenshots/FixtureState.php';
+        FixtureState::boot();
 
         foreach ([
             'Screenshot publishing guide' => 8,

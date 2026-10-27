@@ -25,20 +25,33 @@
             "package": "search",
             "surface": "frontend",
             "targetType": "frontend-url",
-            "target": "/screenshot-fixtures/search/header",
-            "url": "/screenshot-fixtures/search/header",
+            "target": "/screenshot-fixtures/search/results",
+            "url": "/screenshot-fixtures/search/results",
             "required": false,
-            "notes": "Public workbench host mounts the real Search header dialog and real search results for a seeded discoverable page. Open the header control and require its search input plus populated results.",
+            "notes": "Capture the real public Search shell and native header dialog anonymously. Open the dialog, type the seeded query and require its scoped result inside the dialog; results behind the overlay are not acceptance. Require an opaque readable panel and viewport-wide backdrop in both schemes.",
             "useCase": "A visitor uses the header search control supplied by the package frontend surface.",
             "screenshotPath": "packages/search/docs/screenshots/header-search-field.png",
             "darkScreenshotPath": "packages/search/docs/screenshots/header-search-field-dark.png",
-            "waitFor": "body:has(a:has-text(\"publishing guide\")) [data-site-search-dialog][aria-hidden=\"false\"] [data-site-search-input]",
+            "waitFor": "[data-site-search-dialog][aria-hidden=\"false\"] [data-site-search-list] a:has-text(\"Capell publishing guide\")",
             "beforeWait": [
                 {
                     "type": "click",
                     "selector": "[data-site-search-trigger]"
+                },
+                {
+                    "type": "fill",
+                    "selector": "[data-site-search-dialog][aria-hidden=\"false\"] [data-site-search-input]",
+                    "value": "Capell publishing guide"
                 }
-            ]
+            ],
+            "user": false,
+            "scenario": "frontend-page",
+            "fullPage": false,
+            "viewport": "desktop",
+            "requiredViewport": {
+                "width": 1440,
+                "height": 900
+            }
         },
         {
             "id": "top-searches-widget",
@@ -105,18 +118,53 @@
         },
         {
             "id": "search-curation-annotated",
-            "title": "Illustrative annotated search curation settings preview.",
+            "title": "Native Search curation settings.",
             "package": "search",
-            "surface": "frontend",
-            "targetType": "frontend-url",
-            "target": "/screenshot-fixtures/catalogue/search/search-curation-annotated",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": "SearchSettingsPage",
             "required": true,
-            "notes": "Illustrative deterministic catalogue fixture, not a live package UI capture. Annotated marketplace explainer derived from the Search settings surface to show synonyms, typo corrections, and promoted results.",
-            "useCase": "A site owner understands how Search curation controls query intent and promoted answers.",
+            "notes": "Capture the real native Search management form with unsaved example synonym and typo mappings entered through its controls. Show the actual curation labels and promoted-result affordance; do not submit or claim these draft values are persisted.",
+            "useCase": "A site owner configures query equivalents, spelling corrections and promoted answers in native Search settings.",
             "screenshotPath": "packages/search/docs/screenshots/search-curation-annotated.png",
-            "url": "/screenshot-fixtures/catalogue/search/search-curation-annotated",
+            "url": "/admin/extensions?manage=capell-app%2Fsearch&surface=search",
             "colorSchemes": ["light", "dark"],
-            "fixtureKind": "illustrative-catalogue"
+            "scenario": "admin-form",
+            "user": "admin",
+            "waitFor": ".fi-modal-window:has-text(\"Search curation\"):has-text(\"Promoted results\")",
+            "fullPage": false,
+            "viewport": "desktop",
+            "requiredViewport": {
+                "width": 1440,
+                "height": 1100
+            },
+            "beforeWait": [
+                {
+                    "type": "fill",
+                    "selector": ".fi-section:has-text(\"Tune query expansion, spelling help, and promoted best-bet results without redeploying configuration.\") input >> nth=0",
+                    "value": "tee"
+                },
+                {
+                    "type": "fill",
+                    "selector": ".fi-section:has-text(\"Tune query expansion, spelling help, and promoted best-bet results without redeploying configuration.\") input >> nth=1",
+                    "value": "T-shirt"
+                },
+                {
+                    "type": "fill",
+                    "selector": ".fi-section:has-text(\"Tune query expansion, spelling help, and promoted best-bet results without redeploying configuration.\") input >> nth=2",
+                    "value": "publshing"
+                },
+                {
+                    "type": "fill",
+                    "selector": ".fi-section:has-text(\"Tune query expansion, spelling help, and promoted best-bet results without redeploying configuration.\") input >> nth=3",
+                    "value": "publishing"
+                },
+                {
+                    "type": "scrollIntoView",
+                    "selector": ".fi-section:has-text(\"Tune query expansion, spelling help, and promoted best-bet results without redeploying configuration.\")",
+                    "block": "center"
+                }
+            ]
         }
     ],
     "notCaptured": [

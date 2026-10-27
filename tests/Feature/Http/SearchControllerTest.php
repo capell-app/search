@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use Capell\Core\Contracts\Pageable;
+use Capell\Core\Data\SiteDomains\SiteRequestTargetData;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Layout;
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
+use Capell\Core\Models\SiteDomain;
 use Capell\Core\Models\Theme;
 use Capell\Frontend\Contracts\FrontendContextReader;
 use Capell\Frontend\Data\FrontendRenderPayload;
@@ -174,6 +176,7 @@ test('autocomplete returns limited public-safe results without writing search lo
 
     $request = Request::create('/search/autocomplete', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Capell']);
     $request->attributes->set('site', searchControllerTestSite());
+
     $response = (new SearchController)->autocomplete($request);
     $payload = searchControllerJsonPayload($response);
     $results = searchControllerPayloadResults($payload);
@@ -260,6 +263,7 @@ test('autocomplete returns corrected query metadata and popular query suggestion
 
     $request = Request::create('/search/autocomplete', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'capel']);
     $request->attributes->set('site', searchControllerTestSite());
+
     $payload = searchControllerJsonPayload((new SearchController)->autocomplete($request));
     $metadata = searchControllerPayloadArray($payload, 'metadata');
     $suggestions = searchControllerPayloadSuggestions($payload);
@@ -298,6 +302,7 @@ test('header click beacon preserves navigation and posts anonymous tracking data
     $process = new Process(['node', __DIR__ . '/../../Support/click-beacon-outcomes.mjs']);
     $process->setTimeout(30);
     $process->run();
+
     expect($process->getExitCode())->toBe(0, $process->getOutput() . $process->getErrorOutput());
 });
 test('result click beacon does not require a csrf token', function (): void {
@@ -310,16 +315,19 @@ test('result click beacon does not require a csrf token', function (): void {
     if ($html === '') {
         throw new RuntimeException('Expected rendered search results.');
     }
+
     $document = new DOMDocument;
     @$document->loadHTML($html);
     $script = $document->getElementsByTagName('script')->item(0);
     if (! $script instanceof DOMElement) {
         throw new RuntimeException('Expected the rendered results click beacon.');
     }
+
     $process = new Process(['node', __DIR__ . '/../../Support/result-click-beacon-outcomes.mjs']);
     $process->setInput($script->textContent);
     $process->setTimeout(30);
     $process->run();
+
     expect($process->getExitCode())->toBe(0, $process->getOutput() . $process->getErrorOutput());
 });
 
@@ -416,8 +424,12 @@ test('click tracking route is not locked by an unregistered rate limiter', funct
         $table->timestamps();
     });
 
-    $searchData = new SearchRequestData(query: 'Laravel Search');
+    $origin = SiteRequestTargetData::fromUrl(route('capell-frontend.search.click'))->origin;
+    $domain = SiteDomain::factory()->createOne(['domain' => $origin->host, 'scheme' => $origin->scheme, 'port' => $origin->effectivePort, 'path' => null]);
+    $searchData = new SearchRequestData(query: 'Laravel Search', siteId: $domain->site_id, languageId: $domain->language_id);
     $log = SearchLog::query()->create([
+        'site_id' => $domain->site_id,
+        'language_id' => $domain->language_id,
         'query' => 'Laravel Search',
         'normalized_query' => HashSearchRetentionValueAction::run('laravel search'),
         'normalized_query_hash' => HashSearchRetentionValueAction::run('laravel search'),
@@ -507,6 +519,7 @@ test('builds reusable search page view data through an action boundary', functio
 
     $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Laravel Search']);
     $request->attributes->set('site', searchControllerTestSite());
+
     $viewData = BuildSearchPageViewDataAction::run($request);
     $payload = $viewData->toViewData();
 
@@ -588,7 +601,7 @@ test('controller returns the search page view with an empty paginator for a blan
 });
 
 test('reports frontend shell failures to the caller', function (): void {
-    config()->set('capell-search.page_view', null);
+    config()->set('capell-search.page_view');
     $reader = new class implements FrontendContextReader
     {
         #[Override]
@@ -764,6 +777,7 @@ test('controller passes normalized valid searches to the site search service', f
 
     $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => '  Laravel   Search  ', 'page' => '2']);
     $request->attributes->set('site', searchControllerTestSite());
+
     $view = (new SearchController)($request);
 
     expect($recordedSearch->queries)->toBe(['laravel search']);
@@ -890,6 +904,7 @@ test('controller renders public filter facets with live counts', function (): vo
         'type' => ['page'],
     ]);
     $request->attributes->set('site', searchControllerTestSite());
+
     $view = (new SearchController)($request);
     $html = $view->render();
 
@@ -933,6 +948,7 @@ test('public search markup does not expose package identifiers', function (): vo
 
     $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'Laravel']);
     $request->attributes->set('site', searchControllerTestSite());
+
     $html = (new SearchController)($request)->render();
 
     expect($html)

@@ -6,8 +6,10 @@ namespace Capell\Search\Filament\Settings;
 
 use Capell\Admin\Filament\Contracts\HasSchema;
 use Capell\Admin\Filament\Support\HelperText;
+use Capell\Search\Actions\ResolvePromotedSearchDestinationAction;
 use Capell\Search\Data\SearchableSourceData;
 use Capell\Search\Enums\SearchDriver;
+use Capell\Search\Rules\PublicSearchDestination;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
@@ -128,6 +130,23 @@ final class SearchSettingsSchema implements HasSchema
                             HelperText::apply(
                                 TextInput::make('url')
                                     ->label(__('capell-search::settings.promoted_url'))
+                                    ->live(onBlur: true)
+                                    ->rules([new PublicSearchDestination])
+                                    ->helperText(static function (?string $state): ?string {
+                                        if ($state === null || trim($state) === '') {
+                                            return null;
+                                        }
+
+                                        $destination = ResolvePromotedSearchDestinationAction::run($state);
+
+                                        $message = $destination->publicUrl === null
+                                            ? __('capell-search::settings.promoted_url_rejected')
+                                            : ($destination->changed
+                                                ? __('capell-search::settings.promoted_url_normalised', ['url' => $destination->publicUrl])
+                                                : null);
+
+                                        return is_string($message) ? $message : null;
+                                    })
                                     ->required(),
                                 'capell-search::settings.promoted_url_helper',
                             ),

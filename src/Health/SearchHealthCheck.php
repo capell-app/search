@@ -52,7 +52,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
         $tableName = $this->searchLogTableName();
 
         return new DoctorCheckResultData(
-            label: 'Search log storage table',
+            label: 'Search: search log database table present',
             passed: $tableExists,
             message: $tableExists
                 ? sprintf('The %s table is present for query analytics and click tracking.', $tableName)
@@ -60,6 +60,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
             remediation: $tableExists
                 ? null
                 : 'Run the Capell migrations to create the search log table.',
+            id: 'legacy.search.log.storage.table',
         );
     }
 
@@ -68,7 +69,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
         $modelRegistered = $this->hasSearchLogModelRegistration();
 
         return new DoctorCheckResultData(
-            label: 'SearchLog model registration',
+            label: 'Search: search log records registered',
             passed: $modelRegistered,
             message: $modelRegistered
                 ? 'The SearchLog model is registered with Capell Core.'
@@ -76,6 +77,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
             remediation: $modelRegistered
                 ? null
                 : 'Ensure SearchServiceProvider registers SearchLog through CapellCore::registerModels().',
+            id: 'legacy.searchlog.model.registration',
         );
     }
 
@@ -89,7 +91,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
         }
 
         return new DoctorCheckResultData(
-            label: 'Search driver resolution',
+            label: 'Search: search service available',
             passed: $driverResolves,
             message: $driverResolves
                 ? sprintf('The configured %s implementation resolves successfully.', Search::class)
@@ -97,6 +99,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
             remediation: $driverResolves
                 ? null
                 : 'Check capell-search.driver and any configured database, Site Discovery, or Scout dependencies.',
+            id: 'legacy.search.driver.resolution',
         );
     }
 
@@ -106,10 +109,11 @@ final class SearchHealthCheck implements ChecksExtensionHealth
 
         if (! $this->hasSearchLogTable()) {
             return new DoctorCheckResultData(
-                label: 'Search log write probe',
+                label: 'Search: search logs writable',
                 passed: false,
                 message: sprintf('The %s table is missing, so writeability could not be checked.', $tableName),
                 remediation: 'Run the Capell migrations to create the search log table.',
+                id: 'legacy.search.log.write.probe',
             );
         }
 
@@ -131,7 +135,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
         }
 
         return new DoctorCheckResultData(
-            label: 'Search log write probe',
+            label: 'Search: search logs writable',
             passed: $writeable,
             message: $writeable
                 ? sprintf('The %s table accepts query-log writes.', $tableName)
@@ -139,6 +143,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
             remediation: $writeable
                 ? null
                 : 'Verify the search log migration columns and database write permissions.',
+            id: 'legacy.search.log.write.probe',
         );
     }
 
@@ -149,7 +154,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
         $configurationValid = $this->hasValidLoggingConfiguration();
 
         return new DoctorCheckResultData(
-            label: 'Search logging configuration',
+            label: 'Search: search logging configured',
             passed: $configurationValid,
             message: $configurationValid
                 ? 'Search query logging has a valid minimum query length and retention window.'
@@ -157,6 +162,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
             remediation: $configurationValid
                 ? null
                 : 'Set capell-search.minimum_query_length and capell-search.logs.retention_days to positive integers.',
+            id: 'legacy.search.logging.configuration',
         );
     }
 
@@ -164,9 +170,10 @@ final class SearchHealthCheck implements ChecksExtensionHealth
     {
         if (config('capell-search.driver') !== 'scout' || config('scout.driver') !== 'typesense') {
             return new DoctorCheckResultData(
-                label: 'Scout index health',
+                label: 'Search: configured index checks',
                 passed: true,
                 message: 'Scout index probes were skipped because the active search stack is not Scout with Typesense.',
+                id: 'legacy.scout.index.health',
             );
         }
 
@@ -174,9 +181,10 @@ final class SearchHealthCheck implements ChecksExtensionHealth
 
         if (! is_array($configuredProbes) || $configuredProbes === []) {
             return new DoctorCheckResultData(
-                label: 'Scout index health',
+                label: 'Search: configured index checks',
                 passed: true,
                 message: 'No Scout index health probes are configured.',
+                id: 'legacy.scout.index.health',
             );
         }
 
@@ -213,7 +221,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
         }
 
         return new DoctorCheckResultData(
-            label: 'Scout index health',
+            label: 'Search: configured index checks',
             passed: $failures === [],
             message: $failures === []
                 ? sprintf('%d configured Scout index probe(s) passed.', count($configuredProbes))
@@ -221,6 +229,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
             remediation: $failures === []
                 ? null
                 : 'Create or rebuild the affected Typesense index, then confirm its searchable model scope and sample query configuration.',
+            id: 'legacy.scout.index.health',
         );
     }
 

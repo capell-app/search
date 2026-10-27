@@ -1,6 +1,6 @@
 {
     "whatThisPluginAdds": {
-        "text": "Search adds public search, autocomplete, facets, synonyms, promoted results, spelling correction, and consent-aware search analytics.",
+        "text": "Search adds public search, autocomplete, facets, synonyms, promoted results, spelling correction, and search analytics that honour browser privacy signals.",
         "evidence": [
             "src/Actions/RunSearchAction.php",
             "src/Actions/RunAutocompleteSearchAction.php",

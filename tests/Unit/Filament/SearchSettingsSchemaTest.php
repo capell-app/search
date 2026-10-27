@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 use Capell\Search\Enums\SearchDriver;
 use Capell\Search\Filament\Settings\SearchSettingsSchema;
+use Capell\Tests\Support\SchemaStateHarness;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Icon;
@@ -14,6 +17,8 @@ use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Translation\Translator;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component as LivewireComponent;
 use PHPUnit\Framework\Assert;
 
@@ -51,6 +56,90 @@ it('builds search settings with driver, logging, and privacy controls', function
             static fn (SearchDriver $driver): string => $driver->value,
             SearchDriver::cases(),
         ));
+});
+
+it('rejects destinations at the real promotion form boundary without losing author input', function (string $url): void {
+    $host = new SchemaStateHarness;
+    $schema = Schema::make($host)->statePath('data');
+    $schema->components(fn (): array => SearchSettingsSchema::make($schema));
+    $schema->fill([
+        'driver' => 'database',
+        'promoted_results' => [[
+            'queries' => ['Pricing'], 'title' => 'Plan comparison', 'url' => $url,
+        ]],
+    ]);
+
+    try {
+        $schema->getState();
+        Assert::fail('A destination excluded by the public policy must not save.');
+    } catch (ValidationException $exception) {
+        expect(collect(array_keys($exception->errors()))->contains(static fn (string $key): bool => str_ends_with($key, '.url')))->toBeTrue();
+        $promotions = $host->data['promoted_results'];
+        throw_unless(is_array($promotions), LogicException::class);
+        /** @var array{title: string, queries: list<string>} $promotion */
+        $promotion = array_values($promotions)[0];
+        expect($promotion['title'])->toBe('Plan comparison')->and($promotion['queries'])->toBe(['Pricing']);
+    }
+})->with(['/admin/users', 'javascript:alert(1)', 'ftp://example.test/pricing']);
+
+it('accepts a public promotion and explains its sanitised destination without private values', function (): void {
+    $host = new SchemaStateHarness;
+    $schema = Schema::make($host)->statePath('data');
+    $schema->components(fn (): array => SearchSettingsSchema::make($schema));
+    $schema->fill([
+        'driver' => 'database',
+        'promoted_results' => [[
+            'queries' => ['Pricing'], 'title' => 'Plan comparison', 'url' => '/pricing?token=secret-value&plan=team',
+        ]],
+    ]);
+    $state = $schema->getState();
+    $promotedResults = $state['promoted_results'];
+    throw_unless(is_array($promotedResults) && is_array($promotedResults[0] ?? null), LogicException::class);
+    expect($promotedResults[0]['url'] ?? null)->toBe('/pricing?token=secret-value&plan=team');
+    /** @var array<Component> $schemaComponents */
+    $schemaComponents = $schema->getComponents();
+    $fields = flattenSearchSettingsComponentsWithChildren($schemaComponents);
+    $url = collect($fields)->first(fn (mixed $component): bool => $component instanceof TextInput && $component->getName() === 'url' && $component->getState() !== null);
+    Assert::assertInstanceOf(TextInput::class, $url);
+    $belowContent = $url->getChildComponents('below_content');
+    Assert::assertCount(1, $belowContent);
+    Assert::assertInstanceOf(Text::class, $belowContent[0]);
+    $helper = $belowContent[0]->getContent();
+    Assert::assertIsString($helper);
+    expect($helper)->toContain('/pricing?plan=team')->not->toContain('secret-value', 'token=');
+});
+
+it('explains search provider choices without changing their stored values', function (): void {
+    __('capell-search::settings.driver');
+    resolve(Translator::class)->addLines([
+        'settings.driver_options.site_discovery' => 'Local page catalogue',
+        'settings.driver_options.database' => 'SQL text matching',
+        'settings.driver_options.scout' => 'External engine adapter',
+        'settings.driver_helper' => 'Choose where to find matching pages.',
+    ], app()->getLocale(), 'capell-search');
+
+    $livewire = new class extends LivewireComponent implements HasSchemas
+    {
+        use InteractsWithSchemas;
+    };
+    $schema = Schema::make($livewire);
+    $schema->components(fn (): array => SearchSettingsSchema::make($schema));
+
+    $components = flattenSearchSettingsComponentsWithChildren(array_values(array_filter(
+        $schema->getComponents(),
+        static fn (mixed $component): bool => $component instanceof Component,
+    )));
+    $driver = collect($components)->first(fn (mixed $component): bool => $component instanceof Select && $component->getName() === 'driver');
+    Assert::assertInstanceOf(Select::class, $driver);
+    $options = $driver->getOptions();
+    expect(array_keys($options))->toBe(['database', 'site_discovery', 'scout']);
+    foreach (SearchDriver::cases() as $choice) {
+        $key = 'capell-search::settings.driver_options.' . $choice->value;
+        expect($options[$choice->value])->toBe(__($key))->not->toBe($key);
+    }
+
+    $helperKey = 'capell-search::settings.driver_helper';
+    expect(searchSettingsHelperText($driver))->toBe(__($helperKey))->not->toBe($helperKey);
 });
 
 it('exposes configured searchable source toggles', function (): void {
@@ -227,3 +316,18 @@ function flattenSearchSettingsComponentsWithChildren(array $components): array
 
     return $flattenedComponents;
 }
+
+it('explains that the enable switch controls the header while public endpoints remain available', function (): void {
+    $schema = Schema::make(new SchemaStateHarness);
+    $schema->components(fn (): array => SearchSettingsSchema::make($schema));
+
+    $components = flattenSearchSettingsComponentsWithChildren(array_values(array_filter($schema->getComponents(), static fn (mixed $component): bool => $component instanceof Component)));
+    $toggle = collect($components)->first(fn (Component $component): bool => $component instanceof Toggle && $component->getName() === 'enabled');
+    Assert::assertInstanceOf(Toggle::class, $toggle);
+
+    $label = $toggle->getLabel();
+    Assert::assertIsString($label);
+    expect(strtolower($label))->toContain('header');
+    expect(strtolower(searchSettingsHelperText($toggle)))
+        ->toContain('header', 'search page', 'autocomplete', 'remain available');
+});

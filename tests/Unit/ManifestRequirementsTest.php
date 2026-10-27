@@ -77,8 +77,9 @@ it('declares implemented search gap features contributions and actions', functio
         $screenshots,
     );
 
+    assertCapellPackageDescription('search', $manifest);
+
     expect(data_get($manifest, 'description'))->toContain('synonyms')
-        ->and(data_get($manifest, 'description'))->toContain('Site Discovery URL registry')
         ->and(data_get($manifest, 'marketplace.summary'))->toContain('Production-grade site search')
         ->and($screenshotPaths)->each(fn (Expectation $path): Expectation => $path->toBeFile())
         ->and(data_get($manifest, 'dependencies.supports'))->toContain('capell-app/site-discovery')

@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Capell\Core\Models\Page;
 use Capell\Core\Models\Site;
 use Capell\Core\Models\SiteDomain;
+use Capell\Navigation\Enums\NavigationHandle;
+use Capell\Navigation\Models\Navigation;
 use Capell\Search\Actions\SeedSearchScreenshotFixtureAction;
 use Capell\Search\Http\Controllers\SearchController;
 use Capell\Tests\Support\CapellManifest;
@@ -41,6 +43,10 @@ it('serves a real header control and indexed autocomplete results', function ():
         $request->attributes->set('language', $site->language);
         $response = resolve(SearchController::class)->autocomplete($request);
         expect(collect(searchAutocompleteResults($response->getData(true)))->pluck('title')->all())->toContain('Capell publishing guide');
+        // Theme Foundation mounts the header search control in the primary navigation's
+        // header actions, which render only for a site with a populated main menu, as the
+        // screenshot application's demo site has. A bare factory site has none.
+        Navigation::factory()->site($site)->language($site->language)->items(collect([$page]))->create(['key' => NavigationHandle::Main->value]);
         $this->get(searchSuppressedCaptureUrl('header-search-field'))->assertOk()->assertSee('data-site-search-trigger', false)->assertSee('data-site-search-input', false)->assertSee('publishing guide');
     } finally {
         putenv('CAPELL_SCREENSHOT_FIXTURE');

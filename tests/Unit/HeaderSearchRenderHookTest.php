@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Data\SiteDomains\SiteRequestTargetData;
+use Capell\Core\Models\SiteDomain;
 use Capell\Frontend\Data\FrontendRuntimeManifestData;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Enums\RenderingStrategyEnum;
 use Capell\Frontend\Facades\Frontend;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
+use Capell\Search\Settings\SearchSettings;
 use Capell\Search\Support\RenderHooks\RegisterHeaderSearchHook;
 use Capell\Tests\Support\JavaScriptScenario;
 
@@ -67,4 +70,29 @@ test('header search hook renders a real package view', function (): void {
         ->toContain('hidden')
         ->toContain(route('capell-frontend.search.autocomplete', absolute: false))
         ->toContain(route('capell-frontend.search.click', absolute: false));
+});
+
+it('hides and restores only the header integration when the enable setting changes', function (): void {
+    $this->registerAndMigrateSettings(['2026_05_10_190869_01_add_search_settings'], dirname(__DIR__, 2) . '/database/settings');
+    $origin = SiteRequestTargetData::fromUrl(route('capell-frontend.search'))->origin;
+    SiteDomain::factory()->createOne(['domain' => $origin->host, 'scheme' => $origin->scheme, 'port' => $origin->effectivePort, 'path' => null]);
+    $registry = new RenderHookRegistry;
+    $registry->registerExtension(location: RenderHookLocation::HeaderAfter, extension: new RegisterHeaderSearchHook);
+    foreach ([false, true] as $enabled) {
+        $settings = resolve(SearchSettings::class);
+        $settings->enabled = $enabled;
+        $settings->show_header_search = true;
+        $settings->save();
+        Frontend::setFrontendData('search.header.enabled', null);
+        Frontend::setFrontendData('search.header.visible', null);
+        $html = $registry->renderAll(RenderHookLocation::HeaderAfter);
+        config()->set('capell-search.page_view', 'capell-search::components.form');
+        $this->get(route('capell-frontend.search', ['q' => 'Capell'], false))->assertOk()->assertSee('type="search"', false);
+        $this->getJson(route('capell-frontend.search.autocomplete', ['q' => 'Capell'], false))->assertOk()->assertJsonPath('query', 'Capell')->assertJsonStructure(['results']);
+        if ($enabled) {
+            expect($html)->toContain('data-site-search-trigger');
+        } else {
+            expect($html)->toBe('');
+        }
+    }
 });

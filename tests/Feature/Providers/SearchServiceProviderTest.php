@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Translation\Translator;
 use Symfony\Component\Process\Process;
 
 function searchProviderSources(): void
@@ -108,9 +109,19 @@ test('site search settings expose defaults', function (): void {
 });
 
 test('search driver options expose translated filament labels', function (): void {
-    expect(SearchDriver::Database->getLabel())->toBe('Database')
-        ->and(SearchDriver::SiteDiscovery->getLabel())->toBe('Site Discovery URL registry')
-        ->and(SearchDriver::Scout->getLabel())->toBe('Scout');
+    __('capell-search::settings.driver');
+    resolve(Translator::class)->addLines([
+        'settings.driver_options.database' => 'SQL text matching',
+        'settings.driver_options.site_discovery' => 'Local page catalogue',
+        'settings.driver_options.scout' => 'External engine adapter',
+    ], app()->getLocale(), 'capell-search');
+
+    foreach (SearchDriver::cases() as $driver) {
+        $key = 'capell-search::settings.driver_options.' . $driver->value;
+        expect($driver->getLabel())->toBe(__($key))->not->toBe($key);
+    }
+
+    expect(array_column(SearchDriver::cases(), 'value'))->toBe(['database', 'site_discovery', 'scout']);
 });
 
 test('provider registers search settings metadata and schema', function (): void {
@@ -162,6 +173,7 @@ $app->register(Capell\Search\Providers\ConsoleServiceProvider::class);
 echo json_encode(array_keys($kernel->all()), JSON_THROW_ON_ERROR);
 PHP], $root);
     $process->run();
+
     expect($process->getExitCode())->toBe(0, $process->getErrorOutput());
     $commands = capell_json_array($process->getOutput());
     $manifest = capell_json_file_array(dirname(__DIR__, 3) . '/capell.json');

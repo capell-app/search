@@ -249,6 +249,12 @@
     }
 
     const openDialog = (dialog, trigger) => {
+        // Headers may establish a containing block or clipping context. Keep the
+        // modal at the document root so its fixed backdrop covers the viewport.
+        if (dialog.parentElement !== document.body) {
+            document.body.appendChild(dialog)
+        }
+
         const state = stateFor(dialog)
         const input = dialog.querySelector(selectors.input)
 
@@ -270,11 +276,9 @@
         document.body.classList.add('overflow-hidden')
         setPageInert(true)
 
-        // Surface the idle hint immediately so the panel never opens
-        // onto an empty box.
-        if ((input?.value.trim() || '') === '') {
-            clearResults(dialog)
-        }
+        // Restore the idle hint or refresh the retained query after closing
+        // cancelled its request and hid the results region.
+        scheduleFetchResults(dialog)
 
         window.requestAnimationFrame(() => input?.focus())
     }

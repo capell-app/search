@@ -3,17 +3,19 @@
 declare(strict_types=1);
 
 return [
+    'promoted_url_rejected' => 'Enter a public page path or an allowed HTTP(S) URL. Administration paths and unsupported schemes cannot appear in search results. Correct this destination before saving; the title and queries can be kept.',
+    'promoted_url_normalised' => 'Public destination: :url. Private parameters, credentials or fragments removed by the public search policy will not appear in results.',
     'driver' => 'Search driver',
-    'driver_helper' => 'Choose the backend used to retrieve organic indexed results: Database, Site Discovery URL registry, or Scout.',
+    'driver_helper' => 'Where search results come from. The built-in index needs no extra service.',
     'driver_options' => [
-        'database' => 'Database',
-        'site_discovery' => 'Site Discovery URL registry',
-        'scout' => 'Scout',
+        'database' => 'Database full-text',
+        'site_discovery' => 'Built-in page index (recommended)',
+        'scout' => 'Laravel Scout (Typesense, Meilisearch, Algolia)',
     ],
     'curation' => 'Search curation',
     'curation_helper' => 'Tune query expansion, spelling help, and promoted best-bet results without redeploying configuration.',
-    'enabled' => 'Enable search',
-    'enabled_helper' => 'Turn the public search route, autocomplete endpoint, and search widgets on or off.',
+    'enabled' => 'Enable header search integration',
+    'enabled_helper' => 'Show the package search entry in the site header. The search page and autocomplete remain available. Ask your developer to disable those routes if required.',
     'hash_visitor_data' => 'Hash visitor logs',
     'hash_visitor_data_helper' => 'Hash IP and user-agent values before saving search log rows.',
     'log_retention_days' => 'Log retention',

@@ -6,7 +6,7 @@
 
 Search is an **Available**, **Schema-owning** Capell package in the **Capell Search & SEO** product group. It ships as `capell-app/search` and extends these surfaces: admin, frontend, console.
 
-Search adds public search, autocomplete, facets, synonyms, promoted results, spelling correction, and consent-aware search analytics.
+Search adds public search, autocomplete, facets, synonyms, promoted results, spelling correction, and search analytics that honour browser privacy signals.
 
 Visitors can search indexed site content from the public search surface. Admins configure search behaviour and inspect top, trending, clicked, and zero-result queries.
 
@@ -39,7 +39,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Trending searches widget (admin, supplementary evidence).
 - Zero-result searches widget (admin, supplementary evidence).
 - Site search settings screen (admin, supplementary evidence).
-- Illustrative annotated search curation settings preview (frontend, required evidence).
+- Native Search curation settings (admin, required evidence).
 
 ## Technical Shape
 
@@ -271,7 +271,13 @@ Screenshot contract: `docs/screenshots.json`.
 ## Quick Start
 
 1. Install the package: `composer require capell-app/search`.
-2. Open `/search?q=Capell+publishing+guide` and confirm the public output renders without admin state.
+2. Open the package admin surface at `/admin/extensions?manage=capell-app%2Fsearch&surface=search` and confirm Search is available.
+
+## Upgrading
+
+No manual steps between minor versions.
+
+Read [CHANGELOG.md](CHANGELOG.md) before upgrading.
 
 ## Next Steps
 

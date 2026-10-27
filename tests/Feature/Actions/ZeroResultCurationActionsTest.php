@@ -10,6 +10,7 @@ use Capell\Search\Enums\SearchDriver;
 use Capell\Search\Settings\SearchSettings;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 beforeEach(function (): void {
     seedSearchSetting('enabled', true);
@@ -78,6 +79,13 @@ test('creates a promoted result from a zero-result query', function (): void {
         ->and(ResolvePromotedSearchResultsAction::run('implementation help'))->toHaveCount(1)
         ->and(ResolvePromotedSearchResultsAction::run('implementation help')[0]->title)->toBe('Implementation services');
 });
+
+test('zero-result promotion creation rejects destinations excluded by public search', function (string $url): void {
+    $before = resolve(SearchSettings::class)->promoted_results;
+    expect(fn () => CreatePromotedResultFromZeroResultSearchAction::run('Private destination', 'Result', $url))
+        ->toThrow(ValidationException::class)
+        ->and(resolve(SearchSettings::class)->promoted_results)->toBe($before);
+})->with(['/admin/users', 'javascript:alert(1)']);
 
 test('replaces duplicate promoted results for the same zero-result query and url', function (): void {
     CreatePromotedResultFromZeroResultSearchAction::run('Implementation help', 'Old title', '/services/implementation');

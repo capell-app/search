@@ -47,14 +47,18 @@ it('runs diagnostics with runtime probes', function (): void {
     $results = SearchHealthCheck::runDiagnostics();
 
     expect($results)->toHaveCount(6)
-        ->and($results->pluck('label')->all())->toContain(
-            'Search log storage table',
-            'SearchLog model registration',
-            'Search driver resolution',
-            'Search log write probe',
-            'Search logging configuration',
-            'Scout index health',
-        );
+        ->and($results->pluck('id')->all())->toBe([
+            'legacy.search.log.storage.table',
+            'legacy.searchlog.model.registration',
+            'legacy.search.driver.resolution',
+            'legacy.search.log.write.probe',
+            'legacy.search.logging.configuration',
+            'legacy.scout.index.health',
+        ]);
+
+    foreach ($results as $result) {
+        expect($result->label)->toMatch('/^Search: \S.+$/');
+    }
 });
 
 it('passes storage table, model registration, runtime probes, and logging config when valid', function (): void {
@@ -72,7 +76,8 @@ it('skips Scout index probes when Typesense is not active', function (): void {
     $result = (new SearchHealthCheck)->scoutIndexHealthCheck();
 
     expect($result->passed)->toBeTrue()
-        ->and($result->message)->toContain('skipped');
+        ->and($result->message)->toContain('skipped')
+        ->and($result->label)->toStartWith('Search: ')->not->toMatch('/up to date|fresh/i');
 });
 
 it('passes clearly when no Scout index probes are configured', function (): void {
@@ -82,7 +87,8 @@ it('passes clearly when no Scout index probes are configured', function (): void
     $result = (new SearchHealthCheck)->scoutIndexHealthCheck();
 
     expect($result->passed)->toBeTrue()
-        ->and($result->message)->toContain('No Scout index health probes are configured');
+        ->and($result->message)->toContain('No Scout index health probes are configured')
+        ->and($result->label)->toStartWith('Search: ')->not->toMatch('/up to date|fresh/i');
 });
 
 it('passes configured Typesense index probes when counts and sample results match', function (): void {
@@ -107,7 +113,8 @@ it('passes configured Typesense index probes when counts and sample results matc
     $result = (new SearchHealthCheck)->scoutIndexHealthCheck();
 
     expect($result->passed)->toBeTrue()
-        ->and($result->message)->toContain('1 configured Scout index probe(s) passed');
+        ->and($result->message)->toContain('1 configured Scout index probe(s) passed')
+        ->and($result->label)->toStartWith('Search: ')->not->toMatch('/up to date|fresh/i');
 });
 
 it('reports missing indexes, count drift, and failed sample round trips', function (): void {
@@ -141,6 +148,7 @@ it('reports missing indexes, count drift, and failed sample round trips', functi
         ->and($result->message)->toContain('missing index could not be queried')
         ->and($result->message)->toContain('stale document count differs')
         ->and($result->message)->toContain('stale sample query did not return the expected model')
+        ->and($result->label)->toStartWith('Search: ')->not->toMatch('/up to date|fresh/i')
         ->and($result->remediation)->not->toBeNull();
 });
 

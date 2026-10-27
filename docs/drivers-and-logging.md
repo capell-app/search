@@ -2,6 +2,8 @@
 
 Search exposes a public frontend route and records first-party search behavior when logging is enabled. The search backend is behind `Capell\Search\Contracts\Search`.
 
+Public search, autocomplete and click-tracking endpoints resolve the site and language from the configured public domain. Unknown or disabled domains, disabled sites and sites with an active access policy return HTTP 404. Query parameters cannot select another site, and signed click tokens can update records only within the resolved site and language.
+
 ## Config Keys
 
 | Key                                                | Use                                                                                                               |

@@ -47,7 +47,7 @@ The same **Search curation** section also lets you correct common typos and prom
 
 ### Turn on first
 
-- **A sensible set of searchable content.** Make your key pages and products findable before fine-tuning.
+- A sensible set of searchable content. Make your key pages and products findable before fine-tuning.
 
 ### Add when needed
 
@@ -74,3 +74,5 @@ The same **Search curation** section also lets you correct common typos and prom
 | A search returns nothing         | The content is not enabled, or visitors use different words | Enable the source, then add content or a curation rule  |
 | Results feel noisy or irrelevant | Too much low-value content is indexed                       | Narrow the enabled sources in **Search settings**       |
 | A new page isn't found in search | The source has not refreshed its index                      | Ask a developer to check the source's indexing behavior |
+
+**Enable header search integration** controls the package entry in the header, together with **Show header search**. Turning it off leaves the direct search page and autocomplete available. Ask your developer to disable or protect the routes when public search must be unavailable; see the [scope explanation](overview.admin.md#configure-search).

@@ -31,6 +31,7 @@
 
     <div
         class="border-outline/70 bg-surface-lowest text-on-surface relative w-full max-w-2xl rounded-lg border p-5 shadow-2xl shadow-black/35"
+        data-site-search-panel
     >
         <div
             class="bg-surface-lowest absolute end-3 top-3 z-10 flex items-center gap-2 ps-2"
@@ -133,6 +134,21 @@
 
 @once
     <style>
+        [data-site-search-dialog] {
+            color-scheme: inherit;
+        }
+
+        [data-site-search-panel] {
+            background: var(--color-surface-lowest, var(--foundation-surface-bg, light-dark(#fff, #111827)));
+            color: var(--color-on-surface, var(--foundation-body-fg, light-dark(#111827, #f3f4f6)));
+            border-color: var(--color-outline, var(--foundation-border, light-dark(#d1d5db, #4b5563)));
+        }
+
+        [data-site-search-panel] input {
+            background: var(--color-surface, var(--foundation-page-bg, light-dark(#fff, #111827)));
+            color: inherit;
+        }
+
         /* Hide the browser-native clear/decoration controls so the only
            close affordance is the explicit button in the panel corner. */
         [data-site-search-input]::-webkit-search-cancel-button,

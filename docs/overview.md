@@ -14,13 +14,13 @@ Open **Extensions > Search > Settings**. The page is protected by `View:SearchSe
 - choose the search driver, results-per-page limit, minimum query length, and the registered content sources to include; and
 - decide whether to record query logs, how long to retain them, and whether visitor data is hashed.
 
-The current **Enable search** and **Show header search** switches control the header integration. They do not remove or deny access to the public search, autocomplete, or click routes. Do not use them as an access-control or maintenance switch; ask a developer to disable or protect the routes when public search must be unavailable.
+The current **Enable header search integration** and **Show header search** switches control the header integration. They do not remove or deny access to the public search, autocomplete, or click routes. Do not use them as an access-control or maintenance switch; ask a developer to disable or protect the routes when public search must be unavailable.
 
 ## Choose the right source lifecycle
 
-- **Site Discovery URL registry** searches the site's currently indexable public URL records. It is the default and does not use the registered-source toggles.
-- **Database** searches the configured table and columns directly. It does not use the registered-source toggles and is suitable only when the public title, URL, excerpt, body, site, language, and publication status are available in that shape.
-- **Scout** searches the enabled registered model sources. The source toggles apply here, but changing a toggle or switching drivers does not build an external index.
+- **Built-in page index (recommended)** searches the site's currently indexable public URL records. It is the default and does not use the registered-source toggles.
+- **Database full-text** searches the configured table and columns directly. It does not use the registered-source toggles and is suitable only when the public title, URL, excerpt, body, site, language, and publication status are available in that shape.
+- **Laravel Scout (Typesense, Meilisearch, Algolia)** searches the enabled registered model sources. The source toggles apply here, but changing a toggle or switching drivers does not build an external index.
 
 For Scout, operations must run `search:index` for the required source and keep that index current through Scout model observers or source-owned updates. `search:flush` removes the matching configured Scout source from its index and fails when no flushable source matches, so use it only as a deliberate maintenance operation. The package health check proves that the driver resolves; it does not contact Meilisearch or Typesense or prove index freshness.
 

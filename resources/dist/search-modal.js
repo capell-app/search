@@ -202,6 +202,9 @@
       }
     }
     const openDialog = (dialog, trigger) => {
+      if (dialog.parentElement !== document.body) {
+        document.body.appendChild(dialog)
+      }
       const state = stateFor(dialog)
       const input = dialog.querySelector(selectors.input)
       window.dispatchEvent(new CustomEvent('capell-close-header-menus'))
@@ -217,9 +220,7 @@
       trigger.setAttribute('aria-expanded', 'true')
       document.body.classList.add('overflow-hidden')
       setPageInert(true)
-      if ((input?.value.trim() || '') === '') {
-        clearResults(dialog)
-      }
+      scheduleFetchResults(dialog)
       window.requestAnimationFrame(() => input?.focus())
     }
     const clearResults = (dialog) => {

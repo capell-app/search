@@ -3,11 +3,12 @@
 declare(strict_types=1);
 
 use Capell\Search\Http\Controllers\SearchController;
+use Capell\Search\Http\Middleware\ResolveSearchSite;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 
 Route::name('capell-frontend.')
-    ->middleware('web')
+    ->middleware(['web', ResolveSearchSite::class])
     ->group(function (): void {
         $searchRoutePath = config('capell-search.route_path', 'search');
         $searchRateLimiter = config('capell-search.rate_limiter', 'capell-search-requests');

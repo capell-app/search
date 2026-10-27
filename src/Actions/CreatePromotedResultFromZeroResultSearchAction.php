@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Capell\Search\Actions;
 
+use Capell\Search\Rules\PublicSearchDestination;
 use Capell\Search\Settings\SearchSettings;
+use Illuminate\Support\Facades\Validator;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
@@ -34,6 +36,8 @@ final class CreatePromotedResultFromZeroResultSearchAction
         if ($query === '' || $title === '' || $url === '') {
             return $this->promotedResults($this->settings()->promoted_results);
         }
+
+        Validator::make(['url' => $url], ['url' => [new PublicSearchDestination]])->validate();
 
         $settings = $this->settings();
         $promotedResults = $this->withoutDuplicatePromotion($this->promotedResults($settings->promoted_results), $query, $url);

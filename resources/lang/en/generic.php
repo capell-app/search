@@ -19,6 +19,7 @@ return [
     'popular_search' => 'Popular search',
     'results_count' => ':count result for :query|:count results for :query',
     'results_label' => 'Search results',
+    'results_limited' => 'More results may be available. Try a more specific search.',
     'search_label' => 'Search this site',
     'search_placeholder' => 'Search pages, extensions, resources, and media',
     'searching' => 'Searching',

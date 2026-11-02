@@ -101,6 +101,10 @@ class DatabaseSearch implements Search
 
         $builder->orderByDesc(new Expression('search_score'));
 
+        if (in_array($this->urlColumn, $availableColumns, true)) {
+            $builder->orderBy($this->urlColumn);
+        }
+
         $rows = $builder
             ->forPage($page, $perPage)
             ->get();

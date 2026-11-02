@@ -40,7 +40,7 @@ final readonly class BuildSearchPageViewDataAction
             return $this->emptySearchPageViewData($query, $data, $request);
         }
 
-        $results = RunSearchAction::run($data)->withPath($request->url());
+        $results = RunSearchAction::run($data)->withPath($request->url())->appends($request->query());
         $facetGroups = BuildSearchFacetGroupsAction::run(
             request: $request,
             query: $query,

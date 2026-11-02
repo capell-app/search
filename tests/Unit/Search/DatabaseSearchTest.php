@@ -75,7 +75,7 @@ test('search returns matching results from the database', function (): void {
 
     expect($results->total())->toBe(3);
     expect($firstResult)->toBeInstanceOf(SearchResultData::class);
-    expect($firstResult?->title)->toBe('Laravel Tutorial');
+    expect($firstResult?->title)->toBe('Laravel French');
 });
 
 test('search result url is prefixed with a leading slash', function (): void {
@@ -84,7 +84,7 @@ test('search result url is prefixed with a leading slash', function (): void {
     $results = $search->search('Laravel');
     $firstResult = $results->items()[0] ?? null;
 
-    expect($firstResult?->url)->toBe('/laravel-tutorial');
+    expect($firstResult?->url)->toBe('/laravel-french');
 });
 
 test('search falls back to body when excerpt is null', function (): void {

@@ -88,7 +88,7 @@ class ScoutSearch implements Search
             ->flatMap(static fn (array $sourceResult): Collection => $sourceResult['items'])
             ->filter(static fn (SearchResultData $result): bool => $result->title !== '' && $result->url !== '/')
             ->unique(static fn (SearchResultData $result): string => $result->url)
-            ->sortByDesc(static fn (SearchResultData $result): float => $result->score)
+            ->sort(static fn (SearchResultData $left, SearchResultData $right): int => ($right->score <=> $left->score) ?: strcmp($left->url, $right->url))
             ->values();
 
         $items = $results

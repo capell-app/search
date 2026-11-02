@@ -775,7 +775,7 @@ test('controller passes normalized valid searches to the site search service', f
         }
     });
 
-    $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => '  Laravel   Search  ', 'page' => '2']);
+    $request = Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => '  Laravel   Search  ', 'page' => '2', 'type' => ['page']]);
     $request->attributes->set('site', searchControllerTestSite());
 
     $view = (new SearchController)($request);
@@ -784,7 +784,8 @@ test('controller passes normalized valid searches to the site search service', f
     expect($view->getData()['results']->total())->toBe(1);
     expect($view->getData()['results']->currentPage())->toBe(2);
     expect($view->getData()['results']->perPage())->toBe(5);
-    expect($view->getData()['results']->url(3))->toBe('http://localhost/search?page=3');
+    parse_str((string) parse_url($view->getData()['results']->url(3), PHP_URL_QUERY), $paginationQuery);
+    expect($paginationQuery)->toBe(['q' => '  Laravel   Search  ', 'type' => ['page'], 'page' => '3']);
     expect($view->getData()['highlightedResults']->first())->toBe([
         'title' => 'Laravel <mark>Search</mark>',
         'excerpt' => '<mark>Search</mark> result content',

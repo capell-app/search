@@ -50,7 +50,7 @@ final readonly class SiteDiscoverySearch implements Search
             ->filter(fn (PublicUrlRegistryEntryData $entry): bool => $this->matchesFilters($entry, $filters))
             ->map(fn (PublicUrlRegistryEntryData $entry): SearchResultData => $this->entryToResult($entry, $normalizedQuery))
             ->filter(fn (SearchResultData $result): bool => $this->matchesResult($result))
-            ->sortByDesc(static fn (SearchResultData $result): float => $result->score)
+            ->sort(static fn (SearchResultData $left, SearchResultData $right): int => ($right->score <=> $left->score) ?: strcmp($left->url, $right->url))
             ->values();
 
         return $this->paginate($results, $perPage, $page);

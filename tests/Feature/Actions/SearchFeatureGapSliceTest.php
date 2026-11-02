@@ -114,18 +114,15 @@ test('runs expanded synonym queries and deduplicates results by url', function (
     ]);
 });
 
-test('uses primary driver pagination beyond the first expanded search page', function (): void {
-    config()->set('capell-search.synonyms', [
-        'cms' => ['content management system'],
-    ]);
+test('keeps expanded results on subsequent pages with a stable deduplicated total', function (): void {
+    config()->set('capell-search.synonyms', ['cms' => ['content management system']]);
 
     $search = new class implements Search
     {
-        /**
-         * @var list<array{query: string, perPage: int, page: int}>
-         */
+        /** @var list<array{query: string, perPage: int, page: int, siteId: ?int, languageId: ?int}> */
         public array $calls = [];
 
+        #[Override]
         public function search(
             string $query,
             int $perPage = 10,
@@ -134,44 +131,44 @@ test('uses primary driver pagination beyond the first expanded search page', fun
             ?int $languageId = null,
             ?SearchFilterData $filters = null,
         ): LengthAwarePaginator {
-            $this->calls[] = [
-                'query' => $query,
-                'perPage' => $perPage,
-                'page' => $page,
-            ];
+            $this->calls[] = compact('query', 'perPage', 'page', 'siteId', 'languageId');
+            $urls = $query === 'cms hosting' ? ['/one', '/shared'] : ['/shared', '/three', '/four'];
+            $items = array_map(
+                static fn (string $url): SearchResultData => new SearchResultData(title: $url, url: $url, excerpt: '', score: 1.0),
+                $urls,
+            );
 
-            return new Paginator(new Collection([
-                new SearchResultData(
-                    title: 'CMS Hosting Page Two',
-                    url: '/cms-hosting-page-two',
-                    excerpt: 'Second page result.',
-                    score: 1.0,
-                ),
-            ]), 42, $perPage, $page);
+            return new Paginator($items, count($items), $perPage, $page);
         }
 
+        #[Override]
         public function highlight(string $text, string $query): string
         {
             return $text;
         }
     };
 
-    $results = runBoundAction(RunSearchAction::class, new RunSearchAction($search), new SearchRequestData(
-        query: 'CMS hosting',
-        page: 2,
-        perPage: 5,
-    ));
+    $pages = [];
+    foreach ([1, 2] as $page) {
+        $pages[] = runBoundAction(RunSearchAction::class, new RunSearchAction($search), new SearchRequestData(
+            query: 'CMS hosting',
+            page: $page,
+            perPage: 2,
+            siteId: 10,
+            languageId: 20,
+        ));
+    }
 
-    expect($search->calls)->toBe([
-        [
-            'query' => 'cms hosting',
-            'perPage' => 5,
-            'page' => 2,
-        ],
-    ])
-        ->and($results->total())->toBe(42)
-        ->and($results->currentPage())->toBe(2)
-        ->and($results->perPage())->toBe(5);
+    expect($pages[0]->total())->toBe(4)
+        ->and($pages[1]->total())->toBe(4)
+        ->and(collect($pages[0]->items())->pluck('url')->all())->toBe(['/four', '/one'])
+        ->and(collect($pages[1]->items())->pluck('url')->all())->toBe(['/shared', '/three'])
+        ->and($search->calls)->toBe([
+            ['query' => 'cms hosting', 'perPage' => 100, 'page' => 1, 'siteId' => 10, 'languageId' => 20],
+            ['query' => 'content management system hosting', 'perPage' => 100, 'page' => 1, 'siteId' => 10, 'languageId' => 20],
+            ['query' => 'cms hosting', 'perPage' => 100, 'page' => 1, 'siteId' => 10, 'languageId' => 20],
+            ['query' => 'content management system hosting', 'perPage' => 100, 'page' => 1, 'siteId' => 10, 'languageId' => 20],
+        ]);
 });
 
 test('does not repeat promoted results beyond the first search page', function (): void {

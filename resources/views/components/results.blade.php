@@ -61,6 +61,9 @@
         </ol>
         <div class="mt-6">{{ $results->links() }}</div>
     @endif
+    @if ($results instanceof \Capell\Search\Support\ExpandedSearchPaginator && $results->truncated)
+        <p class="text-on-surface-variant mt-4 text-sm">{{ __('capell-search::generic.results_limited') }}</p>
+    @endif
 </section>
 
 @once

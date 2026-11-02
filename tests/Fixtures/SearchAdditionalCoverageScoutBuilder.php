@@ -45,7 +45,7 @@ final class SearchAdditionalCoverageScoutBuilder
                 : $records->count();
         });
 
-        return new LengthAwarePaginator($records->all(), is_numeric($total) ? (int) $total : 0, $perPage, $page);
+        return new LengthAwarePaginator($records->forPage($page, $perPage)->values()->all(), is_numeric($total) ? (int) $total : 0, $perPage, $page);
     }
 
     /**

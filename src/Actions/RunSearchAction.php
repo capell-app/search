@@ -8,6 +8,7 @@ use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
+use Capell\Search\Support\ExpandedSearchPaginator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
@@ -44,7 +45,11 @@ final readonly class RunSearchAction
         }
 
         $queries = ResolveExpandedSearchQueriesAction::run($normalizedQuery);
-        $queries = $this->expandedQueriesForPage($queries, $data->page);
+        $queries = array_slice($queries, 0, max(1, min(10, $this->integerConfig('capell-search.query_expansion.max_queries', 3))));
+
+        if (count($queries) > 1) {
+            return $this->expandedResults($queries, $data, $normalizedQuery);
+        }
 
         $results = $this->searchForQueries(
             queries: $queries,
@@ -60,23 +65,51 @@ final readonly class RunSearchAction
 
     /**
      * @param  list<string>  $queries
-     * @return list<string>
+     * @return Paginator<int, SearchResultData>
      */
-    private function expandedQueriesForPage(array $queries, int $page): array
+    private function expandedResults(array $queries, SearchRequestData $data, string $normalizedQuery): Paginator
     {
-        $primaryQuery = $queries[0] ?? '';
+        $items = new Collection;
+        $truncated = false;
 
-        if ($primaryQuery === '') {
-            return [];
+        foreach ($queries as $query) {
+            $results = $this->search->search(
+                query: $query,
+                perPage: 100,
+                page: 1,
+                siteId: $data->siteId,
+                languageId: $data->languageId,
+                filters: $data->filters,
+            );
+
+            $truncated = $truncated || $results->total() > count($results->items());
+            $items = $items->merge($results->items());
         }
 
-        if ($page > 1) {
-            return [$primaryQuery];
-        }
+        $items = $items
+            ->map(static fn (SearchResultData $result): ?SearchResultData => SanitizeSearchResultAction::run($result))
+            ->filter(static fn (?SearchResultData $result): bool => $result instanceof SearchResultData)
+            ->unique(static fn (SearchResultData $result): string => $result->url)
+            ->values();
 
-        $maxQueries = max(1, $this->integerConfig('capell-search.query_expansion.max_queries', 3));
+        // Rank and promote the entire bounded set before slicing, so a URL cannot
+        // move between pages merely because it was promoted on the first page.
+        $ranked = ApplySearchResultEnhancementsAction::run(
+            new Paginator($items, $items->count(), max(1, $items->count()), 1),
+            $normalizedQuery,
+            $data->siteId,
+            $data->languageId,
+        );
+        $items = (new Collection($ranked->items()))
+            ->unique(static fn (SearchResultData $result): string => $result->url)
+            ->sort(static fn (SearchResultData $left, SearchResultData $right): int => ($right->promoted <=> $left->promoted)
+                ?: ($right->score <=> $left->score)
+                ?: strcmp($left->url, $right->url))
+            ->values();
+        $perPage = max(1, $data->perPage);
+        $page = max(1, $data->page);
 
-        return array_slice($queries, 0, $maxQueries);
+        return new ExpandedSearchPaginator($items->forPage($page, $perPage)->values(), $items->count(), $perPage, $page, $truncated);
     }
 
     private function integerSetting(string $settingKey, string $configKey, int $fallback): int
@@ -107,44 +140,13 @@ final readonly class RunSearchAction
     ): LengthAwarePaginator {
         $primaryQuery = $queries[0] ?? '';
 
-        if (count($queries) <= 1) {
-            return $this->search->search(
-                query: $primaryQuery,
-                perPage: $perPage,
-                page: $page,
-                siteId: $siteId,
-                languageId: $languageId,
-                filters: $filters,
-            );
-        }
-
-        $fetchLimit = max($perPage, $perPage * max(1, $page));
-        $items = new Collection;
-        $total = 0;
-
-        foreach ($queries as $query) {
-            $results = $this->search->search(
-                query: $query,
-                perPage: $fetchLimit,
-                page: 1,
-                siteId: $siteId,
-                languageId: $languageId,
-                filters: $filters,
-            );
-
-            $total += $results->total();
-            $items = $items->merge($results->items());
-        }
-
-        $items = $items
-            ->unique(static fn (SearchResultData $result): string => $result->url)
-            ->values();
-
-        return new Paginator(
-            items: $items->forPage($page, $perPage)->values(),
-            total: min($total, $items->count()),
+        return $this->search->search(
+            query: $primaryQuery,
             perPage: $perPage,
-            currentPage: $page,
+            page: $page,
+            siteId: $siteId,
+            languageId: $languageId,
+            filters: $filters,
         );
     }
 }

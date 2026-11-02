@@ -120,6 +120,7 @@ Screenshot contract: `docs/screenshots.json`.
 - `RegisterConfiguredSearchableSourcesAction`
 - `ResolveCorrectedSearchQueryAction`
 - `ResolveExpandedSearchQueriesAction`
+- `ResolvePromotedSearchDestinationAction`
 - `ResolvePromotedSearchResultsAction`
 - `ResolveSearchResultTypeLabelAction`
 - `ResolveSearchSettingAction`
@@ -136,6 +137,7 @@ Screenshot contract: `docs/screenshots.json`.
 - `AutocompleteSearchResultData`
 - `DatabaseFullTextSearch`
 - `DatabaseSearchExpression`
+- `PromotedSearchDestinationData`
 - `PromotedSearchResultData`
 - `SearchFacetGroupData`
 - `SearchFacetOptionData`
@@ -271,7 +273,7 @@ Screenshot contract: `docs/screenshots.json`.
 ## Quick Start
 
 1. Install the package: `composer require capell-app/search`.
-2. Open the package admin surface at `/admin/extensions?manage=capell-app%2Fsearch&surface=search` and confirm Search is available.
+2. Open the package admin surface at `/admin/extensions` and confirm Search is available.
 
 ## Upgrading
 

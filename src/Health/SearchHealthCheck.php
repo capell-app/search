@@ -7,11 +7,13 @@ namespace Capell\Search\Health;
 use Capell\Core\Contracts\Extensions\ChecksExtensionHealth;
 use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
 use Capell\Core\Facades\CapellCore;
+use Capell\Core\Support\TableName;
 use Capell\Search\Actions\ProbeScoutIndexHealthAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Models\SearchLog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
@@ -306,8 +308,6 @@ final class SearchHealthCheck implements ChecksExtensionHealth
 
     private function searchLogTableName(): string
     {
-        $tableName = config('capell-search.logs.table_name', 'search_logs');
-
-        return is_string($tableName) && $tableName !== '' ? $tableName : 'search_logs';
+        return TableName::resolve(Config::string('capell-search.logs.table_name', 'search_logs'));
     }
 }

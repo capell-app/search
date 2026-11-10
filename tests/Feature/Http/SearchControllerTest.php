@@ -30,7 +30,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
@@ -288,11 +288,12 @@ test('full search route is throttled', function (): void {
         ->not->toContain('frontend.resolve');
 });
 
+// Beacons from cached pages carry no token; the browser's same-origin Sec-Fetch-Site header satisfies the check.
 test('click tracking route is csrf exempt for cached frontend beacons', function (): void {
     $route = Route::getRoutes()->getByName('capell-frontend.search.click');
 
     expect($route?->gatherMiddleware())->toContain('throttle:capell-search-clicks')
-        ->and($route?->excludedMiddleware())->toContain(VerifyCsrfToken::class);
+        ->and(searchCsrfMiddleware($route))->toBe([]);
 });
 
 test('header click beacon preserves navigation and posts anonymous tracking data', function (): void {
@@ -373,6 +374,49 @@ test('click tracking endpoint records result clicks by token', function (): void
     expect($log->refresh()->clicked_result_url)->toBe('/laravel-search');
 });
 
+test('click tracking endpoint records nothing for a forged or mismatched token', function (): void {
+    RateLimiter::for('capell-search-clicks', static fn (): Limit => Limit::perMinute(120));
+
+    Schema::dropIfExists('search_logs');
+    Schema::create('search_logs', function (Blueprint $table): void {
+        $table->id();
+        $table->foreignId('site_id')->nullable()->index();
+        $table->foreignId('language_id')->nullable()->index();
+        $table->string('query');
+        $table->string('normalized_query')->index();
+        $table->string('normalized_query_hash', 64)->nullable()->index();
+        $table->unsignedInteger('results_count')->default(0);
+        $table->string('clicked_result_url')->nullable();
+        $table->string('clicked_result_hash', 64)->nullable()->index();
+        $table->string('ip_hash', 64)->nullable();
+        $table->string('user_agent_hash', 64)->nullable();
+        $table->timestamp('searched_at')->index();
+        $table->timestamps();
+    });
+
+    $log = SearchLog::query()->create([
+        'query' => 'Laravel Search',
+        'normalized_query' => HashSearchRetentionValueAction::run('laravel search'),
+        'normalized_query_hash' => HashSearchRetentionValueAction::run('laravel search'),
+        'results_count' => 1,
+        'searched_at' => now(),
+    ]);
+    $token = GenerateSearchClickTokenAction::run(new SearchRequestData(query: 'Laravel Search'), '/laravel-search');
+
+    foreach ([
+        ['token' => 'forged-token', 'url' => '/laravel-search'],
+        ['token' => $token, 'url' => '/a-different-result'],
+        ['url' => '/laravel-search'],
+    ] as $attempt) {
+        $this
+            ->withoutMiddleware()
+            ->post(route('capell-frontend.search.click'), ['query' => 'Laravel Search', ...$attempt])
+            ->assertNoContent();
+    }
+
+    expect($log->refresh()->clicked_result_url)->toBeNull();
+});
+
 test('click tracking endpoint enforces its configured rate limiter', function (): void {
     RateLimiter::for('capell-search-clicks', static fn (): Limit => Limit::perMinute(1)->by('search-click-test'));
 
@@ -395,7 +439,7 @@ test('click tracking endpoint enforces its configured rate limiter', function ()
 
     Route::post('/_search-click-rate-limit-test', [SearchController::class, 'click'])
         ->middleware('throttle:capell-search-clicks')
-        ->withoutMiddleware([VerifyCsrfToken::class]);
+        ->withoutMiddleware([PreventRequestForgery::class]);
 
     $payload = [
         'query' => 'Laravel Search',
@@ -1045,4 +1089,21 @@ function searchControllerTestSite(): Site
     $site->setRawAttributes(['id' => 1, 'name' => 'Capell']);
 
     return $site;
+}
+
+/**
+ * The request forgery middleware left in the route's effective pipeline once its groups and exclusions are resolved.
+ *
+ * @return list<string>
+ */
+function searchCsrfMiddleware(?Illuminate\Routing\Route $route): array
+{
+    if (! $route instanceof Illuminate\Routing\Route) {
+        return ['route not registered'];
+    }
+
+    return array_values(array_filter(
+        app('router')->gatherRouteMiddleware($route),
+        static fn (mixed $middleware): bool => is_string($middleware) && is_a(explode(':', $middleware)[0], PreventRequestForgery::class, true),
+    ));
 }

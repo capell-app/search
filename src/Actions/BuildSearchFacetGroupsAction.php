@@ -9,6 +9,7 @@ use Capell\Search\Data\SearchableSourceData;
 use Capell\Search\Data\SearchFacetGroupData;
 use Capell\Search\Data\SearchFacetOptionData;
 use Capell\Search\Data\SearchFilterData;
+use Capell\Search\Support\PubliclyReadableSearchPaginator;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -151,22 +152,36 @@ final readonly class BuildSearchFacetGroupsAction
         );
     }
 
-    private function count(string $query, SearchFilterData $filters, ?int $siteId, ?int $languageId): int
+    /**
+     * The number of matches for a facet, or null when it is withheld: while
+     * public reads are restricted, only readable matches may be counted and
+     * the full count is never computed.
+     */
+    private function count(string $query, SearchFilterData $filters, ?int $siteId, ?int $languageId): ?int
     {
-        return $this->search->search(
+        $results = $this->search->search(
             query: $query,
             perPage: 1,
             page: 1,
             siteId: $siteId,
             languageId: $languageId,
             filters: $filters,
-        )->total();
+        );
+
+        if (! PubliclyReadableSearchPaginator::hasExactTotal($results)) {
+            // An empty bounded page that can continue has not found nothing:
+            // its count is unknown, so the facet stays.
+            return $results->items() === [] && ! $results->hasMorePages() ? 0 : null;
+        }
+
+        return $results->total();
     }
 
     private function url(Request $request, string $key, string $value, bool $selected): string
     {
         $parameters = $request->query();
-        unset($parameters['page']);
+        // A filter starts a new read: a cursor belongs to the read it came from.
+        unset($parameters['page'], $parameters[PubliclyReadableSearchPaginator::CURSOR_NAME]);
 
         $values = data_get($parameters, $key, []);
         $values = is_array($values) ? $values : [$values];

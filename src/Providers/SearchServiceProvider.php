@@ -8,7 +8,9 @@ use Capell\Core\Contracts\Agent\AgentPageSearch;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Packages\RouteGroupIsolation;
+use Capell\Core\Support\PublicRead\PublicPageReadEligibilityRegistry;
 use Capell\Core\Support\Settings\SettingsGroupMetadata;
+use Capell\Core\Support\TableName;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Events\FrontendRenderPreparing;
 use Capell\Frontend\Support\Render\FrontendHookRegistrar;
@@ -23,6 +25,7 @@ use Capell\Search\Filament\Settings\SearchSettingsSchema;
 use Capell\Search\Integrations\Agent\AgentPageSearchAdapter;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Settings\SearchSettings;
+use Capell\Search\Support\PubliclyReadableSearch;
 use Capell\Search\Support\RenderHooks\RegisterHeaderSearchHook;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Capell\Search\Support\SiteDiscovery\SearchGeneratedOutputCoverageSource;
@@ -34,6 +37,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\RateLimiter;
 use Override;
 use Spatie\LaravelPackageTools\Package;
@@ -209,7 +213,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
 
             return new DatabaseSearch(
                 db: $app->make(ConnectionResolverInterface::class)->connection(),
-                table: config('capell-search.database.table', 'pages'),
+                table: TableName::resolve(Config::string('capell-search.database.table', 'pages')),
                 columns: config('capell-search.database.columns', ['title', 'excerpt', 'body']),
                 columnWeights: $this->columnWeights(config('capell-search.database.column_weights', [])),
                 urlColumn: config('capell-search.database.url_column', 'slug'),
@@ -223,6 +227,11 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
                 publishedStatus: config('capell-search.database.published_status', 'published'),
             );
         });
+
+        // Wrap whichever implementation ends up bound, including a host's own.
+        $this->app->extend(Search::class, static fn (Search $search, Application $app): Search => $search instanceof PubliclyReadableSearch
+            ? $search
+            : new PubliclyReadableSearch($search, $app->make(PublicPageReadEligibilityRegistry::class)));
 
         return $this;
     }
@@ -240,8 +249,12 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
                 10,
             );
 
+            $search = $app->make(Search::class);
+
+            // The Core agent boundary filters, pages and links readable results
+            // itself; scanning them here as well would repeat every bounded read.
             return new AgentPageSearchAdapter(
-                search: $app->make(Search::class),
+                search: $search instanceof PubliclyReadableSearch ? $search->unfiltered() : $search,
                 perPage: is_int($perPage) ? max(1, min(100, $perPage)) : 10,
             );
         });
@@ -326,7 +339,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
 
     private function registerProtectedTables(): self
     {
-        CapellCore::registerProtectedTable(fn (): string => config('capell-search.logs.table_name', 'search_logs'));
+        CapellCore::registerProtectedTable(fn (): string => TableName::resolve(Config::string('capell-search.logs.table_name', 'search_logs')));
 
         return $this;
     }

@@ -21,6 +21,7 @@ use Capell\Search\Filament\Widgets\ZeroResultSearchesFilamentWidget;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Number;
 use Illuminate\Support\ServiceProvider;
 use Override;
 use Spatie\Permission\PermissionRegistrar;
@@ -112,7 +113,7 @@ final class AdminServiceProvider extends ServiceProvider
         CapellAdmin::registerOverviewStat(
             key: 'search_overview.zero_result_rate',
             label: fn (): string => __('capell-search::dashboard.zero_result_rate'),
-            value: fn (): string => number_format($this->searchOverview()['zeroResultRate'], 1) . '%',
+            value: fn (): string => (string) Number::format($this->searchOverview()['zeroResultRate'], precision: 1, locale: app()->getLocale()) . '%',
             group: fn (): string => __('capell-search::dashboard.group'),
             color: 'warning',
             sort: 112,

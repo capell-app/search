@@ -2,23 +2,25 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Support\TableName;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        $tableName = config('capell-search.logs.table_name', 'search_logs');
+        $tableName = TableName::resolve(Config::string('capell-search.logs.table_name', 'search_logs'));
 
-        if (Schema::hasTable($tableName)) {
+        if (TableName::existsAndIsOwned(Config::string('capell-search.logs.table_name', 'search_logs'), basename(__FILE__, '.php'))) {
             return;
         }
 
         Schema::create($tableName, function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('site_id')->nullable()->constrained('sites')->nullOnDelete();
+            $table->foreignId('site_id')->nullable()->constrained(TableName::resolve('sites'))->nullOnDelete();
             $table->foreignId('language_id')->nullable()->index();
             $table->string('query');
             $table->string('normalized_query')->index();
@@ -35,6 +37,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists(config('capell-search.logs.table_name', 'search_logs'));
+        Schema::dropIfExists(TableName::resolve(Config::string('capell-search.logs.table_name', 'search_logs')));
     }
 };

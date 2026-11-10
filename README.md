@@ -2,239 +2,56 @@
 
 <!-- prettier-ignore-start -->
 
-## What This Plugin Adds
-
-Search is an **Available**, **Schema-owning** Capell package in the **Capell Search & SEO** product group. It ships as `capell-app/search` and extends these surfaces: admin, frontend, console.
+## What It Does
 
 Search adds public search, autocomplete, facets, synonyms, promoted results, spelling correction, and search analytics that honour browser privacy signals.
 
+- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/search).
+- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/search).
+- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.76`, `capell-app/discovery-foundation ^1.0`, `capell-app/frontend ^1.0.72`, `lorisleiva/laravel-actions ^2.8`, `spatie/laravel-data ^4.5`, `spatie/laravel-package-tools ^1.14.1`.
+- **Install:** `composer require capell-app/search`.
+
 Visitors can search indexed site content from the public search surface. Admins configure search behaviour and inspect top, trending, clicked, and zero-result queries.
 
-Status details:
+## Who It Is For
 
-- Status: Available
-- Tier: premium
-- Bundle: search-seo
-- Composer package: `capell-app/search`
-- Namespace: `Capell\Search`
-- Theme key: not applicable
-
-## Why It Matters
-
-**For developers:** The searchable-source registry and Search contract keep indexing backends replaceable while Actions normalize, sanitize, enhance, and record queries.
+**For developers:** The searchable-source registry and Search contract keep indexing backends replaceable while Actions normalise, sanitize, enhance, and record queries.
 
 **For teams:** Teams can help visitors find content and use failed or repeated searches to decide which synonyms, promoted results, or content gaps to address.
 
-## Screens And Workflow
+## Quick Start
 
-Screenshot contract: `docs/screenshots.json`.
+1. Install the package: `composer require capell-app/search`.
+2. Open the package admin surface at `/admin/extensions` and confirm Search is available.
+
+## Configure
+
+- **Configuration files:** `config/capell-search.php`.
+- **Admin settings:** `Capell\Search\Settings\SearchSettings`.
+- **Commands:** `php artisan capell:search:screenshot-fixture`, `php artisan search:flush`, `php artisan search:index`, `php artisan search:purge`.
+
+## Limits And Pitfalls
+
+- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.76`, `capell-app/discovery-foundation ^1.0`, `capell-app/frontend ^1.0.72`.
+- Run migrations before opening package resources or public routes.
+- Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
+- Keep the host Laravel scheduler running so package-registered schedules can execute: `search:purge (monthly; package registered)`.
+- Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
+- Custom write integrations must preserve invalidation for `search` cache tags.
+
+## Screens And Workflow
 
 ![Frontend search results page](docs/screenshots/frontend-search-results-page.png)
 
 ![Top searches widget](docs/screenshots/top-searches-widget.png)
 
-- Frontend search results page (frontend, required evidence).
-- Header search field (frontend, supplementary evidence).
-- Top searches widget (admin, required evidence).
-- Trending searches widget (admin, supplementary evidence).
-- Zero-result searches widget (admin, supplementary evidence).
-- Site search settings screen (admin, supplementary evidence).
-- Native Search curation settings (admin, required evidence).
-
-## Technical Shape
-
-### Service providers
-
-- `Capell\Search\Providers\SearchServiceProvider`
-- `Capell\Search\Providers\ConsoleServiceProvider`
-- `Capell\Search\Providers\AdminServiceProvider`
-
-### Config files
-
-- `packages/search/config/capell-search.php`
-
-### Migrations
-
-- `packages/search/database/migrations/2026_05_10_190868_01_create_search_logs_table.php`
-- `packages/search/database/migrations/2026_05_21_000002_add_fulltext_index_to_search_database_table.php`
-- `packages/search/database/migrations/2026_07_12_000001_encrypt_search_log_pii.php`
-- `packages/search/database/migrations/2026_09_29_120000_remove_implicit_timestamp_updates_from_search.php`
-
-### Settings migrations
-
-- `packages/search/database/settings/2026_05_10_190869_01_add_search_settings.php`
-
-### Settings classes
-
-- `SearchSettings`
-
-### Models
-
-- `SearchLog`
-
-### Filament classes
-
-- `SearchSettingsPage`
-- `SearchDashboardSettingsContributor`
-- `SearchSettingsSchema`
-- `BuildsSearchInsightsWindow`
-- `SearchOverviewStatsFilamentWidget`
-- `TopSearchesFilamentWidget`
-- `TrendingSearchesFilamentWidget`
-- `ZeroResultSearchesFilamentWidget`
-
-### Route files
-
-- `packages/search/routes/web.php`
-
-### Extension contracts
-
-- `Search`
-
-### Actions
-
-- `ApplySearchResultEnhancementsAction`
-- `BuildAutocompleteQuerySuggestionsAction`
-- `BuildSearchFacetGroupsAction`
-- `BuildSearchPageViewDataAction`
-- `BuildTopClickedResultsQueryAction`
-- `BuildTopSearchesQueryAction`
-- `BuildTrendingSearchesQueryAction`
-- `BuildZeroResultSearchesQueryAction`
-- `CanCollectSearchAnalyticsAction`
-- `CreatePromotedResultFromZeroResultSearchAction`
-- `CreateSearchVisitorIdentityAction`
-- `CreateSynonymFromZeroResultSearchAction`
-- `FlushScoutSearchSourcesAction`
-- `GenerateSearchClickTokenAction`
-- `HashSearchRetentionValueAction`
-- `IndexScoutSearchSourcesAction`
-- `InstallSearchPackageAction`
-- `NormalizeSearchFiltersAction`
-- `NormalizeSearchQueryAction`
-- `ProbeScoutIndexHealthAction`
-- `PublishSearchAssetsAction`
-- `PurgeSearchLogsAction`
-- `RecordSearchAction`
-- `RecordSearchResultClickAction`
-- `RegisterConfiguredSearchableSourcesAction`
-- `ResolveCorrectedSearchQueryAction`
-- `ResolveExpandedSearchQueriesAction`
-- `ResolvePromotedSearchDestinationAction`
-- `ResolvePromotedSearchResultsAction`
-- `ResolveSearchResultTypeLabelAction`
-- `ResolveSearchSettingAction`
-- `RunAutocompleteSearchAction`
-- `RunSearchAction`
-- `SanitizeSearchResultAction`
-- `SeedSearchScreenshotFixtureAction`
-- `SeedSearchScreenshotWidgetAction`
-
-### Data objects
-
-- `AutocompleteQuerySuggestionData`
-- `AutocompleteSearchResponseData`
-- `AutocompleteSearchResultData`
-- `DatabaseFullTextSearch`
-- `DatabaseSearchExpression`
-- `PromotedSearchDestinationData`
-- `PromotedSearchResultData`
-- `SearchFacetGroupData`
-- `SearchFacetOptionData`
-- `SearchFilterData`
-- `SearchInsightsWindowData`
-- `SearchPageViewData`
-- `SearchQueryMetadataData`
-- `SearchRequestData`
-- `SearchResultData`
-- `SearchTermSummaryData`
-- `SearchVisitorIdentityData`
-- `SearchableSourceData`
-
-### Command signatures
-
-- `capell:search:screenshot-fixture`
-- `search:flush`
-- `search:index`
-- `search:purge`
-
-### Manifest action API
-
-- `applySearchResultEnhancements: Capell\Search\Actions\ApplySearchResultEnhancementsAction`
-- `buildTopClickedResultsQuery: Capell\Search\Actions\BuildTopClickedResultsQueryAction`
-- `buildTopSearchesQuery: Capell\Search\Actions\BuildTopSearchesQueryAction`
-- `buildTrendingSearchesQuery: Capell\Search\Actions\BuildTrendingSearchesQueryAction`
-- `buildZeroResultSearchesQuery: Capell\Search\Actions\BuildZeroResultSearchesQueryAction`
-- `createPromotedResultFromZeroResultSearch: Capell\Search\Actions\CreatePromotedResultFromZeroResultSearchAction`
-- `createSynonymFromZeroResultSearch: Capell\Search\Actions\CreateSynonymFromZeroResultSearchAction`
-- `flushScoutSearchSources: Capell\Search\Actions\FlushScoutSearchSourcesAction`
-- `indexScoutSearchSources: Capell\Search\Actions\IndexScoutSearchSourcesAction`
-- `install: Capell\Search\Actions\InstallSearchPackageAction`
-- `normalizeSearchQuery: Capell\Search\Actions\NormalizeSearchQueryAction`
-- `purgeSearchLogs: Capell\Search\Actions\PurgeSearchLogsAction`
-- `recordSearch: Capell\Search\Actions\RecordSearchAction`
-- `recordSearchResultClick: Capell\Search\Actions\RecordSearchResultClickAction`
-- `resolveExpandedSearchQueries: Capell\Search\Actions\ResolveExpandedSearchQueriesAction`
-- `resolvePromotedSearchResults: Capell\Search\Actions\ResolvePromotedSearchResultsAction`
-- `runSearch: Capell\Search\Actions\RunSearchAction`
-
-### Scheduled commands
-
-- `search:purge (monthly; package registered)`
-
-### Console command classes
-
-- `FlushSearchCommand`
-- `IndexSearchCommand`
-- `PurgeSearchLogsCommand`
-- `SeedSearchScreenshotFixtureCommand`
-
-### Manifest contributions
-
-- `admin-page: Capell\Search\Manifest\SearchSettingsPageContribution`
-- `agent-capability: Capell\Search\Manifest\SearchAgentToolContribution`
-- `console-command: Capell\Search\Manifest\SearchConsoleCommandsContribution`
-- `dashboard-widget: Capell\Search\Manifest\TopSearchesWidgetContribution`
-- `dashboard-widget: Capell\Search\Manifest\TrendingSearchesWidgetContribution`
-- `dashboard-widget: Capell\Search\Manifest\ZeroResultSearchesWidgetContribution`
-- `health-check: Capell\Search\Manifest\SearchHealthContribution`
-- `migration: Capell\Search\Manifest\SearchMigrationsContribution`
-- `model: Capell\Search\Manifest\SearchLogModelContribution`
-- `overview-stat: Capell\Search\Manifest\SearchOverviewStatsContribution`
-- `route: Capell\Search\Manifest\SearchFrontendRouteContribution`
-- `scheduled-job: Capell\Search\Manifest\SearchLogPurgeScheduleContribution`
-- `setting: Capell\Search\Manifest\SearchSettingsContribution`
-
-### Health checks
-
-- `Capell\Search\Health\SearchHealthCheck`
-
-### Blade views
-
-- `packages/search/resources/views/components/facets.blade.php`
-- `packages/search/resources/views/components/form.blade.php`
-- `packages/search/resources/views/components/header/autocomplete-results.blade.php`
-- `packages/search/resources/views/components/header/search-dialog.blade.php`
-- `packages/search/resources/views/components/header/search-modal.blade.php`
-- `packages/search/resources/views/components/header/search-trigger.blade.php`
-- `packages/search/resources/views/components/results.blade.php`
-- `packages/search/resources/views/filament/widgets/search-overview-stats.blade.php`
-- `packages/search/resources/views/layouts/frontend.blade.php`
-- `packages/search/resources/views/pages/search.blade.php`
-
-### Cache tags
-
-- `search`
-
-
-## Data Model
-
-- Required tables: `search_logs`.
-- Models: `SearchLog`.
-- Core record references in migrations: `sites via site_id`, `languages via language_id`.
-- Migration files: `2026_05_10_190868_01_create_search_logs_table.php`, `2026_05_21_000002_add_fulltext_index_to_search_database_table.php`, `2026_07_12_000001_encrypt_search_log_pii.php`, `2026_09_29_120000_remove_implicit_timestamp_updates_from_search.php`.
-- Migration impact: run host migrations through the package install flow before opening package surfaces.
-- Deletion/retention behaviour: migrations declare null-on-delete relationships; retention is scheduled through `search:purge` (monthly; registered by the package provider).
+- Frontend search results page (frontend).
+- Header search field (frontend).
+- Top searches widget (admin).
+- Trending searches widget (admin).
+- Zero-result searches widget (admin).
+- Site search settings screen (admin).
+- Native Search curation settings (admin).
 
 ## Install Impact
 
@@ -250,16 +67,6 @@ Screenshot contract: `docs/screenshots.json`.
 - Cache tags: `search`.
 - Commands: `capell:search:screenshot-fixture`, `search:flush`, `search:index`, `search:purge`.
 
-## Common Pitfalls
-
-- Keep required Capell packages on compatible v4 releases: `capell-app/admin`, `capell-app/core`, `capell-app/discovery-foundation`, `capell-app/frontend`.
-- Run migrations before opening package resources or public routes.
-- Review package configuration before production-like verification: `config/capell-search.php`, `Capell\Search\Settings\SearchSettings`.
-- Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
-- Keep the host Laravel scheduler running so package-registered schedules can execute: `search:purge (monthly; package registered)`.
-- Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
-- Custom write integrations must preserve invalidation for `search` cache tags.
-
 ## Troubleshooting
 
 | Symptom | Likely cause | Check | Fix |
@@ -269,11 +76,6 @@ Screenshot contract: `docs/screenshots.json`.
 | Route returns unexpected output | Route cache, middleware, or signed URL setup does not match the package route file | Check the route files listed in `Technical Shape` | Clear route cache and verify middleware before exposing public routes |
 | Background work does not run | Queue worker or declared schedule is not active | Check the jobs and scheduled commands listed in `Technical Shape` | Start the queue worker or host scheduler, then run the focused command or package test |
 | Public output leaks unexpected state | Render data, cache variation, or authoring boundary has regressed | Check public Blade, cache tags, and public-output safety tests | Move data loading out of Blade and rerun the package public-output tests |
-
-## Quick Start
-
-1. Install the package: `composer require capell-app/search`.
-2. Open the package admin surface at `/admin/extensions` and confirm Search is available.
 
 ## Upgrading
 
@@ -289,11 +91,11 @@ Read [CHANGELOG.md](CHANGELOG.md) before upgrading.
 - [Admin guide](docs/admin-guide.md)
 - Configuration files: [`config/capell-search.php`](config/capell-search.php).
 - [Troubleshooting](#troubleshooting)
-- [Screenshot contract](docs/screenshots.json)
+- [Developer reference](docs/reference.md)
 - [Marketplace assets](docs/assets/marketplace/)
 - [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
 - [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
-- Related packages: [Discovery Foundation](../discovery-foundation/README.md), [Seo Suite](../seo-suite/README.md), [Site Discovery](../site-discovery/README.md), [Url Manager](../url-manager/README.md).
+- Related packages: [Discovery Core](../discovery-foundation/README.md), [SEO Suite](../seo-suite/README.md), [Site Discovery](../site-discovery/README.md), [URL Manager](../url-manager/README.md).
 
 <!-- prettier-ignore-end -->

@@ -10,7 +10,7 @@
                     {{ __('capell-search::dashboard.searches') }}
                 </div>
                 <div class="text-2xl font-semibold">
-                    {{ number_format($totalSearches) }}
+                    {{ \Illuminate\Support\Number::format($totalSearches, precision: 0, locale: app()->getLocale()) }}
                 </div>
             </div>
 
@@ -19,7 +19,7 @@
                     {{ __('capell-search::dashboard.query') }}
                 </div>
                 <div class="text-2xl font-semibold">
-                    {{ number_format($uniqueQueries) }}
+                    {{ \Illuminate\Support\Number::format($uniqueQueries, precision: 0, locale: app()->getLocale()) }}
                 </div>
             </div>
 
@@ -28,7 +28,7 @@
                     {{ __('capell-search::dashboard.results') }}
                 </div>
                 <div class="text-2xl font-semibold">
-                    {{ number_format($totalResults) }}
+                    {{ \Illuminate\Support\Number::format($totalResults, precision: 0, locale: app()->getLocale()) }}
                 </div>
             </div>
 
@@ -37,7 +37,7 @@
                     {{ __('capell-search::dashboard.zero_result_rate') }}
                 </div>
                 <div class="text-2xl font-semibold">
-                    {{ number_format($zeroResultRate, 1) }}%
+                    {{ \Illuminate\Support\Number::format($zeroResultRate, precision: 1, locale: app()->getLocale()) }}%
                 </div>
             </div>
 
@@ -46,7 +46,7 @@
                     {{ __('capell-search::dashboard.click_through_rate') }}
                 </div>
                 <div class="text-2xl font-semibold">
-                    {{ number_format($clickThroughRate, 1) }}%
+                    {{ \Illuminate\Support\Number::format($clickThroughRate, precision: 1, locale: app()->getLocale()) }}%
                 </div>
             </div>
         </div>
@@ -63,7 +63,7 @@
                         <li class="flex items-center justify-between gap-4">
                             <span class="truncate">{{ $result['url'] }}</span>
                             <span class="font-medium">
-                                {{ number_format($result['clicks']) }}
+                                {{ \Illuminate\Support\Number::format($result['clicks'], precision: 0, locale: app()->getLocale()) }}
                             </span>
                         </li>
                     @endforeach

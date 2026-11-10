@@ -27,11 +27,13 @@
                                     @if ($option->selected) aria-current="true" @endif
                                 >
                                     <span>{{ $option->label }}</span>
-                                    <span
-                                        class="{{ $option->selected ? 'text-primary-on/80' : 'text-outline-variant' }} text-xs"
-                                    >
-                                        {{ $option->count }}
-                                    </span>
+                                    @if ($option->count !== null)
+                                        <span
+                                            class="{{ $option->selected ? 'text-primary-on/80' : 'text-outline-variant' }} text-xs"
+                                        >
+                                            {{ $option->count }}
+                                        </span>
+                                    @endif
                                 </a>
                             </li>
                         @endforeach

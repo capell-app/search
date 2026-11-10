@@ -15,5 +15,7 @@ final class SearchRequestData extends Data
         public ?int $siteId = null,
         public ?int $languageId = null,
         public ?SearchFilterData $filters = null,
+        /** A sealed cursor token from a previous page's next link. */
+        public ?string $cursor = null,
     ) {}
 }

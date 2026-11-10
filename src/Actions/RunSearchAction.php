@@ -9,6 +9,7 @@ use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
 use Capell\Search\Support\ExpandedSearchPaginator;
+use Capell\Search\Support\PubliclyReadableSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
@@ -58,6 +59,7 @@ final readonly class RunSearchAction
             siteId: $data->siteId,
             languageId: $data->languageId,
             filters: $data->filters,
+            cursor: $data->cursor,
         );
 
         return ApplySearchResultEnhancementsAction::run($results, $normalizedQuery, $data->siteId, $data->languageId);
@@ -69,6 +71,27 @@ final readonly class RunSearchAction
      */
     private function expandedResults(array $queries, SearchRequestData $data, string $normalizedQuery): Paginator
     {
+        // While public reads are restricted, the merged set cannot be read
+        // whole or counted: page through every expanded query with one bounded,
+        // cursor-continued read instead, so a page that stopped at the read
+        // bound still links on.
+        if ($this->search instanceof PubliclyReadableSearch && $this->search->restrictsReads() && $queries !== []) {
+            return ApplySearchResultEnhancementsAction::run(
+                $this->search->searchQueriesFrom(
+                    queries: array_values($queries),
+                    perPage: $data->perPage,
+                    page: $data->page,
+                    siteId: $data->siteId,
+                    languageId: $data->languageId,
+                    filters: $data->filters,
+                    cursor: $data->cursor,
+                ),
+                $normalizedQuery,
+                $data->siteId,
+                $data->languageId,
+            );
+        }
+
         $items = new Collection;
         $truncated = false;
 
@@ -100,7 +123,7 @@ final readonly class RunSearchAction
             $data->siteId,
             $data->languageId,
         );
-        $items = (new Collection($ranked->items()))
+        $items = new Collection($ranked->items())
             ->unique(static fn (SearchResultData $result): string => $result->url)
             ->sort(static fn (SearchResultData $left, SearchResultData $right): int => ($right->promoted <=> $left->promoted)
                 ?: ($right->score <=> $left->score)
@@ -137,8 +160,21 @@ final readonly class RunSearchAction
         ?int $siteId,
         ?int $languageId,
         ?SearchFilterData $filters,
+        ?string $cursor = null,
     ): LengthAwarePaginator {
         $primaryQuery = $queries[0] ?? '';
+
+        if ($cursor !== null && $this->search instanceof PubliclyReadableSearch) {
+            return $this->search->searchFrom(
+                query: $primaryQuery,
+                perPage: $perPage,
+                page: $page,
+                siteId: $siteId,
+                languageId: $languageId,
+                filters: $filters,
+                cursor: $cursor,
+            );
+        }
 
         return $this->search->search(
             query: $primaryQuery,

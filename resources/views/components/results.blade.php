@@ -12,16 +12,25 @@
 >
     @if ($query === '')
         <p class="text-on-surface-variant">{{ __('capell-search::generic.empty_query') }}</p>
+    @elseif ($results->isEmpty() && $results->hasMorePages())
+        <p class="text-on-surface-variant">{{ __('capell-search::generic.search_continues', ['query' => $query]) }}</p>
+        <div class="mt-6">
+            {{ $results->links('pagination::simple-tailwind') }}
+        </div>
     @elseif ($results->isEmpty())
         <p class="text-on-surface-variant">{{ __('capell-search::generic.no_results', ['query' => $query]) }}</p>
     @else
         <p class="text-on-surface-variant mb-4 text-sm">
-            {{
-                trans_choice('capell-search::generic.results_count', $results->total(), [
-                    'count' => $results->total(),
-                    'query' => $query,
-                ])
-            }}
+            @if (\Capell\Search\Support\PubliclyReadableSearchPaginator::hasExactTotal($results))
+                {{
+                    trans_choice('capell-search::generic.results_count', $results->total(), [
+                        'count' => $results->total(),
+                        'query' => $query,
+                    ])
+                }}
+            @else
+                {{ __('capell-search::generic.results_for', ['query' => $query]) }}
+            @endif
         </p>
         <ol
             class="space-y-4"
@@ -59,7 +68,9 @@
                 </li>
             @endforeach
         </ol>
-        <div class="mt-6">{{ $results->links() }}</div>
+        <div class="mt-6">
+            {{ \Capell\Search\Support\PubliclyReadableSearchPaginator::hasExactTotal($results) ? $results->links() : $results->links('pagination::simple-tailwind') }}
+        </div>
     @endif
     @if ($results instanceof \Capell\Search\Support\ExpandedSearchPaginator && $results->truncated)
         <p class="text-on-surface-variant mt-4 text-sm">{{ __('capell-search::generic.results_limited') }}</p>

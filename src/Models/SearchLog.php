@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Capell\Search\Models;
 
+use Capell\Core\Support\TableName;
 use Capell\Search\Actions\HashSearchRetentionValueAction;
 use Capell\Search\Database\Factories\SearchLogFactory;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Config;
 use Override;
 
 /**
@@ -36,7 +38,7 @@ final class SearchLog extends Model
     #[Override]
     public function getTable(): string
     {
-        return config('capell-search.logs.table_name', 'search_logs');
+        return TableName::resolve(Config::string('capell-search.logs.table_name', 'search_logs'));
     }
 
     #[Override]

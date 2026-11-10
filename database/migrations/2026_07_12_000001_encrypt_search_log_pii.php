@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Support\TableName;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -65,8 +67,6 @@ return new class extends Migration
 
     private function searchLogsTable(): string
     {
-        $configuredTable = config('capell-search.logs.table_name', 'search_logs');
-
-        return is_string($configuredTable) ? $configuredTable : 'search_logs';
+        return TableName::resolve(Config::string('capell-search.logs.table_name', 'search_logs'));
     }
 };

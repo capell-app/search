@@ -1,0 +1,14 @@
+{
+    "create_search_logs_table": {
+        "names": [
+            "2026_05_10_190868_01_create_search_logs_table"
+        ],
+        "sha256": [
+            "01576bcd20932c35e3d119446b966d4400a1ab079e4feb4a8c9be48f4e172b37",
+            "4902bb535951a3003cef8aba37c8409c591ef03702e289a21675d5b53afad164",
+            "507e2285c52c10c9a0a37fa520e87df06e212a81ee7e93a19e50e83b97e38a99",
+            "b91c38fcd67ddea8bc945398a538f8e9cc3fc8d2315dfac083d1e080d666ddf7",
+            "d474c7a5deff3cc11ca744eee619aa4f56e291b2c53e0aa16acfd06f4b7b458f"
+        ]
+    }
+}

@@ -2,11 +2,16 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Contracts\PublicRead\EvaluatesPublicPageReadCandidatesIndividually;
+use Capell\Core\Contracts\PublicRead\PublicPageReadEligibility;
+use Capell\Core\Data\PublicRead\PublicPageReadCandidateData;
+use Capell\Core\Support\PublicRead\PublicPageReadEligibilityRegistry;
 use Capell\Search\Actions\BuildSearchFacetGroupsAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchableSourceData;
 use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchResultData;
+use Capell\Search\Support\PubliclyReadableSearch;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
@@ -122,4 +127,108 @@ test('does not build facets for blank or disabled filter requests', function ():
     config()->set('capell-search.filters.facet_groups', false);
 
     expect($action->handle($request, 'capell', new SearchFilterData))->toBe([]);
+});
+
+test('withholds facet counts while public reads are restricted', function (): void {
+    $registry = new SearchableSourceRegistry;
+    $registry->register(new SearchableSourceData(key: 'pages', label: 'Pages', modelClass: Model::class, type: 'page'));
+    $registry->register(new SearchableSourceData(key: 'articles', label: 'Articles', modelClass: Model::class, type: 'article'));
+
+    $search = new class implements Search
+    {
+        public function search(string $query, int $perPage = 10, int $page = 1, ?int $siteId = null, ?int $languageId = null, ?SearchFilterData $filters = null): LengthAwarePaginator
+        {
+            // Five matches per facet, of which only the article is readable.
+            $items = $filters?->types === ['article'] || $filters?->sourceKeys === ['articles']
+                ? [new SearchResultData('Article', 'https://example.com/articles/public', 'Excerpt'), ...array_fill(0, 4, new SearchResultData('Restricted', 'https://example.com/members/restricted', 'Excerpt'))]
+                : array_fill(0, 5, new SearchResultData('Restricted', 'https://example.com/members/restricted', 'Excerpt'));
+
+            return new Paginator(array_slice($items, ($page - 1) * $perPage, $perPage), count($items), $perPage, $page);
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return $text;
+        }
+    };
+    resolve(PublicPageReadEligibilityRegistry::class)->register(new class implements PublicPageReadEligibility
+    {
+        use EvaluatesPublicPageReadCandidatesIndividually;
+
+        public function key(): string
+        {
+            return 'test-members';
+        }
+
+        public function isPubliclyReadable(PublicPageReadCandidateData $candidate): bool
+        {
+            return ! str_contains($candidate->url, '/members/');
+        }
+    });
+
+    $groups = runBoundAction(
+        BuildSearchFacetGroupsAction::class,
+        new BuildSearchFacetGroupsAction(new PubliclyReadableSearch($search, resolve(PublicPageReadEligibilityRegistry::class)), $registry),
+        request: Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'capell']),
+        query: 'capell',
+        filters: new SearchFilterData,
+    );
+
+    $options = collect($groups)->flatMap(static fn ($group): array => $group->options);
+
+    // A facet with only restricted matches is hidden; a readable one shows no count.
+    expect($options->pluck('key')->all())->toBe(['article', 'articles'])
+        ->and($options->pluck('count')->all())->toBe([null, null]);
+});
+
+test('keeps a facet whose bounded read stopped before finding a readable match, and drops cursors from facet links', function (): void {
+    $registry = new SearchableSourceRegistry;
+    $registry->register(new SearchableSourceData(key: 'pages', label: 'Pages', modelClass: Model::class, type: 'page'));
+
+    $search = new class implements Search
+    {
+        public function search(string $query, int $perPage = 10, int $page = 1, ?int $siteId = null, ?int $languageId = null, ?SearchFilterData $filters = null): LengthAwarePaginator
+        {
+            // 2,100 restricted matches before the first readable one: past one request's read limit.
+            $items = [...array_fill(0, 2100, new SearchResultData('Restricted', 'https://example.com/members/restricted', 'Excerpt')), new SearchResultData('Page', 'https://example.com/pages/public', 'Excerpt')];
+
+            return new Paginator(array_slice($items, ($page - 1) * $perPage, $perPage), count($items), $perPage, $page);
+        }
+
+        public function highlight(string $text, string $query): string
+        {
+            return $text;
+        }
+    };
+    resolve(PublicPageReadEligibilityRegistry::class)->register(new class implements PublicPageReadEligibility
+    {
+        use EvaluatesPublicPageReadCandidatesIndividually;
+
+        public function key(): string
+        {
+            return 'test-members';
+        }
+
+        public function isPubliclyReadable(PublicPageReadCandidateData $candidate): bool
+        {
+            return ! str_contains($candidate->url, '/members/');
+        }
+    });
+
+    $groups = runBoundAction(
+        BuildSearchFacetGroupsAction::class,
+        new BuildSearchFacetGroupsAction(new PubliclyReadableSearch($search, resolve(PublicPageReadEligibilityRegistry::class)), $registry),
+        request: Request::create('/search', Symfony\Component\HttpFoundation\Request::METHOD_GET, ['q' => 'capell', 'cursor' => 'sealed-token', 'page' => 4]),
+        query: 'capell',
+        filters: new SearchFilterData,
+    );
+
+    $options = collect($groups)->flatMap(static fn ($group): array => $group->options);
+
+    expect($options->pluck('key')->all())->toBe(['page', 'pages'])
+        ->and($options->pluck('count')->all())->toBe([null, null]);
+
+    foreach ($options as $option) {
+        expect($option->url)->not->toContain('cursor')->not->toContain('page=4');
+    }
 });

@@ -6,10 +6,12 @@ use Capell\Search\Actions\ApplySearchResultEnhancementsAction;
 use Capell\Search\Actions\ResolvePromotedSearchDestinationAction;
 use Capell\Search\Actions\SanitizeSearchResultAction;
 use Capell\Search\Data\SearchResultData;
+use Capell\Search\Tests\Support\PublishedSearchTarget;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 test('unsafe config promotions remain excluded from public results', function (): void {
+    PublishedSearchTarget::at('/pricing');
     config()->set('capell-search.promoted_results', [
         ['queries' => ['pricing'], 'title' => 'Private', 'url' => '/admin/users'],
         ['queries' => ['pricing'], 'title' => 'Unsupported', 'url' => 'javascript:alert(1)'],

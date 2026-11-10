@@ -11,6 +11,7 @@ use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
 use Capell\Search\Models\SearchLog;
+use Capell\Search\Tests\Support\PublishedSearchTarget;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Schema\Blueprint;
@@ -131,7 +132,7 @@ test('keeps expanded results on subsequent pages with a stable deduplicated tota
             ?int $languageId = null,
             ?SearchFilterData $filters = null,
         ): LengthAwarePaginator {
-            $this->calls[] = compact('query', 'perPage', 'page', 'siteId', 'languageId');
+            $this->calls[] = ['query' => $query, 'perPage' => $perPage, 'page' => $page, 'siteId' => $siteId, 'languageId' => $languageId];
             $urls = $query === 'cms hosting' ? ['/one', '/shared'] : ['/shared', '/three', '/four'];
             $items = array_map(
                 static fn (string $url): SearchResultData => new SearchResultData(title: $url, url: $url, excerpt: '', score: 1.0),
@@ -326,6 +327,7 @@ test('runs typo corrected queries and deduplicates results by url', function ():
 });
 
 test('promotes configured results and applies source weights', function (): void {
+    PublishedSearchTarget::at('/contact-cms-hosting');
     config()->set('capell-search.promoted_results', [
         [
             'queries' => ['cms hosting'],
@@ -359,7 +361,7 @@ test('promotes configured results and applies source weights', function (): void
 
     $enhancedResults = ApplySearchResultEnhancementsAction::run($results, 'CMS hosting');
 
-    expect((new Collection($enhancedResults->items()))->pluck('url')->all())->toBe([
+    expect(new Collection($enhancedResults->items())->pluck('url')->all())->toBe([
         '/contact-cms-hosting',
         '/cms-hosting',
         '/cms-hosting-guide',
@@ -369,6 +371,7 @@ test('promotes configured results and applies source weights', function (): void
 });
 
 test('configured promotions deduplicate search results with the same url', function (): void {
+    PublishedSearchTarget::at('/pricing');
     config()->set('capell-search.promoted_results', [
         [
             'query' => 'pricing',
@@ -389,7 +392,7 @@ test('configured promotions deduplicate search results with the same url', funct
 
     $enhancedResults = ApplySearchResultEnhancementsAction::run($results, 'pricing');
 
-    expect((new Collection($enhancedResults->items()))->pluck('url')->all())->toBe(['/pricing']);
+    expect(new Collection($enhancedResults->items())->pluck('url')->all())->toBe(['/pricing']);
     expect(($enhancedResults->items()[0] ?? null)?->excerpt)->toBe('Plans and billing.');
     expect($enhancedResults->total())->toBe(1);
 });
@@ -484,11 +487,11 @@ test('cached click aggregates preserve language scoped result ranking', function
     $firstRun = ApplySearchResultEnhancementsAction::run($results, 'capell', 10, 1);
     $secondRun = ApplySearchResultEnhancementsAction::run($results, 'capell', 10, 1);
 
-    expect((new Collection($firstRun->items()))->pluck('url')->all())->toBe([
+    expect(new Collection($firstRun->items())->pluck('url')->all())->toBe([
         '/clicked',
         '/other-language-clicked',
     ]);
-    expect((new Collection($secondRun->items()))->pluck('url')->all())->toBe([
+    expect(new Collection($secondRun->items())->pluck('url')->all())->toBe([
         '/clicked',
         '/other-language-clicked',
     ]);

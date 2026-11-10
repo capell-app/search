@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Data\Database\SqlFragment;
+use Capell\Core\Support\TableName;
 use Capell\Search\Support\DatabaseFullText;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -18,7 +21,7 @@ return new class extends Migration
             return;
         }
 
-        $tableName = (string) config('capell-search.database.table', 'pages');
+        $tableName = TableName::resolve(Config::string('capell-search.database.table', 'pages'));
         $columns = $this->searchColumns($tableName);
 
         if ($columns === []) {
@@ -31,7 +34,7 @@ return new class extends Migration
         try {
             $index = $fullText->createIndex($connection, $tableName, $this->indexName, $columns);
 
-            if ($index !== null) {
+            if ($index instanceof SqlFragment) {
                 DB::statement($index->sql, $index->bindings);
             }
         } catch (Throwable) {
@@ -45,7 +48,7 @@ return new class extends Migration
             return;
         }
 
-        $tableName = (string) config('capell-search.database.table', 'pages');
+        $tableName = TableName::resolve(Config::string('capell-search.database.table', 'pages'));
 
         try {
             Schema::table($tableName, function (Blueprint $table): void {
@@ -58,7 +61,7 @@ return new class extends Migration
 
     private function canManageFullTextIndex(): bool
     {
-        $tableName = (string) config('capell-search.database.table', 'pages');
+        $tableName = TableName::resolve(Config::string('capell-search.database.table', 'pages'));
         $connection = Schema::getConnection();
 
         return (new DatabaseFullText)->supportsIndex($connection)

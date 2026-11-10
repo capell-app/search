@@ -9,6 +9,7 @@ use Capell\Search\Actions\ResolvePromotedSearchResultsAction;
 use Capell\Search\Data\SearchResultData;
 use Capell\Search\Filament\Pages\SearchSettingsPage;
 use Capell\Search\Settings\SearchSettings;
+use Capell\Search\Tests\Support\PublishedSearchTarget;
 use Capell\Tests\Support\Concerns\CreatesAdminUser;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -18,7 +19,7 @@ use Spatie\Permission\Models\Permission;
 uses(CreatesAdminUser::class);
 
 beforeEach(function (): void {
-    Permission::firstOrCreate(['name' => 'View:SettingsPage', 'guard_name' => 'web']);
+    Permission::query()->firstOrCreate(['name' => 'View:SettingsPage', 'guard_name' => 'web']);
     AssignPermissionsToRole::run(pages: [SearchSettingsPage::class]);
     $this->actingAsAdmin();
     $this->authenticatedUser()->givePermissionTo(['View:SettingsPage', 'View:SearchSettingsPage']);
@@ -43,6 +44,7 @@ it('rejects a promotion during settings save and retains the title and query for
 })->with(['/admin/users', 'javascript:alert(1)']);
 
 it('saves a valid promotion and serves it only for its exact normalised query', function (): void {
+    PublishedSearchTarget::at('/pricing');
     Livewire::test(SearchSettingsPage::class)->fillForm([
         'promoted_results' => [[
             'queries' => ['  PRICING  '], 'title' => 'Plan comparison', 'url' => '/pricing?token=private&plan=team',

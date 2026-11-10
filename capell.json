@@ -29,7 +29,10 @@
         "conflicts": []
     },
     "providers": {
-        "metadata": ["Capell\\Search\\Providers\\SearchServiceProvider"],
+        "metadata": [
+            "Capell\\Search\\Providers\\SearchServiceProvider",
+            "Capell\\Search\\Providers\\MigrationMetadataServiceProvider"
+        ],
         "install": ["Capell\\Search\\Providers\\ConsoleServiceProvider"],
         "runtime": ["Capell\\Search\\Providers\\SearchServiceProvider"],
         "admin": ["Capell\\Search\\Providers\\AdminServiceProvider"],
@@ -181,19 +184,21 @@
         "riskTier": "sensitive",
         "publicSurface": {
             "routeNames": [
-                "capell-frontend.search",
-                "capell-frontend.search.autocomplete",
-                "capell-frontend.search.click"
+                "GET /search (capell-frontend.search)",
+                "GET /search/autocomplete (capell-frontend.search.autocomplete)",
+                "POST /search/click (capell-frontend.search.click)"
             ],
             "auth": "public",
-            "csrfExemptRoutes": ["capell-frontend.search.click"],
+            "csrfExemptRoutes": [
+                "POST /search/click (capell-frontend.search.click)"
+            ],
             "signedRoutes": [],
             "tokenizedRoutes": [],
             "webhookRoutes": [],
             "throttledRoutes": [
-                "capell-frontend.search",
-                "capell-frontend.search.autocomplete",
-                "capell-frontend.search.click"
+                "GET /search (capell-frontend.search)",
+                "GET /search/autocomplete (capell-frontend.search.autocomplete)",
+                "POST /search/click (capell-frontend.search.click)"
             ]
         },
         "sensitiveData": {
@@ -201,7 +206,12 @@
                 "Capell\\Search\\Models\\SearchLog::$clicked_result_url",
                 "Capell\\Search\\Models\\SearchLog::$query"
             ],
-            "hashedTokenFields": [],
+            "hashedTokenFields": [
+                "search_logs.clicked_result_hash",
+                "search_logs.ip_hash",
+                "search_logs.normalized_query_hash",
+                "search_logs.user_agent_hash"
+            ],
             "redactedOutputClasses": [],
             "plaintextJustifications": []
         },
@@ -219,6 +229,12 @@
         "adminSurface": {
             "authorization": "panel-auth",
             "permissions": []
+        },
+        "manual": {
+            "description": "Declared, unverified: these routes check their signature or token inside their own code. The declaration is reviewed in the Capell packages repository; it is not verified from the route middleware and never counts as a signed or tokenized route.",
+            "tokenizedRoutes": [
+                "POST /search/click (capell-frontend.search.click)"
+            ]
         }
     },
     "performance": {
@@ -272,6 +288,22 @@
     "marketplace": {
         "summary": "Production-grade site search for Capell: relevance-tuned results with synonyms, typo tolerance, and curated promotions, plus admin insights into what visitors search for and where you have no answers.",
         "description": "Search gives every Capell site a fast, themeable search experience: a results page, header search field, and type-ahead autocomplete, backed by Database full-text, the Built-in page index, or Laravel Scout (Typesense, Meilisearch, Algolia) through a pluggable driver contract. Curate results with synonyms, typo corrections, and promoted \"best bet\" answers, and tune ranking with source weighting plus exact-match, recency, and click-through boosts. The admin dashboard surfaces top searches, trending terms, and, critically, zero-result queries, so editors see exactly where content is missing. Privacy-first by default: visitor identifiers are hashed and query logs auto-purge on a configurable retention window.",
+        "problem": "Our visitors cannot find the published content they need.",
+        "outcome": "Our visitors can find indexed content through a search page.",
+        "faq": [
+            {
+                "question": "How can editors improve weak search results?",
+                "answer": "Admins can use synonyms and promoted results to address repeated or unsuccessful searches."
+            },
+            {
+                "question": "Are search queries kept forever?",
+                "answer": "Search logs have a configurable retention window and are purged monthly."
+            },
+            {
+                "question": "Which searches can administrators review?",
+                "answer": "Admins can inspect top, trending, clicked and zero-result queries."
+            }
+        ],
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",

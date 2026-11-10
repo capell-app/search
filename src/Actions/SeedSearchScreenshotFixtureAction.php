@@ -19,8 +19,8 @@ final class SeedSearchScreenshotFixtureAction
             app()->environment(['local', 'testing'])
                 && in_array(getenv('CAPELL_SCREENSHOT_FIXTURE'), ['1', 'true', 'record-state'], true)
                 && is_string($path) && realpath($path) === realpath(base_path())
-                && (realpath(base_path()) === realpath(dirname(__DIR__, 4) . '/vendor/orchestra/testbench-core/laravel')
-                    || str_starts_with((string) realpath(base_path()), dirname(__DIR__, 4) . '/tmp/testbench-skeletons/')),
+                && (realpath(base_path()) === realpath((str_contains(__DIR__, '/vendor/capell-app/') ? dirname(__DIR__, 5) : dirname(__DIR__, 4)) . '/vendor/orchestra/testbench-core/laravel')
+                    || str_starts_with((string) realpath(base_path()), (str_contains(__DIR__, '/vendor/capell-app/') ? dirname(__DIR__, 5) : dirname(__DIR__, 4)) . '/tmp/testbench-skeletons/')),
             RuntimeException::class,
             'Screenshot fixtures require the explicit disposable local screenshot environment.',
         );
@@ -31,7 +31,7 @@ final class SeedSearchScreenshotFixtureAction
     {
         self::assertDisposableScreenshotEnvironment();
 
-        require_once dirname(__DIR__, 4) . '/scripts/screenshots/FixtureState.php';
+        require_once (str_contains(__DIR__, '/vendor/capell-app/') ? dirname(__DIR__, 5) : dirname(__DIR__, 4)) . '/scripts/screenshots/FixtureState.php';
         FixtureState::boot();
 
         $site = FixtureState::selectedSite();

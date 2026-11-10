@@ -19,7 +19,7 @@
     },
     "whyItMatters": {
         "developers": {
-            "text": "The searchable-source registry and Search contract keep indexing backends replaceable while Actions normalize, sanitize, enhance, and record queries.",
+            "text": "The searchable-source registry and Search contract keep indexing backends replaceable while Actions normalise, sanitize, enhance, and record queries.",
             "evidence": [
                 "src/Support/SearchableSourceRegistry.php",
                 "src/Contracts/Search.php",

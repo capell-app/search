@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 use Capell\Search\Http\Controllers\SearchController;
 use Capell\Search\Http\Middleware\ResolveSearchSite;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
 
 Route::name('capell-frontend.')
@@ -27,6 +28,6 @@ Route::name('capell-frontend.')
 
         Route::post(is_string($clickRoutePath) ? $clickRoutePath : 'search/click', [SearchController::class, 'click'])
             ->middleware('throttle:' . (is_string($clickRateLimiter) ? $clickRateLimiter : 'capell-search-clicks'))
-            ->withoutMiddleware([VerifyCsrfToken::class])
+            ->withoutMiddleware([PreventRequestForgery::class, ValidateCsrfToken::class])
             ->name('search.click');
     });

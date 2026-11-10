@@ -9,6 +9,7 @@ use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchPageViewData;
 use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
+use Capell\Search\Support\PubliclyReadableSearchPaginator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
@@ -114,6 +115,7 @@ final readonly class BuildSearchPageViewDataAction
             siteId: $this->modelId($site),
             languageId: $this->modelId($language),
             filters: NormalizeSearchFiltersAction::run($request),
+            cursor: is_string($request->query(PubliclyReadableSearchPaginator::CURSOR_NAME)) ? $request->query(PubliclyReadableSearchPaginator::CURSOR_NAME) : null,
         );
     }
 

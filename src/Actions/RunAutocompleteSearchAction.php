@@ -42,7 +42,7 @@ final readonly class RunAutocompleteSearchAction
             original: $query,
             normalized: (string) $normalizedQuery,
             corrected: $correctedQuery,
-            expanded: $normalizedQuery === '' ? [] : ResolveExpandedSearchQueriesAction::run((string) $normalizedQuery),
+            expanded: $normalizedQuery === '' ? [] : ResolveExpandedSearchQueriesAction::run((string) $normalizedQuery, $this->integerOrNull(data_get($request->attributes->get('site'), 'id'))),
             filters: $filters,
         );
 
@@ -78,6 +78,8 @@ final readonly class RunAutocompleteSearchAction
             query: $query,
             minimumLength: $minimumLength,
             results: array_values(collect($items)
+                ->map(static fn (SearchResultData $result): ?SearchResultData => SanitizeSearchResultAction::run($result))
+                ->filter()
                 ->take($limit)
                 ->map(fn (SearchResultData $result): AutocompleteSearchResultData => new AutocompleteSearchResultData(
                     title: $result->title,

@@ -11,6 +11,7 @@ use Capell\Search\Data\DatabaseSearchExpression;
 use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchResultData;
 use Capell\Search\Support\DatabaseFullText;
+use Capell\Search\Support\HighlightsEscapedText;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Connection;
@@ -19,6 +20,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Default DB-backed search. Uses the Core database platform's native full-text
@@ -74,7 +76,11 @@ class DatabaseSearch implements Search
             return new Paginator([], 0, $perPage, $page);
         }
 
-        $availableColumns = $this->db->getSchemaBuilder()->getColumnListing($this->table);
+        $availableColumns = Cache::remember(
+            'capell-search:columns:' . $this->db->getName() . ':' . $this->table,
+            300,
+            fn (): array => $this->db->getSchemaBuilder()->getColumnListing($this->table),
+        );
         $columns = array_values(array_filter(
             array_intersect($this->columns, $availableColumns),
             static fn (string $column): bool => $column !== '',
@@ -138,9 +144,8 @@ class DatabaseSearch implements Search
         }
 
         $escaped = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
-        $pattern = '/(' . preg_quote($query, '/') . ')/i';
 
-        return (string) preg_replace($pattern, '<mark>$1</mark>', $escaped);
+        return HighlightsEscapedText::apply($escaped, $query);
     }
 
     private function truncate(string $text, int $length): string

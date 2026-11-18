@@ -9,6 +9,7 @@ use Capell\Search\Data\SearchableSourceData;
 use Capell\Search\Data\SearchFacetGroupData;
 use Capell\Search\Data\SearchFacetOptionData;
 use Capell\Search\Data\SearchFilterData;
+use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Support\PubliclyReadableSearchPaginator;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Illuminate\Http\Request;
@@ -159,14 +160,25 @@ final readonly class BuildSearchFacetGroupsAction
      */
     private function count(string $query, SearchFilterData $filters, ?int $siteId, ?int $languageId): ?int
     {
-        $results = $this->search->search(
-            query: $query,
-            perPage: 1,
-            page: 1,
-            siteId: $siteId,
-            languageId: $languageId,
-            filters: $filters,
-        );
+        // With synonyms or corrections in play the results page searches several expanded queries,
+        // so count through the same path; otherwise one direct query is enough.
+        $results = count(ResolveExpandedSearchQueriesAction::run($query, $siteId)) > 1
+            ? RunSearchAction::run(new SearchRequestData(
+                query: $query,
+                page: 1,
+                perPage: 1,
+                siteId: $siteId,
+                languageId: $languageId,
+                filters: $filters,
+            ))
+            : $this->search->search(
+                query: $query,
+                perPage: 1,
+                page: 1,
+                siteId: $siteId,
+                languageId: $languageId,
+                filters: $filters,
+            );
 
         if (! PubliclyReadableSearchPaginator::hasExactTotal($results)) {
             // An empty bounded page that can continue has not found nothing:

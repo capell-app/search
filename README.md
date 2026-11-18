@@ -2,27 +2,27 @@
 
 <!-- prettier-ignore-start -->
 
-## What It Does
+On your site, a visitor who types "tee" can land on your T-shirt page first, because you decide that on the Search settings page. Synonyms, typo fixes and promoted results are all set there.
 
-Search adds public search, autocomplete, facets, synonyms, promoted results, spelling correction, and search analytics that honour browser privacy signals.
+The search button sits in your site header and opens a box that shows matching pages as the visitor types. A results page lists the rest with the matching words highlighted. The button appears only if your theme uses the header from the Navigation package. Turning off the Enable search setting makes search disappear from the site altogether, including the header button and the results page. To hide only the button, turn off Show header search.
+
+Search reads the list of your public pages that Discovery Foundation keeps, so there's no separate search index to build and an edit shows on the next search. It matches the title, the address and the first 1000 characters of page text as plain text. Anything further down a long page isn't found.
+
+Administrators get the top, trending and zero-result searches on the admin dashboard, all taken from the results page. You see what people looked for and didn't find.
 
 - **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/search).
 - **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/search).
 - **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.76`, `capell-app/discovery-foundation ^1.0`, `capell-app/frontend ^1.0.72`, `lorisleiva/laravel-actions ^2.8`, `spatie/laravel-data ^4.5`, `spatie/laravel-package-tools ^1.14.1`.
 - **Install:** `composer require capell-app/search`.
 
-Visitors can search indexed site content from the public search surface. Admins configure search behaviour and inspect top, trending, clicked, and zero-result queries.
-
-## Who It Is For
-
-**For developers:** The searchable-source registry and Search contract keep indexing backends replaceable while Actions normalise, sanitize, enhance, and record queries.
-
-**For teams:** Teams can help visitors find content and use failed or repeated searches to decide which synonyms, promoted results, or content gaps to address.
-
 ## Quick Start
 
 1. Install the package: `composer require capell-app/search`.
 2. Open the package admin surface at `/admin/extensions` and confirm Search is available.
+
+## For Developers
+
+The searchable-source registry and Search contract keep indexing backends replaceable while Actions normalise, sanitize, enhance, and record queries.
 
 ## Configure
 
@@ -96,6 +96,6 @@ Read [CHANGELOG.md](CHANGELOG.md) before upgrading.
 - [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
 - [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
-- Related packages: [Discovery Core](../discovery-foundation/README.md), [SEO Suite](../seo-suite/README.md), [Site Discovery](../site-discovery/README.md), [URL Manager](../url-manager/README.md).
+- Related packages: [Discovery Foundation](../discovery-foundation/README.md), [SEO Checks](../seo-suite/README.md), [Site Discovery](../site-discovery/README.md), [Redirects](../url-manager/README.md).
 
 <!-- prettier-ignore-end -->

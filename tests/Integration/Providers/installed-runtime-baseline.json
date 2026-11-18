@@ -5,12 +5,12 @@
         "default": {
             "source": {
                 "ref": "HEAD",
-                "commit": "28fa95cdbfaf7b8e1aba415d8b55a9ec6386c5e2",
+                "commit": "4e8eaae89410b50df5f6c1be224c53ba707be7b9",
                 "providers": {
                     "Providers/AdminServiceProvider.php": "8bf7c5bfda23ca8eb8fb76212af8366a3079a38c19e62a6aea1aaa9f9b29ac53",
                     "Providers/ConsoleServiceProvider.php": "116c1a2c6343435a41012b3afd22cafeaa94052a0d20841c4f12d3ea15647daf",
                     "Providers/MigrationMetadataServiceProvider.php": "b2d96ba08fa3cbd69cb6df0125fd0c6b3e8c75cc8752971227b8141bf5c93599",
-                    "Providers/SearchServiceProvider.php": "31656d0f5637926176a87b31f3a1e543d3965ff624a5ce9d59337e60c5c870e4"
+                    "Providers/SearchServiceProvider.php": "c0079f346facc62fd66089c8fb9373a5b3baf91f36c5a610bdf911776a289193"
                 },
                 "configure": "packages/search/tests/Integration/Providers/Fixtures/log-hash-secret.php"
             },
@@ -34,6 +34,17 @@
                             []
                         ],
                         "shared": false
+                    },
+                    "Capell\\Search\\Support\\PublicSearchSwitch": {
+                        "concrete": [
+                            "<vendor>/laravel/framework/src/Illuminate/Container/Container.php",
+                            "Illuminate\\Container\\Container( $container,  $parameters): bound=Illuminate\\Foundation\\Application",
+                            {
+                                "abstract": "Capell\\Search\\Support\\PublicSearchSwitch",
+                                "concrete": "Capell\\Search\\Support\\PublicSearchSwitch"
+                            }
+                        ],
+                        "shared": true
                     },
                     "Capell\\Search\\Support\\SearchableSourceRegistry": {
                         "concrete": [
@@ -100,8 +111,9 @@
                         "honor_privacy_signals": true,
                         "keyboard_shortcuts.enabled": true,
                         "logs.hash_secret": "<secret>",
-                        "logs.retention_days": 30,
+                        "logs.retention_days": 180,
                         "logs.table_name": "search_logs",
+                        "max_page": 100,
                         "minimum_query_length": 2,
                         "page_view": null,
                         "promoted_results": [],
@@ -144,11 +156,10 @@
                         "results_per_page": 10,
                         "route_path": "<path>",
                         "scout.chunk": 500,
-                        "scout.model": null,
-                        "scout.type_column": "type",
-                        "scout.url_column": "slug",
                         "searchables": [],
                         "show_header_search": true,
+                        "site_discovery.registry_cache_seconds": 60,
+                        "site_synonyms": [],
                         "source_weights": [],
                         "synonyms": [],
                         "type_labels": [],
@@ -211,6 +222,7 @@
                     "capell-search.keyboard_shortcuts.enabled",
                     "capell-search.logs.retention_days",
                     "capell-search.logs.table_name",
+                    "capell-search.max_page",
                     "capell-search.minimum_query_length",
                     "capell-search.page_view",
                     "capell-search.promoted_results",
@@ -258,11 +270,11 @@
                     "capell-search.route_path",
                     "capell-search.scout",
                     "capell-search.scout.chunk",
-                    "capell-search.scout.model",
-                    "capell-search.scout.type_column",
-                    "capell-search.scout.url_column",
                     "capell-search.searchables",
                     "capell-search.show_header_search",
+                    "capell-search.site_discovery",
+                    "capell-search.site_discovery.registry_cache_seconds",
+                    "capell-search.site_synonyms",
                     "capell-search.source_weights",
                     "capell-search.synonyms",
                     "capell-search.type_labels",
@@ -319,7 +331,91 @@
                     "Capell\\Frontend\\Events\\FrontendRenderPreparing": [
                         [
                             "<package>/src/Providers/SearchServiceProvider.php",
-                            "Capell\\Search\\Providers\\SearchServiceProvider(Capell\\Frontend\\Events\\FrontendRenderPreparing $event):void bound=Capell\\Search\\Providers\\SearchServiceProvider source=57607b87ebd363764df6d19255d851ea",
+                            "Capell\\Search\\Providers\\SearchServiceProvider(Capell\\Frontend\\Events\\FrontendRenderPreparing $event):void bound=Capell\\Search\\Providers\\SearchServiceProvider source=782a3f1c5552313d44c33615a62c566b",
+                            []
+                        ]
+                    ],
+                    "eloquent.deleted: Capell\\Core\\Models\\Language": [
+                        [
+                            "<package>/src/Providers/SearchServiceProvider.php",
+                            "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                            []
+                        ]
+                    ],
+                    "eloquent.deleted: Capell\\Core\\Models\\Page": [
+                        [
+                            "<package>/src/Providers/SearchServiceProvider.php",
+                            "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                            []
+                        ]
+                    ],
+                    "eloquent.deleted: Capell\\Core\\Models\\PageUrl": [
+                        [
+                            "<package>/src/Providers/SearchServiceProvider.php",
+                            "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                            []
+                        ]
+                    ],
+                    "eloquent.deleted: Capell\\Core\\Models\\Site": [
+                        [
+                            "<package>/src/Providers/SearchServiceProvider.php",
+                            "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                            []
+                        ]
+                    ],
+                    "eloquent.deleted: Capell\\Core\\Models\\SiteDomain": [
+                        [
+                            "<package>/src/Providers/SearchServiceProvider.php",
+                            "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                            []
+                        ]
+                    ],
+                    "eloquent.deleted: Capell\\Core\\Models\\Translation": [
+                        [
+                            "<package>/src/Providers/SearchServiceProvider.php",
+                            "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                            []
+                        ]
+                    ],
+                    "eloquent.saved: Capell\\Core\\Models\\Language": [
+                        [
+                            "<package>/src/Providers/SearchServiceProvider.php",
+                            "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                            []
+                        ]
+                    ],
+                    "eloquent.saved: Capell\\Core\\Models\\Page": [
+                        [
+                            "<package>/src/Providers/SearchServiceProvider.php",
+                            "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                            []
+                        ]
+                    ],
+                    "eloquent.saved: Capell\\Core\\Models\\PageUrl": [
+                        [
+                            "<package>/src/Providers/SearchServiceProvider.php",
+                            "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                            []
+                        ]
+                    ],
+                    "eloquent.saved: Capell\\Core\\Models\\Site": [
+                        [
+                            "<package>/src/Providers/SearchServiceProvider.php",
+                            "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                            []
+                        ]
+                    ],
+                    "eloquent.saved: Capell\\Core\\Models\\SiteDomain": [
+                        [
+                            "<package>/src/Providers/SearchServiceProvider.php",
+                            "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                            []
+                        ]
+                    ],
+                    "eloquent.saved: Capell\\Core\\Models\\Translation": [
+                        [
+                            "<package>/src/Providers/SearchServiceProvider.php",
+                            "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
                             []
                         ]
                     ],
@@ -329,6 +425,170 @@
                             "static Capell\\Search\\Models\\SearchLog(self $searchLog):void source=b05587c6ccd9ef16180aaf17e0d26553",
                             []
                         ]
+                    ]
+                },
+                "listeners-positions": {
+                    "eloquent.deleted: Capell\\Core\\Models\\Language": [
+                        {
+                            "after": null,
+                            "before": [
+                                "<package:core>/src/Models/Concerns/HasDefault.php",
+                                "Capell\\Core\\Models\\Language(Illuminate\\Database\\Eloquent\\Model $model):void",
+                                []
+                            ],
+                            "entry": [
+                                "<package>/src/Providers/SearchServiceProvider.php",
+                                "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                                []
+                            ]
+                        }
+                    ],
+                    "eloquent.deleted: Capell\\Core\\Models\\Page": [
+                        {
+                            "after": null,
+                            "before": [
+                                "<vendor>/spatie/laravel-activitylog/src/Traits/LogsActivity.php",
+                                "Capell\\Core\\Models\\Page(Illuminate\\Database\\Eloquent\\Model $model):",
+                                {
+                                    "eventName": "deleted"
+                                }
+                            ],
+                            "entry": [
+                                "<package>/src/Providers/SearchServiceProvider.php",
+                                "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                                []
+                            ]
+                        }
+                    ],
+                    "eloquent.deleted: Capell\\Core\\Models\\PageUrl": [
+                        {
+                            "after": null,
+                            "before": "Capell\\Core\\Observers\\PageUrlObserver@deleted",
+                            "entry": [
+                                "<package>/src/Providers/SearchServiceProvider.php",
+                                "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                                []
+                            ]
+                        }
+                    ],
+                    "eloquent.deleted: Capell\\Core\\Models\\Site": [
+                        {
+                            "after": null,
+                            "before": [
+                                "<package:core>/src/Models/Concerns/HasDefault.php",
+                                "Capell\\Core\\Models\\Site(Illuminate\\Database\\Eloquent\\Model $model):void",
+                                []
+                            ],
+                            "entry": [
+                                "<package>/src/Providers/SearchServiceProvider.php",
+                                "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                                []
+                            ]
+                        }
+                    ],
+                    "eloquent.deleted: Capell\\Core\\Models\\SiteDomain": [
+                        {
+                            "after": null,
+                            "before": [
+                                "<package:core>/src/Models/Concerns/HasDefault.php",
+                                "Capell\\Core\\Models\\SiteDomain(Illuminate\\Database\\Eloquent\\Model $model):void",
+                                []
+                            ],
+                            "entry": [
+                                "<package>/src/Providers/SearchServiceProvider.php",
+                                "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                                []
+                            ]
+                        }
+                    ],
+                    "eloquent.deleted: Capell\\Core\\Models\\Translation": [
+                        {
+                            "after": null,
+                            "before": "Capell\\Core\\Listeners\\PageTranslationDeletedListener",
+                            "entry": [
+                                "<package>/src/Providers/SearchServiceProvider.php",
+                                "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                                []
+                            ]
+                        }
+                    ],
+                    "eloquent.saved: Capell\\Core\\Models\\Language": [
+                        {
+                            "after": null,
+                            "before": [
+                                "<package:core>/src/Models/Concerns/HasDefault.php",
+                                "Capell\\Core\\Models\\Language(Illuminate\\Database\\Eloquent\\Model $model):void",
+                                []
+                            ],
+                            "entry": [
+                                "<package>/src/Providers/SearchServiceProvider.php",
+                                "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                                []
+                            ]
+                        }
+                    ],
+                    "eloquent.saved: Capell\\Core\\Models\\Page": [
+                        {
+                            "after": null,
+                            "before": "Capell\\Core\\Observers\\PageObserver@saved",
+                            "entry": [
+                                "<package>/src/Providers/SearchServiceProvider.php",
+                                "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                                []
+                            ]
+                        }
+                    ],
+                    "eloquent.saved: Capell\\Core\\Models\\PageUrl": [
+                        {
+                            "after": null,
+                            "before": "Capell\\Core\\Observers\\PageUrlObserver@saved",
+                            "entry": [
+                                "<package>/src/Providers/SearchServiceProvider.php",
+                                "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                                []
+                            ]
+                        }
+                    ],
+                    "eloquent.saved: Capell\\Core\\Models\\Site": [
+                        {
+                            "after": null,
+                            "before": [
+                                "<package:core>/src/Models/Concerns/HasDefault.php",
+                                "Capell\\Core\\Models\\Site(Illuminate\\Database\\Eloquent\\Model $model):void",
+                                []
+                            ],
+                            "entry": [
+                                "<package>/src/Providers/SearchServiceProvider.php",
+                                "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                                []
+                            ]
+                        }
+                    ],
+                    "eloquent.saved: Capell\\Core\\Models\\SiteDomain": [
+                        {
+                            "after": null,
+                            "before": [
+                                "<package:core>/src/Models/Concerns/HasDefault.php",
+                                "Capell\\Core\\Models\\SiteDomain(Illuminate\\Database\\Eloquent\\Model $model):void",
+                                []
+                            ],
+                            "entry": [
+                                "<package>/src/Providers/SearchServiceProvider.php",
+                                "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                                []
+                            ]
+                        }
+                    ],
+                    "eloquent.saved: Capell\\Core\\Models\\Translation": [
+                        {
+                            "after": null,
+                            "before": "Capell\\Core\\Listeners\\PageTranslationSavedListener",
+                            "entry": [
+                                "<package>/src/Providers/SearchServiceProvider.php",
+                                "static Capell\\Search\\Providers\\SearchServiceProvider():void source=53b60560e3f433f63eb32720559f9c33",
+                                []
+                            ]
+                        }
                     ]
                 },
                 "manifest-health": [
@@ -691,7 +951,7 @@
                                     "group": "search",
                                     "icon": "o-magnifying-glass",
                                     "label": "capell-search::settings.title",
-                                    "navigationGroup": "capell-admin::navigation.group_system",
+                                    "navigationGroup": "settings",
                                     "navigationSort": 95,
                                     "packageName": "capell-app/search"
                                 }
@@ -743,8 +1003,10 @@
                         ["GET", "HEAD"],
                         [
                             "web",
+                            "Capell\\Search\\Http\\Middleware\\EnsureSearchEnabled",
                             "Capell\\Search\\Http\\Middleware\\ResolveSearchSite",
-                            "throttle:capell-search-requests"
+                            "throttle:capell-search-requests",
+                            "Capell\\Search\\Http\\Middleware\\MarkSearchPagesNoindex"
                         ],
                         "Capell\\Search\\Http\\Controllers\\SearchController",
                         {
@@ -760,6 +1022,7 @@
                         ["GET", "HEAD"],
                         [
                             "web",
+                            "Capell\\Search\\Http\\Middleware\\EnsureSearchEnabled",
                             "Capell\\Search\\Http\\Middleware\\ResolveSearchSite",
                             "throttle:capell-search-autocomplete"
                         ],
@@ -777,6 +1040,7 @@
                         ["POST"],
                         [
                             "web",
+                            "Capell\\Search\\Http\\Middleware\\EnsureSearchEnabled",
                             "Capell\\Search\\Http\\Middleware\\ResolveSearchSite",
                             "throttle:capell-search-clicks"
                         ],
@@ -827,6 +1091,17 @@
                             []
                         ],
                         "shared": false
+                    },
+                    "Capell\\Search\\Support\\PublicSearchSwitch": {
+                        "concrete": [
+                            "<vendor>/laravel/framework/src/Illuminate/Container/Container.php",
+                            "Illuminate\\Container\\Container( $container,  $parameters): bound=Illuminate\\Foundation\\Application",
+                            {
+                                "abstract": "Capell\\Search\\Support\\PublicSearchSwitch",
+                                "concrete": "Capell\\Search\\Support\\PublicSearchSwitch"
+                            }
+                        ],
+                        "shared": true
                     },
                     "Capell\\Search\\Support\\SearchableSourceRegistry": {
                         "concrete": [
@@ -882,8 +1157,9 @@
                         "honor_privacy_signals": true,
                         "keyboard_shortcuts.enabled": true,
                         "logs.hash_secret": "<secret>",
-                        "logs.retention_days": 30,
+                        "logs.retention_days": 180,
                         "logs.table_name": "search_logs",
+                        "max_page": 100,
                         "minimum_query_length": 2,
                         "page_view": null,
                         "promoted_results": [],
@@ -926,11 +1202,10 @@
                         "results_per_page": 10,
                         "route_path": "<path>",
                         "scout.chunk": 500,
-                        "scout.model": null,
-                        "scout.type_column": "type",
-                        "scout.url_column": "slug",
                         "searchables": [],
                         "show_header_search": true,
+                        "site_discovery.registry_cache_seconds": 60,
+                        "site_synonyms": [],
                         "source_weights": [],
                         "synonyms": [],
                         "type_labels": [],
@@ -993,6 +1268,7 @@
                     "capell-search.keyboard_shortcuts.enabled",
                     "capell-search.logs.retention_days",
                     "capell-search.logs.table_name",
+                    "capell-search.max_page",
                     "capell-search.minimum_query_length",
                     "capell-search.page_view",
                     "capell-search.promoted_results",
@@ -1040,11 +1316,11 @@
                     "capell-search.route_path",
                     "capell-search.scout",
                     "capell-search.scout.chunk",
-                    "capell-search.scout.model",
-                    "capell-search.scout.type_column",
-                    "capell-search.scout.url_column",
                     "capell-search.searchables",
                     "capell-search.show_header_search",
+                    "capell-search.site_discovery",
+                    "capell-search.site_discovery.registry_cache_seconds",
+                    "capell-search.site_synonyms",
                     "capell-search.source_weights",
                     "capell-search.synonyms",
                     "capell-search.type_labels",

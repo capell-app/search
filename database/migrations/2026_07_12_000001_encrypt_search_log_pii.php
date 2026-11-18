@@ -31,8 +31,13 @@ return new class extends Migration
         $secret = is_string($secret) && $secret !== '' ? $secret : config('app.key');
         throw_unless(is_string($secret) && $secret !== '', RuntimeException::class, 'Search retention hash secret is unavailable.');
 
-        DB::table($tableName)->select(['id', 'query', 'normalized_query', 'clicked_result_url'])->orderBy('id')->each(
+        DB::table($tableName)->select(['id', 'query', 'normalized_query', 'normalized_query_hash', 'clicked_result_url'])->orderBy('id')->each(
             static function (object $log) use ($secret, $tableName): void {
+                // Already converted by an earlier run: encrypting again would double-encrypt and re-hash a hash.
+                if (is_string($log->normalized_query_hash) && $log->normalized_query_hash !== '' && $log->normalized_query === $log->normalized_query_hash) {
+                    return;
+                }
+
                 $normalized = is_string($log->normalized_query) ? $log->normalized_query : '';
                 $query = is_string($log->query) ? $log->query : $normalized;
                 $clickedPath = is_string($log->clicked_result_url) && $log->clicked_result_url !== '' ? $log->clicked_result_url : null;

@@ -17,5 +17,7 @@ final class SearchRequestData extends Data
         public ?SearchFilterData $filters = null,
         /** A sealed cursor token from a previous page's next link. */
         public ?string $cursor = null,
+        /** Per-request id binding this search's click tokens to its own log row. */
+        public ?string $reference = null,
     ) {}
 }

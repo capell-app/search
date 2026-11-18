@@ -145,7 +145,13 @@ final class RecordSearchResultClickAction
             return null;
         }
 
+        $reference = is_string($payload['reference'] ?? null) && $payload['reference'] !== '' ? $payload['reference'] : null;
+
         $log = SearchLog::query()
+            ->when(
+                $reference !== null && SchemaFacade::hasColumn((new SearchLog)->getTable(), 'search_reference'),
+                static fn ($query) => $query->where('search_reference', $reference),
+            )
             ->where('normalized_query_hash', $queryHash)
             ->where('searched_at', '>=', now()->subMinutes($windowMinutes))
             ->where('site_id', $tokenSiteId)

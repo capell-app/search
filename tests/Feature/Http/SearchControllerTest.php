@@ -22,6 +22,7 @@ use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
 use Capell\Search\Http\Controllers\SearchController;
+use Capell\Search\Http\Middleware\MarkSearchPagesNoindex;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Providers\SearchServiceProvider;
 use Capell\Search\Support\SearchableSourceRegistry;
@@ -33,6 +34,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\RateLimiter;
@@ -220,6 +222,8 @@ test('autocomplete returns corrected query metadata and popular query suggestion
         $table->timestamp('searched_at')->index();
         $table->timestamps();
     });
+
+    config()->set('capell-search.synonyms', ['capel marketplace' => ['capel store']]);
 
     SearchLog::query()->insert([
         [
@@ -1107,3 +1111,24 @@ function searchCsrfMiddleware(?Illuminate\Routing\Route $route): array
         static fn (mixed $middleware): bool => is_string($middleware) && is_a(explode(':', $middleware)[0], PreventRequestForgery::class, true),
     ));
 }
+
+test('search page route carries the noindex middleware and sends noindex with a query-free canonical', function (): void {
+    $route = Route::getRoutes()->getByName('capell-frontend.search');
+
+    expect($route?->gatherMiddleware())->toContain(MarkSearchPagesNoindex::class);
+
+    $response = (new MarkSearchPagesNoindex)->handle(
+        Request::create('/search?q=capell&type[]=page&page=3'),
+        static fn (): Symfony\Component\HttpFoundation\Response => new Response('ok'),
+    );
+
+    expect($response->headers->get('X-Robots-Tag'))->toBe('noindex, follow')
+        ->and($response->headers->get('Link'))->toBe('<' . '/search>; rel="canonical"');
+
+    $forged = (new MarkSearchPagesNoindex)->handle(
+        Request::create('https://evil.example/search?q=x'),
+        static fn (): Symfony\Component\HttpFoundation\Response => new Response('slow down', 429),
+    );
+
+    expect($forged->headers->get('Link'))->toBeNull();
+});

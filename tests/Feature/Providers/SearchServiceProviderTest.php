@@ -106,6 +106,8 @@ test('site search settings expose defaults', function (): void {
         ->log_retention_days->toBe(180)
         ->hash_visitor_data->toBeTrue()
         ->minimum_query_length->toBe(2);
+
+    expect(config('capell-search.logs.retention_days'))->toBe((new SearchSettings)->log_retention_days);
 });
 
 test('search driver options expose translated filament labels', function (): void {

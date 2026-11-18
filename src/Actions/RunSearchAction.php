@@ -45,7 +45,7 @@ final readonly class RunSearchAction
             return new Paginator($items, 0, $data->perPage, $data->page);
         }
 
-        $queries = ResolveExpandedSearchQueriesAction::run($normalizedQuery);
+        $queries = ResolveExpandedSearchQueriesAction::run($normalizedQuery, $data->siteId);
         $queries = array_slice($queries, 0, max(1, min(10, $this->integerConfig('capell-search.query_expansion.max_queries', 3))));
 
         if (count($queries) > 1) {

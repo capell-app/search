@@ -1,0 +1,99 @@
+[
+    {
+        "claim": "On your site, a visitor who types \"tee\" can land on your T-shirt page first, because you set that on the Search settings page (a promoted result is shown on page one ahead of organic results, or a synonym widens the search).",
+        "evidence": [
+            "src/Filament/Pages/SearchSettingsPage.php",
+            "src/Filament/Settings/SearchSettingsSchema.php",
+            "src/Actions/ResolvePromotedSearchResultsAction.php",
+            "src/Actions/RunSearchAction.php",
+            "resources/lang/en/settings.php"
+        ]
+    },
+    {
+        "claim": "Synonyms, typo fixes and promoted results are all set on the Search settings page.",
+        "evidence": [
+            "src/Filament/Settings/SearchSettingsSchema.php",
+            "src/Actions/ResolveExpandedSearchQueriesAction.php",
+            "src/Actions/ResolveCorrectedSearchQueryAction.php",
+            "resources/lang/en/settings.php"
+        ]
+    },
+    {
+        "claim": "The search button sits in the site header and opens a box that shows matching pages as the visitor types.",
+        "evidence": [
+            "resources/views/components/header/search-trigger.blade.php",
+            "resources/views/components/header/search-modal.blade.php",
+            "resources/views/components/header/autocomplete-results.blade.php",
+            "resources/js/search-modal.js",
+            "src/Actions/RunAutocompleteSearchAction.php",
+            "routes/web.php"
+        ]
+    },
+    {
+        "claim": "A results page lists matching pages with the matching words highlighted in the title and excerpt.",
+        "evidence": [
+            "resources/views/pages/search.blade.php",
+            "resources/views/components/results.blade.php",
+            "src/Http/Controllers/SearchController.php",
+            "src/Actions/BuildSearchPageViewDataAction.php"
+        ]
+    },
+    {
+        "claim": "The header button appears only if the theme uses the header from the Navigation package (the render hook targets capell-navigation::components.header.navigation).",
+        "evidence": ["src/Providers/SearchServiceProvider.php"]
+    },
+    {
+        "claim": "Turning off Enable search makes search disappear from the site altogether: it hides the header button and answers 404 on the search page, type-ahead and click-tracking routes.",
+        "evidence": [
+            "src/Support/RenderHooks/RegisterHeaderSearchHook.php",
+            "src/Http/Middleware/EnsureSearchEnabled.php",
+            "routes/web.php",
+            "resources/lang/en/settings.php"
+        ]
+    },
+    {
+        "claim": "Search reads the list of public pages that Discovery Foundation keeps, so there is no separate search index to build (default driver site_discovery; the list itself is built by Discovery Foundation's BuildPublicUrlRegistryAction in the discovery-foundation package).",
+        "evidence": [
+            "src/Drivers/SiteDiscoverySearch.php",
+            "config/capell-search.php",
+            "database/settings/2026_05_10_190869_01_add_search_settings.php",
+            "composer.json"
+        ]
+    },
+    {
+        "claim": "An edit shows on the next search: page, URL, translation, site, domain and language saves or deletes flush the cached page list after commit.",
+        "evidence": [
+            "src/Providers/SearchServiceProvider.php",
+            "src/Actions/FlushSiteDiscoverySearchRegistryAction.php",
+            "src/Drivers/SiteDiscoverySearch.php"
+        ]
+    },
+    {
+        "claim": "It matches the title, the address and the first 1000 characters of page text as lowercase plain text, so text further down a long page is not found (the 1000-character limit is BODY_TEXT_LIMIT in Discovery Foundation's DiscoverPublicPagesAction, in the discovery-foundation package).",
+        "evidence": ["src/Drivers/SiteDiscoverySearch.php"]
+    },
+    {
+        "claim": "Administrators get top, trending and zero-result searches on the admin dashboard (widgets gated to admin and super_admin roles).",
+        "evidence": [
+            "src/Providers/AdminServiceProvider.php",
+            "src/Filament/Widgets/TopSearchesFilamentWidget.php",
+            "src/Filament/Widgets/TrendingSearchesFilamentWidget.php",
+            "src/Filament/Widgets/ZeroResultSearchesFilamentWidget.php"
+        ]
+    },
+    {
+        "claim": "The dashboard figures are all taken from the results page, which is the only place searches are recorded.",
+        "evidence": [
+            "src/Actions/BuildSearchPageViewDataAction.php",
+            "src/Actions/RecordSearchAction.php",
+            "src/Actions/CanCollectSearchAnalyticsAction.php"
+        ]
+    },
+    {
+        "claim": "The dashboard shows what people looked for and did not find (zero-result searches).",
+        "evidence": [
+            "src/Filament/Widgets/ZeroResultSearchesFilamentWidget.php",
+            "src/Actions/BuildZeroResultSearchesQueryAction.php"
+        ]
+    }
+]

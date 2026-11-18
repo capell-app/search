@@ -10,7 +10,7 @@ Open **Extensions > Search > Settings**. The page is protected by `View:SearchSe
 - choose the search driver, results-per-page limit, minimum query length, and the registered content sources to include; and
 - decide whether to record query logs, how long to retain them, and whether visitor data is hashed.
 
-The current **Enable header search integration** and **Show header search** switches control the header integration. They do not remove or deny access to the public search, autocomplete, or click routes. Do not use them as an access-control or maintenance switch; ask a developer to disable or protect the routes when public search must be unavailable.
+**Enable search** is the master switch: while it is off the header button, the results page, type-ahead and click tracking are all unavailable and return 404. **Show header search** hides only the header button and leaves the search page and type-ahead live. Use **Enable search** as the switch for taking public search offline.
 
 ## Choose the right source lifecycle
 

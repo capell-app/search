@@ -361,3 +361,15 @@ test('rejects click tracking when the token context does not match the request c
     expect($updatedLog)->toBeNull()
         ->and($log->refresh()->clicked_result_url)->toBeNull();
 });
+
+test('never keeps an email address or phone number typed into the search box', function (): void {
+    $log = searchLogResult(RecordSearchAction::run(
+        new SearchRequestData(query: 'Refund for Jane.Doe@Example.com or 020 7946 0958', siteId: 10, languageId: 20),
+        0,
+        searchVisitorIdentity(),
+    ));
+
+    expect($log->query)->toBe('refund for [email] or [number]')
+        ->and($log->normalized_query)->toBe(HashSearchRetentionValueAction::run('refund for [email] or [number]'))
+        ->and(DB::table('search_logs')->get()->toJson())->not->toContain('example.com')->not->toContain('7946');
+});

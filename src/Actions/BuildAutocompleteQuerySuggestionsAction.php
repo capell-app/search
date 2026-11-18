@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Capell\Search\Actions;
 
 use Capell\Search\Data\AutocompleteQuerySuggestionData;
-use Capell\Search\Models\SearchLog;
-use Illuminate\Support\Facades\Schema;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
+ * Suggests curated terms only (synonyms, corrections and promoted-result queries
+ * an editor configured). Visitors' logged queries are never suggested: they are
+ * personal data and the log stores only an HMAC of them.
+ *
  * @method static list<AutocompleteQuerySuggestionData> run(string $query, int $limit = 5, ?int $siteId = null, ?int $languageId = null)
  */
 final class BuildAutocompleteQuerySuggestionsAction
@@ -34,42 +36,74 @@ final class BuildAutocompleteQuerySuggestionsAction
             return [];
         }
 
-        $model = new SearchLog;
+        $suggestions = [];
 
-        if (! Schema::hasTable($model->getTable())) {
-            return [];
+        foreach ($this->curatedTerms($siteId, $languageId) as $term) {
+            if ($term === $normalizedQuery || ! str_starts_with($term, $normalizedQuery)) {
+                continue;
+            }
+
+            $suggestions[] = new AutocompleteQuerySuggestionData(
+                query: $term,
+                searches: 0,
+                url: route('capell-frontend.search', ['q' => $term], false),
+            );
+
+            if (count($suggestions) >= $limit) {
+                break;
+            }
         }
 
-        $queryBuilder = SearchLog::query()
-            ->selectRaw('normalized_query, count(*) as searches')
-            ->where('normalized_query', 'like', $this->escapeLike($normalizedQuery) . '%')
-            ->where('normalized_query', '!=', $normalizedQuery)
-            ->groupBy('normalized_query')
-            ->orderByDesc('searches')
-            ->orderBy('normalized_query')
-            ->limit($limit);
-
-        if ($siteId !== null) {
-            $queryBuilder->where('site_id', $siteId);
-        }
-
-        if ($languageId !== null) {
-            $queryBuilder->where('language_id', $languageId);
-        }
-
-        return array_values($queryBuilder
-            ->get()
-            ->map(fn (object $row): AutocompleteQuerySuggestionData => new AutocompleteQuerySuggestionData(
-                query: (string) $row->normalized_query,
-                searches: (int) $row->searches,
-                url: route('capell-frontend.search', ['q' => (string) $row->normalized_query], false),
-            ))
-            ->values()
-            ->all());
+        return $suggestions;
     }
 
-    private function escapeLike(string $query): string
+    /**
+     * @return list<string>
+     */
+    private function curatedTerms(?int $siteId, ?int $languageId): array
     {
-        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query);
+        $raw = [];
+
+        $synonyms = ResolveSiteScopedSynonymsAction::run($siteId);
+
+        foreach ($synonyms as $key => $aliases) {
+            $raw[] = $key;
+            $raw = [...$raw, ...(is_array($aliases) ? $aliases : [$aliases])];
+        }
+
+        $corrections = ResolveSearchSettingAction::run('typo_corrections', 'capell-search.typo_corrections', []);
+
+        if (is_array($corrections)) {
+            $raw = [...$raw, ...array_values($corrections)];
+        }
+
+        $promoted = ResolveSearchSettingAction::run('promoted_results', 'capell-search.promoted_results', []);
+
+        if (is_array($promoted)) {
+            foreach ($promoted as $promotion) {
+                if (is_array($promotion) && is_array($promotion['queries'] ?? null) && ResolvePromotedSearchResultsAction::appliesTo($promotion, $siteId, $languageId)) {
+                    $raw = [...$raw, ...$promotion['queries']];
+                }
+            }
+        }
+
+        $terms = [];
+
+        foreach ($raw as $value) {
+            if (! is_string($value) && ! is_numeric($value)) {
+                continue;
+            }
+
+            $term = NormalizeSearchQueryAction::run((string) $value);
+
+            if ($term !== '') {
+                $terms[$term] = $term;
+            }
+        }
+
+        $terms = array_values($terms);
+        sort($terms);
+
+        return $terms;
     }
 }

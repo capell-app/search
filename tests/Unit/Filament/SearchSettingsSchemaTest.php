@@ -317,7 +317,7 @@ function flattenSearchSettingsComponentsWithChildren(array $components): array
     return $flattenedComponents;
 }
 
-it('explains that the enable switch controls the header while public endpoints remain available', function (): void {
+it('explains that the enable switch turns search off entirely', function (): void {
     $schema = Schema::make(new SchemaStateHarness);
     $schema->components(fn (): array => SearchSettingsSchema::make($schema));
 
@@ -327,7 +327,7 @@ it('explains that the enable switch controls the header while public endpoints r
 
     $label = $toggle->getLabel();
     Assert::assertIsString($label);
-    expect(strtolower($label))->toContain('header');
+    expect(strtolower($label))->toContain('enable search');
     expect(strtolower(searchSettingsHelperText($toggle)))
-        ->toContain('header', 'search page', 'autocomplete', 'remain available');
+        ->toContain('entirely', 'results page', 'type-ahead', 'click tracking', '404');
 });

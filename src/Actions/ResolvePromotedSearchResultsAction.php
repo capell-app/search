@@ -9,7 +9,7 @@ use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
- * @method static list<PromotedSearchResultData> run(string $normalizedQuery)
+ * @method static list<PromotedSearchResultData> run(string $normalizedQuery, ?int $siteId = null, ?int $languageId = null)
  */
 final class ResolvePromotedSearchResultsAction
 {
@@ -17,9 +17,27 @@ final class ResolvePromotedSearchResultsAction
     use AsObject;
 
     /**
+     * A promotion with `site_ids` or `language_ids` applies only there; without them it applies everywhere.
+     *
+     * @param  array<array-key, mixed>  $configuredPromotion
+     */
+    public static function appliesTo(array $configuredPromotion, ?int $siteId, ?int $languageId): bool
+    {
+        foreach (['site_ids' => $siteId, 'language_ids' => $languageId] as $key => $current) {
+            $allowed = $configuredPromotion[$key] ?? [];
+
+            if (is_array($allowed) && $allowed !== [] && ($current === null || ! in_array($current, array_map(static fn (mixed $id): int => is_numeric($id) ? (int) $id : 0, $allowed), true))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * @return list<PromotedSearchResultData>
      */
-    public function handle(string $normalizedQuery): array
+    public function handle(string $normalizedQuery, ?int $siteId = null, ?int $languageId = null): array
     {
         $normalizedQuery = NormalizeSearchQueryAction::run($normalizedQuery);
         $configuredPromotions = ResolveSearchSettingAction::run('promoted_results', 'capell-search.promoted_results', []);
@@ -32,6 +50,10 @@ final class ResolvePromotedSearchResultsAction
 
         foreach ($configuredPromotions as $configuredPromotion) {
             if (! is_array($configuredPromotion)) {
+                continue;
+            }
+
+            if (! self::appliesTo($configuredPromotion, $siteId, $languageId)) {
                 continue;
             }
 

@@ -6,6 +6,12 @@ namespace Capell\Search\Providers;
 
 use Capell\Core\Contracts\Agent\AgentPageSearch;
 use Capell\Core\Facades\CapellCore;
+use Capell\Core\Models\Language;
+use Capell\Core\Models\Page;
+use Capell\Core\Models\PageUrl;
+use Capell\Core\Models\Site;
+use Capell\Core\Models\SiteDomain;
+use Capell\Core\Models\Translation;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Packages\RouteGroupIsolation;
 use Capell\Core\Support\PublicRead\PublicPageReadEligibilityRegistry;
@@ -14,6 +20,7 @@ use Capell\Core\Support\TableName;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Events\FrontendRenderPreparing;
 use Capell\Frontend\Support\Render\FrontendHookRegistrar;
+use Capell\Search\Actions\FlushSiteDiscoverySearchRegistryAction;
 use Capell\Search\Actions\RegisterConfiguredSearchableSourcesAction;
 use Capell\Search\Actions\ResolveSearchSettingAction;
 use Capell\Search\Contracts\Search;
@@ -26,6 +33,7 @@ use Capell\Search\Integrations\Agent\AgentPageSearchAdapter;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Settings\SearchSettings;
 use Capell\Search\Support\PubliclyReadableSearch;
+use Capell\Search\Support\PublicSearchSwitch;
 use Capell\Search\Support\RenderHooks\RegisterHeaderSearchHook;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Capell\Search\Support\SiteDiscovery\SearchGeneratedOutputCoverageSource;
@@ -38,6 +46,7 @@ use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Override;
 use Spatie\LaravelPackageTools\Package;
@@ -74,6 +83,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
                 '2026_07_12_000001_encrypt_search_log_pii',
                 '2026_05_21_000002_add_fulltext_index_to_search_database_table',
                 '2026_09_29_120000_remove_implicit_timestamp_updates_from_search',
+                '2026_11_11_000001_add_search_reference_to_search_logs',
             ]);
         }
 
@@ -99,6 +109,8 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             return $registry;
         });
 
+        $this->app->scoped(PublicSearchSwitch::class);
+
         $this->registerSearchBinding();
     }
 
@@ -118,6 +130,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         $this
             ->registerRoutes()
             ->registerModels()
+            ->registerRegistryInvalidation()
             ->registerSettings()
             ->registerGeneratedOutputCoverage()
             ->registerProtectedTables();
@@ -138,6 +151,10 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
 
         $this->app->make(Dispatcher::class)->listen(FrontendRenderPreparing::class, function (FrontendRenderPreparing $event): void {
             $event->context->setFrontendData(
+                'search.enabled',
+                ResolveSearchSettingAction::run('enabled', 'capell-search.enabled', true),
+            );
+            $event->context->setFrontendData(
                 'search.header.enabled',
                 ResolveSearchSettingAction::run('enabled', 'capell-search.enabled', true),
             );
@@ -153,6 +170,28 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         $value = config($key, $default);
 
         return max(1, is_int($value) ? $value : $default);
+    }
+
+    /**
+     * Content that decides what the built-in page index can return: any change flushes the cached registry.
+     */
+    private function registerRegistryInvalidation(): self
+    {
+        $flush = static function (): void {
+            // After commit, so a search cannot rebuild from pre-commit data and cache it under the new version.
+            DB::afterCommit(static fn () => FlushSiteDiscoverySearchRegistryAction::run());
+        };
+
+        foreach ([Page::class, PageUrl::class, Translation::class, Site::class, SiteDomain::class, Language::class] as $model) {
+            if (! class_exists($model)) {
+                continue;
+            }
+
+            $model::saved($flush);
+            $model::deleted($flush);
+        }
+
+        return $this;
     }
 
     private function registerRoutes(): self
@@ -329,7 +368,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             group: 'search',
             label: 'capell-search::settings.title',
             icon: Heroicon::OutlinedMagnifyingGlass,
-            navigationGroup: 'capell-admin::navigation.group_system',
+            navigationGroup: 'settings',
             navigationSort: 95,
             packageName: self::$packageName,
         ));

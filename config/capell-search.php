@@ -83,6 +83,15 @@ return [
     'type_labels' => [],
     'record_search_logs' => true,
     'hash_visitor_data' => true,
+    'site_discovery' => [
+        // Seconds the built-in page index registry is reused between searches; 0 disables caching.
+        // A page unpublished inside this window can still appear in results until it expires.
+        'registry_cache_seconds' => 60,
+    ],
+    // Per-site synonyms, merged over the shared ones: [site id => ['cms' => ['content management system']]].
+    // Highest results page a visitor can request; deeper pages exceed hosted engines' offset limits.
+    'max_page' => 100,
+    'site_synonyms' => [],
     'synonyms' => [
         // 'cms' => ['content management system'],
     ],
@@ -135,9 +144,6 @@ return [
         'published_status' => 'published',
     ],
     'scout' => [
-        'model' => null,
-        'url_column' => 'slug',
-        'type_column' => 'type',
         'chunk' => 500,
     ],
     'health' => [
@@ -153,7 +159,7 @@ return [
     ],
     'logs' => [
         'table_name' => 'search_logs',
-        'retention_days' => 30,
+        'retention_days' => 180,
         'hash_secret' => env('CAPELL_SEARCH_LOG_HASH_SECRET'),
     ],
     'honor_privacy_signals' => true,

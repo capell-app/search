@@ -138,3 +138,12 @@ it('throttles autocomplete before resolving the public site access policy again'
     $this->getJson('https://search.example/search/autocomplete?q=')->assertTooManyRequests();
     expect($provider->calls)->toBe(1);
 });
+
+it('answers 404 on results, autocomplete and click tracking while search is switched off', function (): void {
+    SiteDomain::factory()->createOne(['domain' => 'search.example', 'scheme' => 'https', 'path' => null]);
+    config()->set('capell-search.enabled', false);
+
+    $this->get('https://search.example/search?q=Capell')->assertNotFound();
+    $this->getJson('https://search.example/search/autocomplete?q=Capell')->assertNotFound();
+    $this->postJson('https://search.example/search/click', ['query' => 'Capell'])->assertNotFound();
+});

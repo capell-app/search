@@ -2,6 +2,14 @@
 
 <!-- prettier-ignore-start -->
 
+On your site, a visitor who types "tee" can land on your T-shirt page first, because you decide that on the Search settings page. Synonyms, typo fixes and promoted results are all set there.
+
+The search button sits in your site header and opens a box that shows matching pages as the visitor types. A results page lists the rest with the matching words highlighted. The button appears only if your theme uses the header from the Navigation package. Turning off the Enable search setting makes search disappear from the site altogether, including the header button and the results page. To hide only the button, turn off Show header search.
+
+Search reads the list of your public pages that Discovery Foundation keeps, so there's no separate search index to build and an edit shows on the next search. It matches the title, the address and the first 1000 characters of page text as plain text. Anything further down a long page isn't found.
+
+Administrators get the top, trending and zero-result searches on the admin dashboard, all taken from the results page. You see what people looked for and didn't find.
+
 ## What it does for you
 
 Search powers the public results page, header search field, and autocomplete. It can search the content sources enabled for the site, then apply curation rules so visitors find the most useful result even when they use alternate wording or make a small typo.
@@ -14,7 +22,7 @@ Open **Extensions > Search > Settings**. The page is protected by `View:SearchSe
 - choose the search driver, results-per-page limit, minimum query length, and the registered content sources to include; and
 - decide whether to record query logs, how long to retain them, and whether visitor data is hashed.
 
-The current **Enable header search integration** and **Show header search** switches control the header integration. They do not remove or deny access to the public search, autocomplete, or click routes. Do not use them as an access-control or maintenance switch; ask a developer to disable or protect the routes when public search must be unavailable.
+**Enable search** is the master switch: while it is off the header button, the results page, type-ahead and click tracking are all unavailable and return 404. **Show header search** hides only the header button and leaves the search page and type-ahead live. Use **Enable search** as the switch for taking public search offline.
 
 ## Choose the right source lifecycle
 

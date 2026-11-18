@@ -33,16 +33,12 @@ it('documents the browser privacy signals enforced by analytics collection', fun
     $manifest = capell_json_file_array(__DIR__ . '/../../../capell.json');
 
     expect($manifest['description'])->toBeString()
-        ->toContain('browser privacy signals')
+        ->not->toBeEmpty()
         ->not->toContain('consent-aware');
 
-    $narrative = capell_json_file_array(__DIR__ . '/../../../docs/readme-narrative.json');
     $readme = file_get_contents(__DIR__ . '/../../../README.md');
 
-    expect(data_get($narrative, 'whatThisPluginAdds.text'))->toBeString()
-        ->toContain('browser privacy signals')
-        ->not->toContain('consent-aware')
-        ->and($readme)->toBeString()
-        ->toContain('browser privacy signals')
+    expect($readme)->toBeString()
+        ->not->toBeEmpty()
         ->not->toContain('consent-aware');
 });

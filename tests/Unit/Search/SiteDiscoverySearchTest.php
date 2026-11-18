@@ -2,13 +2,18 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Models\Language;
+use Capell\Core\Models\PageUrl;
+use Capell\Core\Models\Translation;
 use Capell\DiscoveryFoundation\Data\PublicUrlRegistryEntryData;
 use Capell\DiscoveryFoundation\Enums\PublicUrlContentType;
 use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
+use Capell\Search\Actions\FlushSiteDiscoverySearchRegistryAction;
 use Capell\Search\Data\SearchResultData;
 use Capell\Search\Drivers\SiteDiscoverySearch;
 use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 test('site discovery search returns indexable public registry URLs', function (): void {
     $search = new SiteDiscoverySearch(new Collection([
@@ -142,4 +147,89 @@ test('site discovery search paginates and highlights safely', function (): void 
         ->and($highlighted)->toContain('<mark>CMS</mark>')
         ->and($highlighted)->toContain('&lt;')
         ->and($highlighted)->not->toContain('<CMS');
+});
+
+test('site discovery search does not match internal route names or source packages', function (): void {
+    $search = new SiteDiscoverySearch(new Collection([
+        new PublicUrlRegistryEntryData(
+            canonicalUrl: 'https://example.com/about',
+            sourcePackage: 'capell-app/secretpkg',
+            siteKey: 1,
+            languageKey: 1,
+            siteId: 1,
+            languageId: 1,
+            routeName: 'internal.hidden.route',
+            title: 'About us',
+        ),
+    ]));
+
+    expect($search->search('secretpkg', siteId: 1, languageId: 1)->total())->toBe(0)
+        ->and($search->search('internal.hidden', siteId: 1, languageId: 1)->total())->toBe(0)
+        ->and($search->search('about', siteId: 1, languageId: 1)->total())->toBe(1);
+});
+
+test('site discovery search reuses the cached registry within the ttl', function (): void {
+    config()->set('capell-search.site_discovery.registry_cache_seconds', 60);
+    Cache::put($key = 'capell-search:site-discovery-registry:v' . FlushSiteDiscoverySearchRegistryAction::version() . ':1:1', new Collection([
+        new PublicUrlRegistryEntryData(canonicalUrl: 'https://example.com/cached-page', sourcePackage: 'x', siteKey: 1, languageKey: 1, siteId: 1, languageId: 1, title: 'Cached page'),
+    ]), 60);
+
+    expect((new SiteDiscoverySearch)->search('cached', siteId: 1, languageId: 1)->total())->toBe(1);
+
+    Cache::forget($key);
+});
+
+test('site discovery search matches page body text and shows a real excerpt', function (): void {
+    $search = new SiteDiscoverySearch(new Collection([
+        new PublicUrlRegistryEntryData(
+            canonicalUrl: 'https://example.com/guides/setup',
+            sourcePackage: 'capell-app/core',
+            siteKey: 1,
+            languageKey: 1,
+            siteId: 1,
+            languageId: 1,
+            title: 'Setup guide',
+            bodyText: 'Start here. Configure the quarterly invoicing schedule before you invite your team to the workspace.',
+        ),
+    ]));
+
+    $result = $search->search('invoicing', siteId: 1, languageId: 1)->items()[0] ?? null;
+
+    expect($result)->toBeInstanceOf(SearchResultData::class)
+        ->and($result?->excerpt)->toContain('quarterly invoicing schedule')
+        ->and($result?->excerpt)->not->toContain('URL.');
+});
+
+test('flushing the registry cache drops a page unpublished inside the ttl', function (): void {
+    config()->set('capell-search.site_discovery.registry_cache_seconds', 600);
+    $key = fn (): string => 'capell-search:site-discovery-registry:v' . FlushSiteDiscoverySearchRegistryAction::version() . ':1:1';
+    Cache::put($key(), new Collection([
+        new PublicUrlRegistryEntryData(canonicalUrl: 'https://example.com/stale-page', sourcePackage: 'x', siteKey: 1, languageKey: 1, siteId: 1, languageId: 1, title: 'Stale page'),
+    ]), 600);
+
+    $search = new SiteDiscoverySearch;
+    expect($search->search('stale', siteId: 1, languageId: 1)->total())->toBe(1);
+
+    FlushSiteDiscoverySearchRegistryAction::run();
+
+    // The old entry is unreachable under the new version, so the search rebuilds from the live registry.
+    expect(Cache::has($key()))->toBeFalse()
+        ->and($search->search('stale', siteId: 1, languageId: 1)->total())->toBe(0);
+});
+
+test('highlighting never splits an html entity', function (): void {
+    $search = new SiteDiscoverySearch;
+
+    expect($search->highlight('Tom & Jerry on amp', 'amp'))->toBe('Tom &amp; Jerry on <mark>amp</mark>');
+});
+
+test('saving a translation, url or language flushes the registry cache', function (): void {
+    $before = FlushSiteDiscoverySearchRegistryAction::version();
+
+    foreach ([Translation::class, PageUrl::class, Language::class] as $model) {
+        $before = FlushSiteDiscoverySearchRegistryAction::version();
+        $model::getEventDispatcher()?->dispatch('eloquent.saved: ' . $model, (new $model)->forceFill(['id' => 1]));
+
+        expect(FlushSiteDiscoverySearchRegistryAction::version())->toBeGreaterThan($before);
+    }
 });

@@ -10,7 +10,7 @@ use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
- * @method static list<string> run(string $normalizedQuery)
+ * @method static list<string> run(string $normalizedQuery, ?int $siteId = null)
  */
 final class ResolveExpandedSearchQueriesAction
 {
@@ -20,7 +20,7 @@ final class ResolveExpandedSearchQueriesAction
     /**
      * @return list<string>
      */
-    public function handle(string $normalizedQuery): array
+    public function handle(string $normalizedQuery, ?int $siteId = null): array
     {
         $normalizedQuery = NormalizeSearchQueryAction::run($normalizedQuery);
 
@@ -30,7 +30,7 @@ final class ResolveExpandedSearchQueriesAction
 
         $queries = [$normalizedQuery];
 
-        foreach ($this->synonymGroups() as $synonymGroup) {
+        foreach ($this->synonymGroups($siteId) as $synonymGroup) {
             foreach ($synonymGroup as $sourcePhrase) {
                 if (! $this->queryContainsPhrase($normalizedQuery, $sourcePhrase)) {
                     continue;
@@ -60,13 +60,9 @@ final class ResolveExpandedSearchQueriesAction
     /**
      * @return list<list<string>>
      */
-    private function synonymGroups(): array
+    private function synonymGroups(?int $siteId): array
     {
-        $configuredSynonyms = ResolveSearchSettingAction::run('synonyms', 'capell-search.synonyms', []);
-
-        if (! is_array($configuredSynonyms)) {
-            return [];
-        }
+        $configuredSynonyms = ResolveSiteScopedSynonymsAction::run($siteId);
 
         $groups = [];
 

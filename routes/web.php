@@ -3,13 +3,15 @@
 declare(strict_types=1);
 
 use Capell\Search\Http\Controllers\SearchController;
+use Capell\Search\Http\Middleware\EnsureSearchEnabled;
+use Capell\Search\Http\Middleware\MarkSearchPagesNoindex;
 use Capell\Search\Http\Middleware\ResolveSearchSite;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
 
 Route::name('capell-frontend.')
-    ->middleware(['web', ResolveSearchSite::class])
+    ->middleware(['web', EnsureSearchEnabled::class, ResolveSearchSite::class])
     ->group(function (): void {
         $searchRoutePath = config('capell-search.route_path', 'search');
         $searchRateLimiter = config('capell-search.rate_limiter', 'capell-search-requests');
@@ -19,7 +21,7 @@ Route::name('capell-frontend.')
         $clickRateLimiter = config('capell-search.click_tracking.rate_limiter', 'capell-search-clicks');
 
         Route::get(is_string($searchRoutePath) ? $searchRoutePath : 'search', SearchController::class)
-            ->middleware('throttle:' . (is_string($searchRateLimiter) ? $searchRateLimiter : 'capell-search-requests'))
+            ->middleware(['throttle:' . (is_string($searchRateLimiter) ? $searchRateLimiter : 'capell-search-requests'), MarkSearchPagesNoindex::class])
             ->name('search');
 
         Route::get(is_string($autocompleteRoutePath) ? $autocompleteRoutePath : 'search/autocomplete', [SearchController::class, 'autocomplete'])

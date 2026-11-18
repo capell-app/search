@@ -80,7 +80,7 @@ it('declares implemented search gap features contributions and actions', functio
     assertCapellPackageDescription('search', $manifest);
 
     expect(data_get($manifest, 'description'))->toContain('synonyms')
-        ->and(data_get($manifest, 'marketplace.summary'))->toContain('Production-grade site search')
+        ->and(data_get($manifest, 'marketplace.summary'))->toBeString()->not->toBeEmpty()
         ->and($screenshotPaths)->each(fn (Expectation $path): Expectation => $path->toBeFile())
         ->and(data_get($manifest, 'dependencies.supports'))->toContain('capell-app/site-discovery')
         ->and(data_get($manifest, 'commands.flush'))->toBe('search:flush')
@@ -128,9 +128,9 @@ it('declares implemented search gap features contributions and actions', functio
             'type' => 'overview-stat',
             'class' => SearchOverviewStatsContribution::class,
             'keys' => [
-                'search_overview',
-                'search_overview.unique_queries',
-                'search_overview.zero_result_rate',
+                'overview-stat:search_overview',
+                'overview-stat:search_overview.unique_queries',
+                'overview-stat:search_overview.zero_result_rate',
             ],
         ])
         ->and($manifest['contributes'])->toContain([

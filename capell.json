@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^1.0",
     "version": "1.0.0",
-    "description": "Help visitors find published content with public search, autocomplete, facets, synonyms, promoted results and spelling correction. Review query analytics that honour browser privacy signals to identify content gaps.",
+    "description": "Adds a header search button, matching pages as visitors type and a results page you can steer with synonyms, typo fixes and promoted results.",
     "product": {
         "group": "Capell Search & SEO",
         "tier": "premium",
@@ -80,9 +80,9 @@
             "type": "overview-stat",
             "class": "Capell\\Search\\Manifest\\SearchOverviewStatsContribution",
             "keys": [
-                "search_overview",
-                "search_overview.unique_queries",
-                "search_overview.zero_result_rate"
+                "overview-stat:search_overview",
+                "overview-stat:search_overview.unique_queries",
+                "overview-stat:search_overview.zero_result_rate"
             ]
         },
         {
@@ -132,7 +132,8 @@
                 "2026_05_10_190868_01_create_search_logs_table",
                 "2026_05_21_000002_add_fulltext_index_to_search_database_table",
                 "2026_07_12_000001_encrypt_search_log_pii",
-                "2026_09_29_120000_remove_implicit_timestamp_updates_from_search"
+                "2026_09_29_120000_remove_implicit_timestamp_updates_from_search",
+                "2026_11_11_000001_add_search_reference_to_search_logs"
             ]
         }
     ],
@@ -177,7 +178,6 @@
         "search-admin",
         "search-console",
         "search-frontend",
-        "search-public-rate-limit",
         "search-site-discovery-indexing"
     ],
     "security": {
@@ -212,7 +212,10 @@
                 "search_logs.normalized_query_hash",
                 "search_logs.user_agent_hash"
             ],
-            "redactedOutputClasses": [],
+            "redactedOutputClasses": [
+                "Capell\\Search\\Actions\\RecordSearchAction",
+                "Capell\\Search\\Actions\\RedactSearchQueryAction"
+            ],
             "plaintextJustifications": []
         },
         "publicOutput": {
@@ -252,7 +255,7 @@
     "healthChecks": [
         {
             "key": "search.frontend-query",
-            "label": "Frontend search normalizes queries and returns paginated results.",
+            "label": "Frontend search normalises queries and returns paginated results.",
             "class": "Capell\\Search\\Health\\SearchHealthCheck",
             "severity": "critical",
             "surface": "frontend"
@@ -286,55 +289,66 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "Production-grade site search for Capell: relevance-tuned results with synonyms, typo tolerance, and curated promotions, plus admin insights into what visitors search for and where you have no answers.",
-        "description": "Search gives every Capell site a fast, themeable search experience: a results page, header search field, and type-ahead autocomplete, backed by Database full-text, the Built-in page index, or Laravel Scout (Typesense, Meilisearch, Algolia) through a pluggable driver contract. Curate results with synonyms, typo corrections, and promoted \"best bet\" answers, and tune ranking with source weighting plus exact-match, recency, and click-through boosts. The admin dashboard surfaces top searches, trending terms, and, critically, zero-result queries, so editors see exactly where content is missing. Privacy-first by default: visitor identifiers are hashed and query logs auto-purge on a configurable retention window.",
-        "problem": "Our visitors cannot find the published content they need.",
-        "outcome": "Our visitors can find indexed content through a search page.",
+        "summary": "Visitors land on the page they wanted, and you learn what they searched for and didn't find.",
+        "description": "Visitors get a results page with the matching words highlighted and, if your theme uses the header from the Navigation package, a header button that opens a box showing matching pages as they type. You set synonyms, typo fixes and promoted pages, and administrators see top, trending and zero-result searches on the admin dashboard.",
+        "problem": "Visitors can't find our pricing page and email me instead. I never see what they typed.",
+        "outcome": "Searching \"tee\" can put your T-shirt page first, and the dashboard lists the searches that found nothing.",
         "faq": [
             {
-                "question": "How can editors improve weak search results?",
-                "answer": "Admins can use synonyms and promoted results to address repeated or unsuccessful searches."
+                "question": "Do I have to build a search index?",
+                "answer": "No. Search reads the list of your public pages that Discovery Foundation keeps, so an edit shows on the next search."
             },
             {
-                "question": "Are search queries kept forever?",
-                "answer": "Search logs have a configurable retention window and are purged monthly."
+                "question": "Will it find text far down a long page?",
+                "answer": "No. It matches the title, the address and the first 1000 characters of page text as plain text, so anything further down a long page isn't found."
             },
             {
-                "question": "Which searches can administrators review?",
-                "answer": "Admins can inspect top, trending, clicked and zero-result queries."
+                "question": "Can I hide the search button but keep search?",
+                "answer": "Yes. Turn off Show header search to hide only the button, or turn off Enable search to remove search from the site altogether, including the results page. The button also needs a theme that uses the Navigation header."
+            },
+            {
+                "question": "Does Search keep what visitors type?",
+                "answer": "Searches made on the results page are logged with the query encrypted, unless the browser sends a Do Not Track or Global Privacy Control signal. Logs are kept for 180 days by default, and a monthly clean-up needs Laravel's scheduler running."
             }
         ],
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",
-                "alt": "Search extension preview image",
-                "caption": "Search extension preview"
+                "alt": "Marketplace card titled Search with a light and a dark site page, both nearly empty, beside Index, Query and Curate.",
+                "caption": "The Marketplace card for Search, which adds site search you can tune with synonyms and promoted results."
             },
             {
                 "path": "docs/screenshots/search-curation-annotated.png",
-                "alt": "Annotated search curation settings for synonyms, typo corrections, and promoted results",
-                "caption": "Search curation controls"
+                "alt": "Search settings with a synonym mapping tee to T-shirt, typo corrections, a promoted results button and a Submit button.",
+                "caption": "Set synonyms, typo fixes and promoted results here to steer what visitors find."
             },
             {
                 "path": "docs/screenshots/frontend-search-results-page.png",
-                "alt": "Seeded public Search results page for the query capell",
-                "caption": "Route-backed public search results",
+                "alt": "Search results page for Capell publishing guide with 23 results as cards, the first one highlighted, and page numbers.",
+                "caption": "Results come as cards with page numbers, and the first match has its title highlighted.",
                 "required": true
             },
             {
                 "path": "docs/screenshots/top-searches-widget.png",
-                "alt": "Top searches admin insight widget",
-                "caption": "Top search analytics"
+                "alt": "Search insights panel headed Top searches with five queries, how many times each was searched and how many results it found.",
+                "caption": "See what visitors search for most and how many results each search found."
             },
             {
                 "path": "docs/screenshots/top-searches-widget-dark.png",
-                "alt": "Dark mode top searches admin insight widget",
-                "caption": "Top search analytics in dark mode"
+                "alt": "The same Top searches panel in the dark theme with five queries, their search counts and result counts.",
+                "caption": "The Top searches panel for admins who use the dark theme."
             }
         ],
         "categories": ["admin", "console", "frontend", "search-seo"]
     },
     "contributionTraceability": {
-        "deferredContributions": []
+        "deferredContributions": [],
+        "contributions": [
+            {
+                "type": "render-hook",
+                "key": "header-search",
+                "providerBucket": "runtime"
+            }
+        ]
     }
 }

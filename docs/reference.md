@@ -6,10 +6,10 @@ Developer reference for `capell-app/search`. Start with the [README](../README.m
 
 ## Package Details
 
-Search is an **Available**, **Schema-owning** Capell package in the **Capell Search & SEO** product group. It ships as `capell-app/search` and extends these surfaces: admin, frontend, console.
+Search is an **Available** Capell package in the **Capell Search & SEO** product group. It ships as `capell-app/search` and extends these surfaces: admin, frontend, console.
 
 - Status: Available
-- Tier: premium
+- Tier: paid
 - Bundle: search-seo
 - Composer package: `capell-app/search`
 - Namespace: `Capell\Search`
@@ -34,6 +34,7 @@ Search is an **Available**, **Schema-owning** Capell package in the **Capell Sea
 - `packages/search/database/migrations/2026_05_21_000002_add_fulltext_index_to_search_database_table.php`
 - `packages/search/database/migrations/2026_07_12_000001_encrypt_search_log_pii.php`
 - `packages/search/database/migrations/2026_09_29_120000_remove_implicit_timestamp_updates_from_search.php`
+- `packages/search/database/migrations/2026_11_11_000001_add_search_reference_to_search_logs.php`
 
 ### Settings migrations
 
@@ -81,6 +82,7 @@ Search is an **Available**, **Schema-owning** Capell package in the **Capell Sea
 - `CreateSearchVisitorIdentityAction`
 - `CreateSynonymFromZeroResultSearchAction`
 - `FlushScoutSearchSourcesAction`
+- `FlushSiteDiscoverySearchRegistryAction`
 - `GenerateSearchClickTokenAction`
 - `HashSearchRetentionValueAction`
 - `IndexScoutSearchSourcesAction`
@@ -92,6 +94,7 @@ Search is an **Available**, **Schema-owning** Capell package in the **Capell Sea
 - `PurgeSearchLogsAction`
 - `RecordSearchAction`
 - `RecordSearchResultClickAction`
+- `RedactSearchQueryAction`
 - `RegisterConfiguredSearchableSourcesAction`
 - `ResolveCorrectedSearchQueryAction`
 - `ResolveExpandedSearchQueriesAction`
@@ -99,6 +102,7 @@ Search is an **Available**, **Schema-owning** Capell package in the **Capell Sea
 - `ResolvePromotedSearchResultsAction`
 - `ResolveSearchResultTypeLabelAction`
 - `ResolveSearchSettingAction`
+- `ResolveSiteScopedSynonymsAction`
 - `RunAutocompleteSearchAction`
 - `RunSearchAction`
 - `SanitizeSearchResultAction`
@@ -207,7 +211,7 @@ Search is an **Available**, **Schema-owning** Capell package in the **Capell Sea
 - Required tables: `search_logs`.
 - Models: `SearchLog`.
 - Core record references in migrations: `sites via site_id`, `languages via language_id`.
-- Migration files: `2026_05_10_190868_01_create_search_logs_table.php`, `2026_05_21_000002_add_fulltext_index_to_search_database_table.php`, `2026_07_12_000001_encrypt_search_log_pii.php`, `2026_09_29_120000_remove_implicit_timestamp_updates_from_search.php`.
+- Migration files: `2026_05_10_190868_01_create_search_logs_table.php`, `2026_05_21_000002_add_fulltext_index_to_search_database_table.php`, `2026_07_12_000001_encrypt_search_log_pii.php`, `2026_09_29_120000_remove_implicit_timestamp_updates_from_search.php`, `2026_11_11_000001_add_search_reference_to_search_logs.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
 - Deletion/retention behaviour: migrations declare null-on-delete relationships; retention is scheduled through `search:purge` (monthly; registered by the package provider).
 

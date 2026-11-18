@@ -7,9 +7,9 @@ This guide is for editors who tune site search and owners deciding what should b
 ### How to choose what is searchable
 
 1. Open **Extensions**, select **Search**, then open **Settings**.
-2. Turn on each registered content source that should appear in public search.
-3. Set the driver, logging, retention, and result behavior.
-4. Save. Visitors can now find the enabled sources from the search box.
+2. Choose the driver. The default, site discovery, searches the public pages of the site and needs no index or source list. Only the Scout driver uses content sources: with Scout, turn on each registered source that should appear in public search.
+3. Set logging, retention, and result behaviour.
+4. Save. Visitors can now find your public pages (or, with Scout, the enabled sources) from the search box.
 
 ![A site owner configures search settings, logging, retention, and result behaviour.](screenshots/search-settings-screen.png)
 
@@ -69,10 +69,10 @@ The same **Search curation** section also lets you correct common typos and prom
 
 ## Troubleshooting for editors
 
-| What you see                     | What it means                                               | What to do                                              |
-| -------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------- |
-| A search returns nothing         | The content is not enabled, or visitors use different words | Enable the source, then add content or a curation rule  |
-| Results feel noisy or irrelevant | Too much low-value content is indexed                       | Narrow the enabled sources in **Search settings**       |
-| A new page isn't found in search | The source has not refreshed its index                      | Ask a developer to check the source's indexing behavior |
+| What you see                     | What it means                                               | What to do                                               |
+| -------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------- |
+| A search returns nothing         | The content is not enabled, or visitors use different words | Enable the source, then add content or a curation rule   |
+| Results feel noisy or irrelevant | Too much low-value content is indexed                       | Narrow the enabled sources in **Search settings**        |
+| A new page isn't found in search | The source has not refreshed its index                      | Ask a developer to check the source's indexing behaviour |
 
-**Enable header search integration** controls the package entry in the header, together with **Show header search**. Turning it off leaves the direct search page and autocomplete available. Ask your developer to disable or protect the routes when public search must be unavailable; see the [scope explanation](overview.admin.md#configure-search).
+**Enable search** turns search off entirely when it is switched off: the header search, the results page, type-ahead and click tracking all stop working and return 404. **Show header search** hides only the header button; see the [scope explanation](overview.admin.md#configure-search).

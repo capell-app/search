@@ -14,6 +14,8 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Str;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
@@ -32,7 +34,7 @@ final readonly class BuildSearchPageViewDataAction
         $query = (string) $request->query('q', '');
         $data = $this->searchRequestData(
             query: $query,
-            page: max(1, (int) $request->query('page', 1)),
+            page: min(max(1, (int) $request->query('page', 1)), max(1, Config::integer('capell-search.max_page', 100))),
             perPage: $this->resultsPerPage(),
             request: $request,
         );
@@ -116,6 +118,7 @@ final readonly class BuildSearchPageViewDataAction
             languageId: $this->modelId($language),
             filters: NormalizeSearchFiltersAction::run($request),
             cursor: is_string($request->query(PubliclyReadableSearchPaginator::CURSOR_NAME)) ? $request->query(PubliclyReadableSearchPaginator::CURSOR_NAME) : null,
+            reference: (string) Str::ulid(),
         );
     }
 

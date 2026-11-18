@@ -38,6 +38,7 @@ final class GenerateSearchClickTokenAction
             'site_id' => $data->siteId,
             'language_id' => $data->languageId,
             'result_path' => $resultPath,
+            'reference' => $data->reference,
             'issued_at' => now()->timestamp,
         ], JSON_THROW_ON_ERROR));
     }

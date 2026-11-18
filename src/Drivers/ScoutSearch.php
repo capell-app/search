@@ -8,6 +8,7 @@ use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchableSourceData;
 use Capell\Search\Data\SearchFilterData;
 use Capell\Search\Data\SearchResultData;
+use Capell\Search\Support\HighlightsEscapedText;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -108,9 +109,8 @@ class ScoutSearch implements Search
         }
 
         $escaped = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
-        $pattern = '/(' . preg_quote($query, '/') . ')/i';
 
-        return (string) preg_replace($pattern, '<mark>$1</mark>', $escaped);
+        return HighlightsEscapedText::apply($escaped, $query);
     }
 
     /**

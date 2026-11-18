@@ -18,5 +18,5 @@ Start at the [package README](../README.md) when deciding whether to install thi
 | Related doc                                             | Why                                                   |
 | ------------------------------------------------------- | ----------------------------------------------------- |
 | [Repository package docs](../../../docs/README.md)      | Cross-package workflow index and install-order notes. |
-| [SEO Suite](../../seo-suite/docs/overview.md)           | Neighboring package in the same Capell workflow.      |
+| [SEO Checks](../../seo-suite/docs/overview.md)          | Neighboring package in the same Capell workflow.      |
 | [Site Discovery](../../site-discovery/docs/overview.md) | Neighboring package in the same Capell workflow.      |

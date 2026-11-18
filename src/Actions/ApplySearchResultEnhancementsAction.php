@@ -65,7 +65,7 @@ final class ApplySearchResultEnhancementsAction
         ?int $siteId = null,
         ?int $languageId = null,
     ): Paginator {
-        $promotedResults = ResolvePromotedSearchResultsAction::run($normalizedQuery);
+        $promotedResults = ResolvePromotedSearchResultsAction::run($normalizedQuery, $siteId, $languageId);
         $sourceWeights = $this->sourceWeights();
         $typeLabels = $this->typeLabels();
         $clickCounts = $this->clickCounts($siteId, $languageId);

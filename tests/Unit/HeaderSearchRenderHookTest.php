@@ -72,7 +72,7 @@ test('header search hook renders a real package view', function (): void {
         ->toContain(route('capell-frontend.search.click', absolute: false));
 });
 
-it('hides and restores only the header integration when the enable setting changes', function (): void {
+it('hides and restores the header integration and the public search routes when the enable setting changes', function (): void {
     $this->registerAndMigrateSettings(['2026_05_10_190869_01_add_search_settings'], dirname(__DIR__, 2) . '/database/settings');
     $origin = SiteRequestTargetData::fromUrl(route('capell-frontend.search'))->origin;
     SiteDomain::factory()->createOne(['domain' => $origin->host, 'scheme' => $origin->scheme, 'port' => $origin->effectivePort, 'path' => null]);
@@ -87,12 +87,15 @@ it('hides and restores only the header integration when the enable setting chang
         Frontend::setFrontendData('search.header.visible', null);
         $html = $registry->renderAll(RenderHookLocation::HeaderAfter);
         config()->set('capell-search.page_view', 'capell-search::components.form');
-        $this->get(route('capell-frontend.search', ['q' => 'Capell'], false))->assertOk()->assertSee('type="search"', false);
-        $this->getJson(route('capell-frontend.search.autocomplete', ['q' => 'Capell'], false))->assertOk()->assertJsonPath('query', 'Capell')->assertJsonStructure(['results']);
         if ($enabled) {
+            $this->get(route('capell-frontend.search', ['q' => 'Capell'], false))->assertOk()->assertSee('type="search"', false);
+            $this->getJson(route('capell-frontend.search.autocomplete', ['q' => 'Capell'], false))->assertOk()->assertJsonPath('query', 'Capell')->assertJsonStructure(['results']);
             expect($html)->toContain('data-site-search-trigger');
         } else {
             expect($html)->toBe('');
+            $this->get(route('capell-frontend.search', ['q' => 'Capell'], false))->assertNotFound();
+            $this->getJson(route('capell-frontend.search.autocomplete', ['q' => 'Capell'], false))->assertNotFound();
+            $this->postJson(route('capell-frontend.search.click', [], false), ['query' => 'Capell'])->assertNotFound();
         }
     }
 });

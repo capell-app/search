@@ -10,9 +10,9 @@ Search reads the list of your public pages that Discovery Foundation keeps, so t
 
 Administrators get the top, trending and zero-result searches on the admin dashboard, all taken from the results page. You see what people looked for and didn't find.
 
-- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/search).
-- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/search).
-- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.76`, `capell-app/discovery-foundation ^1.0`, `capell-app/frontend ^1.0.72`, `lorisleiva/laravel-actions ^2.8`, `spatie/laravel-data ^4.5`, `spatie/laravel-package-tools ^1.14.1`.
+- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/marketplace/extensions/search).
+- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/marketplace/extensions/search).
+- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.79`, `capell-app/discovery-foundation ^1.0`, `capell-app/frontend ^1.0.79`, `lorisleiva/laravel-actions ^2.8`, `spatie/laravel-data ^4.5`, `spatie/laravel-package-tools ^1.14.1`.
 - **Install:** `composer require capell-app/search`.
 
 ## Quick Start
@@ -32,7 +32,7 @@ The searchable-source registry and Search contract keep indexing backends replac
 
 ## Limits And Pitfalls
 
-- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.76`, `capell-app/discovery-foundation ^1.0`, `capell-app/frontend ^1.0.72`.
+- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.79`, `capell-app/discovery-foundation ^1.0`, `capell-app/frontend ^1.0.79`.
 - Run migrations before opening package resources or public routes.
 - Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
 - Keep the host Laravel scheduler running so package-registered schedules can execute: `search:purge (monthly; package registered)`.

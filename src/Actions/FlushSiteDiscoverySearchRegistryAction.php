@@ -26,7 +26,8 @@ final class FlushSiteDiscoverySearchRegistryAction
     {
         $version = Cache::get(self::VERSION_KEY, 1);
 
-        return is_int($version) ? $version : 1;
+        // The Redis store returns a stored number as a numeric string.
+        return is_numeric($version) ? (int) $version : 1;
     }
 
     public function handle(): void

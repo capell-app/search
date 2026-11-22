@@ -6,9 +6,9 @@
     "require": {
         "php": "^8.4",
         "capell-app/admin": "^1.0.66",
-        "capell-app/core": "^1.0.76",
+        "capell-app/core": "^1.0.79",
         "capell-app/discovery-foundation": "^1.0",
-        "capell-app/frontend": "^1.0.72",
+        "capell-app/frontend": "^1.0.79",
         "lorisleiva/laravel-actions": "^2.8",
         "spatie/laravel-data": "^4.5",
         "spatie/laravel-package-tools": "^1.14.1"

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Capell\DiscoveryFoundation\Data\PublicUrlRegistryEntryData;
 use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
-use Capell\Search\Support\SiteDiscovery\SearchGeneratedOutputCoverageSource;
+use Capell\Search\Bridges\SiteDiscovery\SearchGeneratedOutputCoverageSource;
 use Capell\SiteDiscovery\Contracts\GeneratedOutputCoverageSource;
 
 it('reports unique indexable registry urls as search coverage', function (): void {

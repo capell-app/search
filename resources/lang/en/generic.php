@@ -30,4 +30,5 @@ return [
     'site_discovery_home_title' => 'Home',
     'suggestions_available' => ':count suggestions available.',
     'view_all_results' => 'View all results',
+    'upgrade_encrypt_search_log_pii' => 'Encrypt search history recorded before searches were stored encrypted',
 ];

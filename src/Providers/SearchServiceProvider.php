@@ -22,7 +22,9 @@ use Capell\Frontend\Events\FrontendRenderPreparing;
 use Capell\Frontend\Support\Render\FrontendHookRegistrar;
 use Capell\Search\Actions\FlushSiteDiscoverySearchRegistryAction;
 use Capell\Search\Actions\RegisterConfiguredSearchableSourcesAction;
+use Capell\Search\Actions\ResolveSearchDriverAction;
 use Capell\Search\Actions\ResolveSearchSettingAction;
+use Capell\Search\Bridges\SiteDiscovery\SearchGeneratedOutputCoverageSource;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Drivers\DatabaseSearch;
 use Capell\Search\Drivers\ScoutSearch;
@@ -36,7 +38,7 @@ use Capell\Search\Support\PubliclyReadableSearch;
 use Capell\Search\Support\PublicSearchSwitch;
 use Capell\Search\Support\RenderHooks\RegisterHeaderSearchHook;
 use Capell\Search\Support\SearchableSourceRegistry;
-use Capell\Search\Support\SiteDiscovery\SearchGeneratedOutputCoverageSource;
+use Capell\Search\Upgrade\EncryptSearchLogPiiStep;
 use Capell\SiteDiscovery\Contracts\GeneratedOutputCoverageSource;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -110,6 +112,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         });
 
         $this->app->scoped(PublicSearchSwitch::class);
+        $this->app->tag([EncryptSearchLogPiiStep::class], EncryptSearchLogPiiStep::TAG);
 
         $this->registerSearchBinding();
     }
@@ -327,21 +330,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
 
     private function resolveDriver(): string
     {
-        $configDriver = ResolveSearchSettingAction::run(
-            'driver',
-            'capell-search.driver',
-            SearchDriver::SiteDiscovery->value,
-        );
-
-        if ($configDriver instanceof SearchDriver) {
-            return $configDriver->value;
-        }
-
-        if (is_string($configDriver) && $configDriver !== '') {
-            return $configDriver;
-        }
-
-        return SearchDriver::SiteDiscovery->value;
+        return ResolveSearchDriverAction::run();
     }
 
     private function registerModels(): self
@@ -385,7 +374,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
 
     private function registerGeneratedOutputCoverage(): self
     {
-        if (! interface_exists(GeneratedOutputCoverageSource::class)) {
+        if (! CapellCore::isPackageAvailable('capell-app/site-discovery')) {
             return $this;
         }
 

@@ -5,12 +5,12 @@
         "default": {
             "source": {
                 "ref": "HEAD",
-                "commit": "4e8eaae89410b50df5f6c1be224c53ba707be7b9",
+                "commit": "37e6748f13a9d67ebbcc206e7ee59702ca183ca8",
                 "providers": {
                     "Providers/AdminServiceProvider.php": "8bf7c5bfda23ca8eb8fb76212af8366a3079a38c19e62a6aea1aaa9f9b29ac53",
                     "Providers/ConsoleServiceProvider.php": "116c1a2c6343435a41012b3afd22cafeaa94052a0d20841c4f12d3ea15647daf",
                     "Providers/MigrationMetadataServiceProvider.php": "b2d96ba08fa3cbd69cb6df0125fd0c6b3e8c75cc8752971227b8141bf5c93599",
-                    "Providers/SearchServiceProvider.php": "c0079f346facc62fd66089c8fb9373a5b3baf91f36c5a610bdf911776a289193"
+                    "Providers/SearchServiceProvider.php": "0a0510fc3af38fb186114494429b2c4b53763d7bba8a509fade00f3f20d6faed"
                 },
                 "configure": "packages/search/tests/Integration/Providers/Fixtures/log-hash-secret.php"
             },
@@ -53,17 +53,6 @@
                             []
                         ],
                         "shared": true
-                    },
-                    "Capell\\Search\\Support\\SiteDiscovery\\SearchGeneratedOutputCoverageSource": {
-                        "concrete": [
-                            "<vendor>/laravel/framework/src/Illuminate/Container/Container.php",
-                            "Illuminate\\Container\\Container( $container,  $parameters): bound=Illuminate\\Foundation\\Application",
-                            {
-                                "abstract": "Capell\\Search\\Support\\SiteDiscovery\\SearchGeneratedOutputCoverageSource",
-                                "concrete": "Capell\\Search\\Support\\SiteDiscovery\\SearchGeneratedOutputCoverageSource"
-                            }
-                        ],
-                        "shared": true
                     }
                 },
                 "commands": {
@@ -101,7 +90,7 @@
                         "database.title_column": "title",
                         "database.type_column": "type",
                         "database.url_column": "slug",
-                        "driver": "site_discovery",
+                        "driver": null,
                         "enabled": true,
                         "excerpt_length": 200,
                         "filters.enabled": true,
@@ -1063,19 +1052,19 @@
                     ]
                 ],
                 "tagged-consumers": {
-                    "capell-site-discovery:generated-output-coverage-sources": [
-                        "Capell\\Search\\Support\\SiteDiscovery\\SearchGeneratedOutputCoverageSource"
-                    ],
                     "capell.dashboard.settings_contributor": [
                         "Capell\\Search\\Filament\\Settings\\Contributors\\SearchDashboardSettingsContributor"
+                    ],
+                    "capell.upgrade-steps": [
+                        "Capell\\Search\\Upgrade\\EncryptSearchLogPiiStep"
                     ]
                 },
                 "tags": {
-                    "capell-site-discovery:generated-output-coverage-sources": [
-                        "Capell\\Search\\Support\\SiteDiscovery\\SearchGeneratedOutputCoverageSource"
-                    ],
                     "capell.dashboard.settings_contributor": [
                         "Capell\\Search\\Filament\\Settings\\Contributors\\SearchDashboardSettingsContributor"
+                    ],
+                    "capell.upgrade-steps": [
+                        "Capell\\Search\\Upgrade\\EncryptSearchLogPiiStep"
                     ]
                 },
                 "views": {
@@ -1147,7 +1136,7 @@
                         "database.title_column": "title",
                         "database.type_column": "type",
                         "database.url_column": "slug",
-                        "driver": "site_discovery",
+                        "driver": null,
                         "enabled": true,
                         "excerpt_length": 200,
                         "filters.enabled": true,
@@ -1359,6 +1348,16 @@
                             ]
                         }
                     }
+                },
+                "tagged-consumers": {
+                    "capell.upgrade-steps": [
+                        "Capell\\Search\\Upgrade\\EncryptSearchLogPiiStep"
+                    ]
+                },
+                "tags": {
+                    "capell.upgrade-steps": [
+                        "Capell\\Search\\Upgrade\\EncryptSearchLogPiiStep"
+                    ]
                 },
                 "views": {
                     "capell-search": ["<package>/resources/views"]

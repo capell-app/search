@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'did_you_mean' => 'Meinten Sie',
+    'site_discovery_result_excerpt' => ':type-URL.',
+    'empty_query' => 'Geben Sie ein Stichwort ein, um diese Website zu durchsuchen.',
+    'idle_hint' => 'Durchsuchen Sie Seiten, Erweiterungen, Ressourcen und Medien.',
+    'hint_navigate' => 'Navigieren',
+    'hint_open' => 'Öffnen',
+    'hint_close' => 'Schließen',
+    'shortcut_escape' => 'Esc',
+    'filter_by_source' => 'Quelle',
+    'filter_by_type' => 'Typ',
+    'filters_label' => 'Suchfilter',
+    'no_results' => 'Keine Ergebnisse für :query. Versuchen Sie es mit einem anderen Stichwort.',
+    'page_title' => 'Suche',
+    'popular_search' => 'Beliebte Suche',
+    'results_count' => ':count Ergebnis für :query|:count Ergebnisse für :query',
+    'results_for' => 'Ergebnisse für :query',
+    'results_label' => 'Suchergebnisse',
+    'results_limited' => 'Möglicherweise sind weitere Ergebnisse verfügbar. Versuchen Sie es mit einer genaueren Suche.',
+    'search_continues' => 'Keine Ergebnisse für :query in diesem Bereich der Website. Setzen Sie die Suche im restlichen Bereich fort.',
+    'search_label' => 'Diese Website durchsuchen',
+    'search_placeholder' => 'Seiten, Erweiterungen, Ressourcen und Medien durchsuchen',
+    'searching' => 'Suche läuft',
+    'searching_for' => 'Suche nach „:query“',
+    'searching_hint' => 'Seiten, Erweiterungen und Ressourcen werden geprüft.',
+    'site_discovery_home_title' => 'Startseite',
+    'suggestions_available' => ':count Vorschläge verfügbar.',
+    'view_all_results' => 'Alle Ergebnisse anzeigen',
+    'upgrade_encrypt_search_log_pii' => 'Suchverlauf verschlüsseln, der vor der verschlüsselten Speicherung aufgezeichnet wurde',
+];

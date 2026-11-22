@@ -11,6 +11,8 @@ use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;
 use Capell\Search\Actions\FlushSiteDiscoverySearchRegistryAction;
 use Capell\Search\Data\SearchResultData;
 use Capell\Search\Drivers\SiteDiscoverySearch;
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\Repository;
 use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -233,3 +235,30 @@ test('saving a translation, url or language flushes the registry cache', functio
         expect(FlushSiteDiscoverySearchRegistryAction::version())->toBeGreaterThan($before);
     }
 });
+
+it('moves the registry version on when the cache returns it as a numeric string', function (): void {
+    useSearchRegistryNumericStringCache();
+    FlushSiteDiscoverySearchRegistryAction::run();
+    $before = FlushSiteDiscoverySearchRegistryAction::version();
+
+    FlushSiteDiscoverySearchRegistryAction::run();
+
+    expect(FlushSiteDiscoverySearchRegistryAction::version())->toBeGreaterThan($before);
+});
+
+/** Makes the default cache return stored numbers as numeric strings, as the Redis store (and Valkey) does. */
+function useSearchRegistryNumericStringCache(): void
+{
+    Cache::extend('search-numeric-strings', fn (): Repository => Cache::repository(new class extends ArrayStore
+    {
+        #[Override]
+        public function get($key): mixed
+        {
+            $value = parent::get($key);
+
+            return is_int($value) || is_float($value) ? (string) $value : $value;
+        }
+    }));
+    config()->set('cache.stores.search-numeric-strings', ['driver' => 'search-numeric-strings']);
+    config()->set('cache.default', 'search-numeric-strings');
+}

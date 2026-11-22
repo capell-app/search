@@ -81,6 +81,7 @@ Search is an **Available** Capell package in the **Capell Search & SEO** product
 - `CreatePromotedResultFromZeroResultSearchAction`
 - `CreateSearchVisitorIdentityAction`
 - `CreateSynonymFromZeroResultSearchAction`
+- `EncryptLegacySearchLogPiiAction`
 - `FlushScoutSearchSourcesAction`
 - `FlushSiteDiscoverySearchRegistryAction`
 - `GenerateSearchClickTokenAction`
@@ -100,6 +101,7 @@ Search is an **Available** Capell package in the **Capell Search & SEO** product
 - `ResolveExpandedSearchQueriesAction`
 - `ResolvePromotedSearchDestinationAction`
 - `ResolvePromotedSearchResultsAction`
+- `ResolveSearchDriverAction`
 - `ResolveSearchResultTypeLabelAction`
 - `ResolveSearchSettingAction`
 - `ResolveSiteScopedSynonymsAction`

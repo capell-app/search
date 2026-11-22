@@ -10,11 +10,15 @@ use Capell\Core\Support\Settings\SettingsSchemaRegistry;
 use Capell\DiscoveryFoundation\Contracts\PublicUrlContributor;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Data\SearchResultData;
+use Capell\Search\Drivers\DatabaseSearch;
+use Capell\Search\Drivers\ScoutSearch;
+use Capell\Search\Drivers\SiteDiscoverySearch;
 use Capell\Search\Enums\SearchDriver;
 use Capell\Search\Filament\Settings\SearchSettingsSchema;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Providers\SearchServiceProvider;
 use Capell\Search\Settings\SearchSettings;
+use Capell\Search\Support\PubliclyReadableSearch;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Capell\Search\Tests\Fixtures\ProviderSearchUrlContributor;
 use Capell\Tests\Support\InstalledRuntimeParity;
@@ -60,37 +64,22 @@ function searchProviderResultTitles(): array
     ));
 }
 
-test('provider returns site discovery as the default search driver', function (): void {
+test('provider uses the default, configured and settings search drivers in order of precedence', function (): void {
     searchProviderSources();
     app()->register(SearchServiceProvider::class);
 
     expect(searchProviderResultTitles())->toBe(['Provider marker registry']);
-});
 
-test('provider returns the configured database search driver', function (): void {
-    searchProviderSources();
-    app()->register(SearchServiceProvider::class);
     config()->set('capell-search.driver', SearchDriver::Database->value);
-
     expect(searchProviderResultTitles())->toBe(['Provider marker database']);
-});
 
-test('provider returns the site discovery search driver', function (): void {
-    searchProviderSources();
-    app()->register(SearchServiceProvider::class);
     config()->set('capell-search.driver', SearchDriver::SiteDiscovery->value);
-
     expect(searchProviderResultTitles())->toBe(['Provider marker registry']);
-});
 
-test('provider prefers the settings driver over config', function (): void {
     $settings = new SearchSettings;
     $settings->driver = SearchDriver::Database;
 
     app()->instance(SearchSettings::class, $settings);
-    searchProviderSources();
-    app()->register(SearchServiceProvider::class);
-
     config()->set('capell-search.driver', SearchDriver::Scout->value);
 
     expect(searchProviderResultTitles())->toBe(['Provider marker database']);
@@ -126,16 +115,14 @@ test('search driver options expose translated filament labels', function (): voi
     expect(array_column(SearchDriver::cases(), 'value'))->toBe(['database', 'site_discovery', 'scout']);
 });
 
-test('provider registers search settings metadata and schema', function (): void {
+test('provider registers search settings metadata, schema and management surface', function (): void {
     $registry = resolve(SettingsSchemaRegistry::class);
 
     expect($registry->getSettingsClass('search'))->toBe(SearchSettings::class)
         ->and($registry->getSchema('search', 'SearchSettingsSchema'))->toBe(SearchSettingsSchema::class)
         ->and($registry->getMetadata('search')?->getLabel())->toBe('Search settings')
         ->and($registry->getMetadata('search')?->packageName)->toBe(SearchServiceProvider::$packageName);
-});
 
-test('provider registers search settings as an extension management surface', function (): void {
     $settingsSurfaces = resolve(ExtensionManagementSurfaceRegistry::class)
         ->surfacesForPackage(SearchServiceProvider::$packageName);
 
@@ -202,4 +189,58 @@ test('provider registers configured searchable sources', function (): void {
 
     expect($registry->get('extensions')?->type)->toBe('extension')
         ->and($registry->get('extensions')?->weight)->toBe(2.0);
+});
+
+/** The driver behind the public-read wrapper, so tests assert which engine /search uses. */
+function searchProviderDriver(): Search
+{
+    $search = resolve(Search::class);
+
+    return $search instanceof PubliclyReadableSearch ? $search->unfiltered() : $search;
+}
+
+test('search uses Scout automatically when a Scout engine is configured and no search driver is set', function (): void {
+    config()->set('capell-search.driver', null);
+    config()->set('scout.driver', 'typesense');
+
+    expect(searchProviderDriver())->toBeInstanceOf(ScoutSearch::class);
+});
+
+test('an explicit search driver wins over the automatic Scout choice', function (): void {
+    config()->set('scout.driver', 'typesense');
+
+    foreach (['database' => DatabaseSearch::class, 'site_discovery' => SiteDiscoverySearch::class] as $driver => $class) {
+        config()->set('capell-search.driver', $driver);
+
+        expect(searchProviderDriver())->toBeInstanceOf($class);
+    }
+});
+
+test('search stays off Scout when the Scout engine is local or unset', function (): void {
+    config()->set('capell-search.driver', null);
+
+    foreach ([null, 'collection', 'null', 'database'] as $engine) {
+        config()->set('scout.driver', $engine);
+
+        expect(searchProviderDriver())->toBeInstanceOf(SiteDiscoverySearch::class);
+    }
+});
+
+test('the settings migration default does not block automatic Scout, but a saved driver does', function (): void {
+    config()->set('capell-search.driver', null);
+    config()->set('scout.driver', 'typesense');
+
+    $save = function (string $driver): void {
+        DB::table('settings')->updateOrInsert(
+            ['group' => SearchSettings::group(), 'name' => 'driver'],
+            ['payload' => json_encode($driver, JSON_THROW_ON_ERROR), 'locked' => false],
+        );
+        app()->forgetInstance(SearchSettings::class);
+    };
+
+    $save('site_discovery');
+    expect(searchProviderDriver())->toBeInstanceOf(ScoutSearch::class);
+
+    $save('database');
+    expect(searchProviderDriver())->toBeInstanceOf(DatabaseSearch::class);
 });

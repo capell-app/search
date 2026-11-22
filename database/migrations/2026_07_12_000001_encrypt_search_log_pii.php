@@ -27,31 +27,8 @@ return new class extends Migration
             });
         }
 
-        $secret = config('capell-search.logs.hash_secret');
-        $secret = is_string($secret) && $secret !== '' ? $secret : config('app.key');
-        throw_unless(is_string($secret) && $secret !== '', RuntimeException::class, 'Search retention hash secret is unavailable.');
-
-        DB::table($tableName)->select(['id', 'query', 'normalized_query', 'normalized_query_hash', 'clicked_result_url'])->orderBy('id')->each(
-            static function (object $log) use ($secret, $tableName): void {
-                // Already converted by an earlier run: encrypting again would double-encrypt and re-hash a hash.
-                if (is_string($log->normalized_query_hash) && $log->normalized_query_hash !== '' && $log->normalized_query === $log->normalized_query_hash) {
-                    return;
-                }
-
-                $normalized = is_string($log->normalized_query) ? $log->normalized_query : '';
-                $query = is_string($log->query) ? $log->query : $normalized;
-                $clickedPath = is_string($log->clicked_result_url) && $log->clicked_result_url !== '' ? $log->clicked_result_url : null;
-                $queryHash = hash_hmac('sha256', $normalized, $secret);
-
-                DB::table($tableName)->where('id', $log->id)->update([
-                    'query' => Crypt::encryptString($query),
-                    'normalized_query' => $queryHash,
-                    'normalized_query_hash' => $queryHash,
-                    'clicked_result_url' => $clickedPath === null ? null : Crypt::encryptString($clickedPath),
-                    'clicked_result_hash' => $clickedPath === null ? null : hash_hmac('sha256', $clickedPath, $secret),
-                ]);
-            },
-        );
+        // Existing rows are encrypted by the EncryptSearchLogPiiStep upgrade step, which runs straight after
+        // this migration under Core's upgrade lock and can be re-run safely.
     }
 
     public function down(): void

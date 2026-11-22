@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'enabled' => true,
     'show_header_search' => true,
-    'driver' => env('CAPELL_SITE_SEARCH_DRIVER', 'site_discovery'), // database, site_discovery, or scout
+    'driver' => env('CAPELL_SITE_SEARCH_DRIVER'), // database, site_discovery or scout; unset uses Scout when scout.driver is typesense, meilisearch or algolia, else site_discovery
     'route_path' => 'search',
     'rate_limiter' => 'capell-search-requests',
     'rate_limit' => [

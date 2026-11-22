@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Data\Rendering\FrontendRuntimeManifestData;
 use Capell\Core\Data\SiteDomains\SiteRequestTargetData;
+use Capell\Core\Enums\Rendering\RenderingStrategyEnum;
 use Capell\Core\Models\SiteDomain;
-use Capell\Frontend\Data\FrontendRuntimeManifestData;
 use Capell\Frontend\Enums\RenderHookLocation;
-use Capell\Frontend\Enums\RenderingStrategyEnum;
 use Capell\Frontend\Facades\Frontend;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
 use Capell\Search\Settings\SearchSettings;

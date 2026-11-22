@@ -9,6 +9,7 @@ use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\TableName;
 use Capell\Search\Actions\ProbeScoutIndexHealthAction;
+use Capell\Search\Actions\ResolveSearchDriverAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Models\SearchLog;
 use Illuminate\Database\Eloquent\Model;
@@ -170,7 +171,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
 
     public function scoutIndexHealthCheck(): DoctorCheckResultData
     {
-        if (config('capell-search.driver') !== 'scout' || config('scout.driver') !== 'typesense') {
+        if (ResolveSearchDriverAction::run() !== 'scout' || config('scout.driver') !== 'typesense') {
             return new DoctorCheckResultData(
                 label: 'Search: configured index checks',
                 passed: true,

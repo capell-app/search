@@ -40,7 +40,7 @@ final class ResolveSearchSettingAction
         return config($configKey, $default);
     }
 
-    private function hasPersistedSetting(string $settingKey): bool
+    public function hasPersistedSetting(string $settingKey): bool
     {
         if (! SchemaFacade::hasTable('settings')) {
             return false;

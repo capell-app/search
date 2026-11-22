@@ -282,7 +282,7 @@ function searchVisitorIdentity(
     return new SearchVisitorIdentityData($ipHash, $userAgentHash);
 }
 
-test('rejects click tracking when the token is invalid', function (): void {
+test('rejects click tracking without a valid token', function (?string $token): void {
     $log = RecordSearchAction::run(
         new SearchRequestData(query: 'Laravel Search'),
         1,
@@ -300,36 +300,15 @@ test('rejects click tracking when the token is invalid', function (): void {
         request: $request,
         query: 'Laravel Search',
         url: '/search-result',
-        token: 'not-a-valid-token',
+        token: $token,
     );
 
     expect($updatedLog)->toBeNull()
         ->and($log->refresh()->clicked_result_url)->toBeNull();
-});
-
-test('rejects click tracking when the token is missing', function (): void {
-    $log = RecordSearchAction::run(
-        new SearchRequestData(query: 'Laravel Search'),
-        1,
-        searchVisitorIdentity(),
-    );
-
-    throw_unless($log instanceof SearchLog, RuntimeException::class, 'Expected search log.');
-
-    $request = Request::create('/search/click', Symfony\Component\HttpFoundation\Request::METHOD_POST, [], [], [], [
-        'REMOTE_ADDR' => '203.0.113.10',
-        'HTTP_USER_AGENT' => 'Capell Test Browser',
-    ]);
-
-    $updatedLog = RecordSearchResultClickAction::run(
-        request: $request,
-        query: 'Laravel Search',
-        url: '/search-result',
-    );
-
-    expect($updatedLog)->toBeNull()
-        ->and($log->refresh()->clicked_result_url)->toBeNull();
-});
+})->with([
+    'invalid' => ['not-a-valid-token'],
+    'missing' => [null],
+]);
 
 test('rejects click tracking when the token context does not match the request context', function (): void {
     $log = RecordSearchAction::run(

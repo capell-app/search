@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Capell\Search\Support\SiteDiscovery;
+namespace Capell\Search\Bridges\SiteDiscovery;
 
 use Capell\DiscoveryFoundation\Data\PublicUrlRegistryEntryData;
 use Capell\DiscoveryFoundation\Enums\PublicUrlIndexability;

@@ -1,7 +1,8 @@
 {
     "package": "search",
     "composerName": "capell-app/search",
-    "generatedFor": "deployment-screenshot-runner",
+    "generatedFor": "shared-capell-screenshot-runner",
+    "provenancePolicy": "runner-only-v1",
     "requiresInstalledPackage": true,
     "outputDirectory": "packages/search/docs/screenshots",
     "entries": [

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\Search\Actions;
 
 use Capell\Search\Data\SearchVisitorIdentityData;
+use Capell\Search\Support\Hashing\SearchLogHashSecret;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Lorisleiva\Actions\Concerns\AsFake;
@@ -40,12 +41,13 @@ final class CreateSearchVisitorIdentityAction
 
     private function secret(int $siteId, ?CarbonImmutable $at): ?string
     {
+        // Never APP_KEY: visitor hashes use their own secret, else the search log hash secret, else none.
         $configuredSecret = config('capell-search.visitor_hash_secret');
         $rootSecret = is_string($configuredSecret) && trim($configuredSecret) !== ''
             ? trim($configuredSecret)
-            : config('app.key');
+            : (SearchLogHashSecret::configured() ? SearchLogHashSecret::current() : null);
 
-        if (! is_string($rootSecret) || trim($rootSecret) === '') {
+        if ($rootSecret === null) {
             return null;
         }
 

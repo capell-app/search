@@ -8,29 +8,14 @@ use Capell\Search\Actions\BuildTrendingSearchesQueryAction;
 use Capell\Search\Actions\BuildZeroResultSearchesQueryAction;
 use Capell\Search\Data\SearchInsightsWindowData;
 use Capell\Search\Models\SearchLog;
+use Capell\Search\Tests\Support\SearchLogsTable;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 beforeEach(function (): void {
     config()->set('capell-search.logs.table_name', 'search_logs');
 
-    Schema::dropIfExists('search_logs');
-    Schema::create('search_logs', function (Blueprint $table): void {
-        $table->id();
-        $table->foreignId('site_id')->nullable()->index();
-        $table->foreignId('language_id')->nullable()->index();
-        $table->string('query');
-        $table->string('normalized_query')->index();
-        $table->string('normalized_query_hash', 64)->nullable()->index();
-        $table->unsignedInteger('results_count')->default(0);
-        $table->string('clicked_result_url')->nullable();
-        $table->string('clicked_result_hash', 64)->nullable()->index();
-        $table->string('ip_hash', 64)->nullable();
-        $table->string('user_agent_hash', 64)->nullable();
-        $table->timestamp('searched_at')->index();
-        $table->timestamps();
-    });
+    SearchLogsTable::recreate();
 });
 
 afterEach(function (): void {

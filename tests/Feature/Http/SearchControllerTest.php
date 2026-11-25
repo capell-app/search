@@ -26,11 +26,11 @@ use Capell\Search\Http\Middleware\MarkSearchPagesNoindex;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Providers\SearchServiceProvider;
 use Capell\Search\Support\SearchableSourceRegistry;
+use Capell\Search\Tests\Support\SearchLogsTable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -206,22 +206,7 @@ test('autocomplete returns corrected query metadata and popular query suggestion
         'capel' => 'capell',
     ]);
 
-    Schema::dropIfExists('search_logs');
-    Schema::create('search_logs', function (Blueprint $table): void {
-        $table->id();
-        $table->foreignId('site_id')->nullable()->index();
-        $table->foreignId('language_id')->nullable()->index();
-        $table->string('query');
-        $table->string('normalized_query')->index();
-        $table->string('normalized_query_hash', 64)->nullable()->index();
-        $table->unsignedInteger('results_count')->default(0);
-        $table->string('clicked_result_url')->nullable();
-        $table->string('clicked_result_hash', 64)->nullable()->index();
-        $table->string('ip_hash', 64)->nullable();
-        $table->string('user_agent_hash', 64)->nullable();
-        $table->timestamp('searched_at')->index();
-        $table->timestamps();
-    });
+    SearchLogsTable::recreate();
 
     config()->set('capell-search.synonyms', ['capel marketplace' => ['capel store']]);
 
@@ -339,22 +324,7 @@ test('result click beacon does not require a csrf token', function (): void {
 test('click tracking endpoint records result clicks by token', function (): void {
     RateLimiter::for('capell-search-clicks', static fn (): Limit => Limit::perMinute(120));
 
-    Schema::dropIfExists('search_logs');
-    Schema::create('search_logs', function (Blueprint $table): void {
-        $table->id();
-        $table->foreignId('site_id')->nullable()->index();
-        $table->foreignId('language_id')->nullable()->index();
-        $table->string('query');
-        $table->string('normalized_query')->index();
-        $table->string('normalized_query_hash', 64)->nullable()->index();
-        $table->unsignedInteger('results_count')->default(0);
-        $table->string('clicked_result_url')->nullable();
-        $table->string('clicked_result_hash', 64)->nullable()->index();
-        $table->string('ip_hash', 64)->nullable();
-        $table->string('user_agent_hash', 64)->nullable();
-        $table->timestamp('searched_at')->index();
-        $table->timestamps();
-    });
+    SearchLogsTable::recreate();
 
     $searchData = new SearchRequestData(query: 'Laravel Search');
     $log = SearchLog::query()->create([
@@ -381,22 +351,7 @@ test('click tracking endpoint records result clicks by token', function (): void
 test('click tracking endpoint records nothing for a forged or mismatched token', function (): void {
     RateLimiter::for('capell-search-clicks', static fn (): Limit => Limit::perMinute(120));
 
-    Schema::dropIfExists('search_logs');
-    Schema::create('search_logs', function (Blueprint $table): void {
-        $table->id();
-        $table->foreignId('site_id')->nullable()->index();
-        $table->foreignId('language_id')->nullable()->index();
-        $table->string('query');
-        $table->string('normalized_query')->index();
-        $table->string('normalized_query_hash', 64)->nullable()->index();
-        $table->unsignedInteger('results_count')->default(0);
-        $table->string('clicked_result_url')->nullable();
-        $table->string('clicked_result_hash', 64)->nullable()->index();
-        $table->string('ip_hash', 64)->nullable();
-        $table->string('user_agent_hash', 64)->nullable();
-        $table->timestamp('searched_at')->index();
-        $table->timestamps();
-    });
+    SearchLogsTable::recreate();
 
     $log = SearchLog::query()->create([
         'query' => 'Laravel Search',
@@ -424,22 +379,7 @@ test('click tracking endpoint records nothing for a forged or mismatched token',
 test('click tracking endpoint enforces its configured rate limiter', function (): void {
     RateLimiter::for('capell-search-clicks', static fn (): Limit => Limit::perMinute(1)->by('search-click-test'));
 
-    Schema::dropIfExists('search_logs');
-    Schema::create('search_logs', function (Blueprint $table): void {
-        $table->id();
-        $table->foreignId('site_id')->nullable()->index();
-        $table->foreignId('language_id')->nullable()->index();
-        $table->string('query');
-        $table->string('normalized_query')->index();
-        $table->string('normalized_query_hash', 64)->nullable()->index();
-        $table->unsignedInteger('results_count')->default(0);
-        $table->string('clicked_result_url')->nullable();
-        $table->string('clicked_result_hash', 64)->nullable()->index();
-        $table->string('ip_hash', 64)->nullable();
-        $table->string('user_agent_hash', 64)->nullable();
-        $table->timestamp('searched_at')->index();
-        $table->timestamps();
-    });
+    SearchLogsTable::recreate();
 
     Route::post('/_search-click-rate-limit-test', [SearchController::class, 'click'])
         ->middleware('throttle:capell-search-clicks')
@@ -455,22 +395,7 @@ test('click tracking endpoint enforces its configured rate limiter', function ()
 });
 
 test('click tracking route is not locked by an unregistered rate limiter', function (): void {
-    Schema::dropIfExists('search_logs');
-    Schema::create('search_logs', function (Blueprint $table): void {
-        $table->id();
-        $table->foreignId('site_id')->nullable()->index();
-        $table->foreignId('language_id')->nullable()->index();
-        $table->string('query');
-        $table->string('normalized_query')->index();
-        $table->string('normalized_query_hash', 64)->nullable()->index();
-        $table->unsignedInteger('results_count')->default(0);
-        $table->string('clicked_result_url')->nullable();
-        $table->string('clicked_result_hash', 64)->nullable()->index();
-        $table->string('ip_hash', 64)->nullable();
-        $table->string('user_agent_hash', 64)->nullable();
-        $table->timestamp('searched_at')->index();
-        $table->timestamps();
-    });
+    SearchLogsTable::recreate();
 
     $origin = SiteRequestTargetData::fromUrl(route('capell-frontend.search.click'))->origin;
     $domain = SiteDomain::factory()->createOne(['domain' => $origin->host, 'scheme' => $origin->scheme, 'port' => $origin->effectivePort, 'path' => null]);

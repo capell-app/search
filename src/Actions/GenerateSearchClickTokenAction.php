@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\Search\Actions;
 
 use Capell\Search\Data\SearchRequestData;
+use Capell\Search\Support\Hashing\SearchLogHashSecret;
 use Illuminate\Support\Facades\Crypt;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
@@ -29,7 +30,8 @@ final class GenerateSearchClickTokenAction
         $resultPath = parse_url($resultUrl, PHP_URL_PATH);
 
         if ($normalizedQuery === '' || mb_strlen($normalizedQuery) < $minimumLength
-            || ! is_string($resultPath) || $resultPath === '') {
+            || ! is_string($resultPath) || $resultPath === ''
+            || ! SearchLogHashSecret::configured()) {
             return null;
         }
 

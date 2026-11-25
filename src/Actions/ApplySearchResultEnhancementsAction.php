@@ -15,6 +15,7 @@ use Capell\Core\Support\PublicRead\PublicPageReadEligibilityRegistry;
 use Capell\Search\Data\PromotedSearchResultData;
 use Capell\Search\Data\SearchResultData;
 use Capell\Search\Models\SearchLog;
+use Capell\Search\Support\Hashing\SearchLogHashSecret;
 use Capell\Search\Support\PubliclyReadableSearchPaginator;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Database\Eloquent\Builder as BuilderContract;
@@ -375,7 +376,7 @@ final class ApplySearchResultEnhancementsAction
     private function applyClickBoost(SearchResultData $result, array $clickCounts): SearchResultData
     {
         $resultPath = parse_url($result->url, PHP_URL_PATH);
-        $clickHash = is_string($resultPath) && $resultPath !== ''
+        $clickHash = is_string($resultPath) && $resultPath !== '' && SearchLogHashSecret::configured()
             ? HashSearchRetentionValueAction::run($resultPath)
             : null;
         $clicks = $clickHash === null ? 0 : ($clickCounts[$clickHash] ?? 0);

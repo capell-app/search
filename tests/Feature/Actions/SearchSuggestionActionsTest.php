@@ -6,26 +6,13 @@ use Capell\Search\Actions\BuildAutocompleteQuerySuggestionsAction;
 use Capell\Search\Actions\ResolveCorrectedSearchQueryAction;
 use Capell\Search\Actions\ResolvePromotedSearchResultsAction;
 use Capell\Search\Models\SearchLog;
-use Illuminate\Database\Schema\Blueprint;
+use Capell\Search\Tests\Support\SearchLogsTable;
 use Illuminate\Support\Facades\Schema;
 
 beforeEach(function (): void {
     config()->set('capell-search.logs.table_name', 'search_logs');
 
-    Schema::dropIfExists('search_logs');
-    Schema::create('search_logs', function (Blueprint $table): void {
-        $table->id();
-        $table->foreignId('site_id')->nullable()->index();
-        $table->foreignId('language_id')->nullable()->index();
-        $table->string('query');
-        $table->string('normalized_query')->index();
-        $table->unsignedInteger('results_count')->default(0);
-        $table->string('clicked_result_url')->nullable();
-        $table->string('ip_hash', 64)->nullable();
-        $table->string('user_agent_hash', 64)->nullable();
-        $table->timestamp('searched_at')->index();
-        $table->timestamps();
-    });
+    SearchLogsTable::recreate();
 });
 
 afterEach(function (): void {

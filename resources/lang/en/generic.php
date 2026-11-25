@@ -31,4 +31,5 @@ return [
     'suggestions_available' => ':count suggestions available.',
     'view_all_results' => 'View all results',
     'upgrade_encrypt_search_log_pii' => 'Encrypt search history recorded before searches were stored encrypted',
+    'upgrade_rehash_search_logs' => 'Re-key search history hashes with the search log hash secret',
 ];

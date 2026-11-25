@@ -5,12 +5,12 @@
         "default": {
             "source": {
                 "ref": "HEAD",
-                "commit": "37e6748f13a9d67ebbcc206e7ee59702ca183ca8",
+                "commit": "442d24a0162f098c8fdc4bc837341b1b4cee6352",
                 "providers": {
                     "Providers/AdminServiceProvider.php": "8bf7c5bfda23ca8eb8fb76212af8366a3079a38c19e62a6aea1aaa9f9b29ac53",
-                    "Providers/ConsoleServiceProvider.php": "116c1a2c6343435a41012b3afd22cafeaa94052a0d20841c4f12d3ea15647daf",
+                    "Providers/ConsoleServiceProvider.php": "4eed3a1c6cfac4206035d6c81d1f53b5f56e489d0ea571e95171888b2b8819c9",
                     "Providers/MigrationMetadataServiceProvider.php": "b2d96ba08fa3cbd69cb6df0125fd0c6b3e8c75cc8752971227b8141bf5c93599",
-                    "Providers/SearchServiceProvider.php": "0a0510fc3af38fb186114494429b2c4b53763d7bba8a509fade00f3f20d6faed"
+                    "Providers/SearchServiceProvider.php": "0120ac0069bc05143e536b1222d391dc674e32024acb4623c1aff0c2729ee433"
                 },
                 "configure": "packages/search/tests/Integration/Providers/Fixtures/log-hash-secret.php"
             },
@@ -59,7 +59,8 @@
                     "capell:search:screenshot-fixture": "Capell\\Search\\Console\\Commands\\SeedSearchScreenshotFixtureCommand",
                     "search:flush": "Capell\\Search\\Console\\Commands\\FlushSearchCommand",
                     "search:index": "Capell\\Search\\Console\\Commands\\IndexSearchCommand",
-                    "search:purge": "Capell\\Search\\Console\\Commands\\PurgeSearchLogsCommand"
+                    "search:purge": "Capell\\Search\\Console\\Commands\\PurgeSearchLogsCommand",
+                    "search:rehash-logs": "Capell\\Search\\Console\\Commands\\RehashSearchLogsCommand"
                 },
                 "config-defaults": {
                     "capell-search.php": {
@@ -411,7 +412,7 @@
                     "eloquent.saving: Capell\\Search\\Models\\SearchLog": [
                         [
                             "<package>/src/Models/SearchLog.php",
-                            "static Capell\\Search\\Models\\SearchLog(self $searchLog):void source=b05587c6ccd9ef16180aaf17e0d26553",
+                            "static Capell\\Search\\Models\\SearchLog(self $searchLog):void source=88bba6e95cc38fb060b7e191c600fa84",
                             []
                         ]
                     ]
@@ -1056,7 +1057,8 @@
                         "Capell\\Search\\Filament\\Settings\\Contributors\\SearchDashboardSettingsContributor"
                     ],
                     "capell.upgrade-steps": [
-                        "Capell\\Search\\Upgrade\\EncryptSearchLogPiiStep"
+                        "Capell\\Search\\Upgrade\\EncryptSearchLogPiiStep",
+                        "Capell\\Search\\Upgrade\\RehashSearchLogsStep"
                     ]
                 },
                 "tags": {
@@ -1064,7 +1066,8 @@
                         "Capell\\Search\\Filament\\Settings\\Contributors\\SearchDashboardSettingsContributor"
                     ],
                     "capell.upgrade-steps": [
-                        "Capell\\Search\\Upgrade\\EncryptSearchLogPiiStep"
+                        "Capell\\Search\\Upgrade\\EncryptSearchLogPiiStep",
+                        "Capell\\Search\\Upgrade\\RehashSearchLogsStep"
                     ]
                 },
                 "views": {
@@ -1105,7 +1108,8 @@
                     "capell:search:screenshot-fixture": "Capell\\Search\\Console\\Commands\\SeedSearchScreenshotFixtureCommand",
                     "search:flush": "Capell\\Search\\Console\\Commands\\FlushSearchCommand",
                     "search:index": "Capell\\Search\\Console\\Commands\\IndexSearchCommand",
-                    "search:purge": "Capell\\Search\\Console\\Commands\\PurgeSearchLogsCommand"
+                    "search:purge": "Capell\\Search\\Console\\Commands\\PurgeSearchLogsCommand",
+                    "search:rehash-logs": "Capell\\Search\\Console\\Commands\\RehashSearchLogsCommand"
                 },
                 "config-defaults": {
                     "capell-search.php": {
@@ -1351,12 +1355,14 @@
                 },
                 "tagged-consumers": {
                     "capell.upgrade-steps": [
-                        "Capell\\Search\\Upgrade\\EncryptSearchLogPiiStep"
+                        "Capell\\Search\\Upgrade\\EncryptSearchLogPiiStep",
+                        "Capell\\Search\\Upgrade\\RehashSearchLogsStep"
                     ]
                 },
                 "tags": {
                     "capell.upgrade-steps": [
-                        "Capell\\Search\\Upgrade\\EncryptSearchLogPiiStep"
+                        "Capell\\Search\\Upgrade\\EncryptSearchLogPiiStep",
+                        "Capell\\Search\\Upgrade\\RehashSearchLogsStep"
                     ]
                 },
                 "views": {

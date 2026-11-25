@@ -5,8 +5,8 @@ declare(strict_types=1);
 use Capell\Search\Actions\PurgeSearchLogsAction;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Settings\SearchSettings;
+use Capell\Search\Tests\Support\SearchLogsTable;
 use Illuminate\Console\Command;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 beforeEach(function (): void {
@@ -15,22 +15,7 @@ beforeEach(function (): void {
     config()->set('capell-search.logs.table_name', 'search_logs');
     config()->set('capell-search.logs.retention_days', 30);
 
-    Schema::dropIfExists('search_logs');
-    Schema::create('search_logs', function (Blueprint $table): void {
-        $table->id();
-        $table->foreignId('site_id')->nullable()->index();
-        $table->foreignId('language_id')->nullable()->index();
-        $table->string('query');
-        $table->string('normalized_query')->index();
-        $table->string('normalized_query_hash', 64)->nullable()->index();
-        $table->unsignedInteger('results_count')->default(0);
-        $table->string('clicked_result_url')->nullable();
-        $table->string('clicked_result_hash', 64)->nullable()->index();
-        $table->string('ip_hash', 64)->nullable();
-        $table->string('user_agent_hash', 64)->nullable();
-        $table->timestamp('searched_at')->index();
-        $table->timestamps();
-    });
+    SearchLogsTable::recreate();
 });
 
 afterEach(function (): void {

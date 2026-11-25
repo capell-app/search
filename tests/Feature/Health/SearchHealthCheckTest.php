@@ -6,7 +6,7 @@ use Capell\Core\Facades\CapellCore;
 use Capell\Search\Actions\ProbeScoutIndexHealthAction;
 use Capell\Search\Health\SearchHealthCheck;
 use Capell\Search\Models\SearchLog;
-use Illuminate\Database\Schema\Blueprint;
+use Capell\Search\Tests\Support\SearchLogsTable;
 use Illuminate\Support\Facades\Schema;
 
 beforeEach(function (): void {
@@ -17,20 +17,7 @@ beforeEach(function (): void {
     config()->set('scout.driver', 'collection');
     config()->set('capell-search.health.scout_indexes', []);
 
-    Schema::dropIfExists('search_logs');
-    Schema::create('search_logs', function (Blueprint $table): void {
-        $table->id();
-        $table->foreignId('site_id')->nullable();
-        $table->foreignId('language_id')->nullable();
-        $table->string('query');
-        $table->string('normalized_query')->index();
-        $table->unsignedInteger('results_count')->default(0);
-        $table->string('clicked_result_url')->nullable();
-        $table->string('ip_hash', 64)->nullable();
-        $table->string('user_agent_hash', 64)->nullable();
-        $table->timestamp('searched_at')->index();
-        $table->timestamps();
-    });
+    SearchLogsTable::recreate();
 
     CapellCore::registerModels([SearchLog::class]);
 });
@@ -46,13 +33,14 @@ it('reports compatible capell api version', function (): void {
 it('runs diagnostics with runtime probes', function (): void {
     $results = SearchHealthCheck::runDiagnostics();
 
-    expect($results)->toHaveCount(6)
+    expect($results)->toHaveCount(7)
         ->and($results->pluck('id')->all())->toBe([
             'legacy.search.log.storage.table',
             'legacy.searchlog.model.registration',
             'legacy.search.driver.resolution',
             'legacy.search.log.write.probe',
             'legacy.search.logging.configuration',
+            'search.log.hash.secret',
             'legacy.scout.index.health',
         ]);
 
@@ -64,7 +52,7 @@ it('runs diagnostics with runtime probes', function (): void {
 it('passes storage table, model registration, runtime probes, and logging config when valid', function (): void {
     $results = SearchHealthCheck::runDiagnostics();
 
-    expect($results->pluck('passed')->all())->toBe([true, true, true, true, true, true])
+    expect($results->pluck('passed')->all())->toBe([true, true, true, true, true, true, true])
         ->and(SearchLog::query()->where('query', '__capell_health_probe__')->exists())->toBeFalse();
 });
 

@@ -160,9 +160,11 @@ return [
     'logs' => [
         'table_name' => 'search_logs',
         'retention_days' => 180,
+        // Keys the retained query and clicked-result hashes. Required for logging; never falls back to APP_KEY.
         'hash_secret' => env('CAPELL_SEARCH_LOG_HASH_SECRET'),
     ],
     'honor_privacy_signals' => true,
+    // Keys the rotating visitor hashes; null uses logs.hash_secret.
     'visitor_hash_secret' => null,
     'visitor_hash_rotation_days' => 30,
     'dashboard' => [

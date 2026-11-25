@@ -7,6 +7,7 @@ namespace Capell\Search\Actions;
 use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchVisitorIdentityData;
 use Capell\Search\Models\SearchLog;
+use Capell\Search\Support\Hashing\SearchLogHashSecret;
 use Illuminate\Support\Facades\Schema as SchemaFacade;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsJob;
@@ -34,6 +35,11 @@ final class RecordSearchAction
             return null;
         }
 
+        // Without its own hash secret a search log cannot be stored safely, so nothing is recorded.
+        if (! SearchLogHashSecret::configured()) {
+            return null;
+        }
+
         // Personal identifiers typed into the box (emails, phone or card-like numbers) are never retained.
         $normalizedQuery = RedactSearchQueryAction::run((string) NormalizeSearchQueryAction::run($data->query));
         $minimumLength = (int) ResolveSearchSettingAction::run(
@@ -57,8 +63,11 @@ final class RecordSearchAction
         );
 
         // Unguarded: the reference column is added by a later migration, and Eloquent's guard check reads a cached column list.
+        $table = (new SearchLog)->getTable();
+
         return SearchLog::unguarded(static fn (): SearchLog => SearchLog::query()->create([
-            ...($data->reference !== null && SchemaFacade::hasColumn((new SearchLog)->getTable(), 'search_reference') ? ['search_reference' => $data->reference] : []),
+            ...($data->reference !== null && SchemaFacade::hasColumn($table, 'search_reference') ? ['search_reference' => $data->reference] : []),
+            ...(SchemaFacade::hasColumn($table, 'hash_key_id') ? ['hash_key_id' => SearchLogHashSecret::currentKeyId()] : []),
             'site_id' => $data->siteId,
             'language_id' => $data->languageId,
             // Retain one canonical value rather than the visitor's raw spacing/casing.

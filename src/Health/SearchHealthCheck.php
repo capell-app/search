@@ -9,9 +9,12 @@ use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\TableName;
 use Capell\Search\Actions\ProbeScoutIndexHealthAction;
+use Capell\Search\Actions\RehashSearchLogsAction;
 use Capell\Search\Actions\ResolveSearchDriverAction;
+use Capell\Search\Actions\ResolveSearchSettingAction;
 use Capell\Search\Contracts\Search;
 use Capell\Search\Models\SearchLog;
+use Capell\Search\Support\Hashing\SearchLogHashSecret;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
@@ -39,6 +42,7 @@ final class SearchHealthCheck implements ChecksExtensionHealth
             $check->searchDriverCheck(),
             $check->searchLogWriteCheck(),
             $check->loggingConfigurationCheck(),
+            $check->logHashSecretCheck(),
             $check->scoutIndexHealthCheck(),
         ]);
     }
@@ -121,16 +125,15 @@ final class SearchHealthCheck implements ChecksExtensionHealth
         }
 
         try {
-            $recordId = DB::table($tableName)->insertGetId([
+            // Through the model, so the probe is written the way real logs are: encrypted.
+            $probe = SearchLog::query()->create([
                 'query' => '__capell_health_probe__',
-                'normalized_query' => '__capell_health_probe__',
+                'normalized_query' => hash('sha256', '__capell_health_probe__'),
                 'results_count' => 0,
                 'searched_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
 
-            DB::table($tableName)->where('id', $recordId)->delete();
+            DB::table($tableName)->where('id', $probe->getKey())->delete();
 
             $writeable = true;
         } catch (Throwable) {
@@ -166,6 +169,37 @@ final class SearchHealthCheck implements ChecksExtensionHealth
                 ? null
                 : 'Set capell-search.minimum_query_length and capell-search.logs.retention_days to positive integers.',
             id: 'legacy.search.logging.configuration',
+        );
+    }
+
+    public function logHashSecretCheck(): DoctorCheckResultData
+    {
+        $loggingEnabled = (bool) ResolveSearchSettingAction::run('record_search_logs', 'capell-search.record_search_logs', true);
+        $configured = SearchLogHashSecret::configured();
+        $staleRows = $configured ? RehashSearchLogsAction::make()->staleRowCount() : 0;
+
+        if ($configured && $staleRows > 0) {
+            return new DoctorCheckResultData(
+                label: 'Search: search log hash secret',
+                passed: false,
+                message: sprintf('%d search log records are still keyed by an earlier hash secret, so they no longer group with new searches.', $staleRows),
+                remediation: 'Run php artisan search:rehash-logs to re-key them from their encrypted values.',
+                id: 'search.log.hash.secret',
+            );
+        }
+
+        return new DoctorCheckResultData(
+            label: 'Search: search log hash secret',
+            passed: $configured || ! $loggingEnabled,
+            message: match (true) {
+                $configured => 'Search log hashes use their own secret.',
+                ! $loggingEnabled => 'Search logging is off, so no hash secret is needed.',
+                default => sprintf('Search logging is on but %s is not set, so no searches are being recorded. Search logs never fall back to APP_KEY.', SearchLogHashSecret::ENVIRONMENT_KEY),
+            },
+            remediation: $configured || ! $loggingEnabled
+                ? null
+                : sprintf('Set %s to a long random value (for example the output of openssl rand -base64 48), clear the config cache, then run php artisan search:rehash-logs.', SearchLogHashSecret::ENVIRONMENT_KEY),
+            id: 'search.log.hash.secret',
         );
     }
 

@@ -31,4 +31,5 @@ return [
     'suggestions_available' => ':count Vorschläge verfügbar.',
     'view_all_results' => 'Alle Ergebnisse anzeigen',
     'upgrade_encrypt_search_log_pii' => 'Suchverlauf verschlüsseln, der vor der verschlüsselten Speicherung aufgezeichnet wurde',
+    'upgrade_rehash_search_logs' => 'Hashes im Suchverlauf mit dem Hash-Geheimnis der Suchprotokolle neu berechnen',
 ];

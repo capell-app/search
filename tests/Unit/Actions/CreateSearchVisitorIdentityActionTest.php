@@ -7,7 +7,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 
 it('derives rotating visitor hashes per site before deferred collection', function (): void {
-    config()->set('app.key', 'base64:application-key');
     config()->set('capell-search.visitor_hash_rotation_days', 30);
     $request = Request::create('/', 'GET', [], [], [], [
         'REMOTE_ADDR' => '203.0.113.10',

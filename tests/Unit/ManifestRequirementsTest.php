@@ -24,6 +24,7 @@ use Capell\Search\Actions\RunSearchAction;
 use Capell\Search\Console\Commands\FlushSearchCommand;
 use Capell\Search\Console\Commands\IndexSearchCommand;
 use Capell\Search\Console\Commands\PurgeSearchLogsCommand;
+use Capell\Search\Console\Commands\RehashSearchLogsCommand;
 use Capell\Search\Console\Commands\SeedSearchScreenshotFixtureCommand;
 use Capell\Search\Filament\Pages\SearchSettingsPage;
 use Capell\Search\Filament\Widgets\TopSearchesFilamentWidget;
@@ -86,6 +87,7 @@ it('declares implemented search gap features contributions and actions', functio
         ->and(data_get($manifest, 'commands.flush'))->toBe('search:flush')
         ->and(data_get($manifest, 'commands.index'))->toBe('search:index')
         ->and(data_get($manifest, 'commands.purge'))->toBe('search:purge')
+        ->and(data_get($manifest, 'commands.rehashLogs'))->toBe('search:rehash-logs')
         ->and(data_get($manifest, 'settings'))->toContain(SearchSettings::class)
         ->and(data_get($manifest, 'contributes'))->toContain([
             'type' => 'route',
@@ -149,11 +151,12 @@ it('declares implemented search gap features contributions and actions', functio
         ->and($manifest['contributes'])->toContain([
             'type' => 'console-command',
             'class' => SearchConsoleCommandsContribution::class,
-            'commands' => ['search:index', 'search:flush', 'search:purge', 'capell:search:screenshot-fixture'],
+            'commands' => ['search:index', 'search:flush', 'search:purge', 'search:rehash-logs', 'capell:search:screenshot-fixture'],
             'commandClasses' => [
                 IndexSearchCommand::class,
                 FlushSearchCommand::class,
                 PurgeSearchLogsCommand::class,
+                RehashSearchLogsCommand::class,
                 SeedSearchScreenshotFixtureCommand::class,
             ],
         ])

@@ -12,9 +12,9 @@ use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchResultData;
 use Capell\Search\Models\SearchLog;
 use Capell\Search\Tests\Support\PublishedSearchTarget;
+use Capell\Search\Tests\Support\SearchLogsTable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -535,20 +535,5 @@ function createSearchLogsTableForEnhancementTests(): void
 {
     config()->set('capell-search.logs.table_name', 'search_logs');
 
-    Schema::dropIfExists('search_logs');
-    Schema::create('search_logs', function (Blueprint $table): void {
-        $table->id();
-        $table->foreignId('site_id')->nullable()->index();
-        $table->foreignId('language_id')->nullable()->index();
-        $table->string('query');
-        $table->string('normalized_query')->index();
-        $table->string('normalized_query_hash', 64)->nullable()->index();
-        $table->unsignedInteger('results_count')->default(0);
-        $table->string('clicked_result_url')->nullable();
-        $table->string('clicked_result_hash', 64)->nullable()->index();
-        $table->string('ip_hash', 64)->nullable();
-        $table->string('user_agent_hash', 64)->nullable();
-        $table->timestamp('searched_at')->index();
-        $table->timestamps();
-    });
+    SearchLogsTable::recreate();
 }

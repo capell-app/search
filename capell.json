@@ -105,12 +105,14 @@
                 "search:index",
                 "search:flush",
                 "search:purge",
+                "search:rehash-logs",
                 "capell:search:screenshot-fixture"
             ],
             "commandClasses": [
                 "Capell\\Search\\Console\\Commands\\IndexSearchCommand",
                 "Capell\\Search\\Console\\Commands\\FlushSearchCommand",
                 "Capell\\Search\\Console\\Commands\\PurgeSearchLogsCommand",
+                "Capell\\Search\\Console\\Commands\\RehashSearchLogsCommand",
                 "Capell\\Search\\Console\\Commands\\SeedSearchScreenshotFixtureCommand"
             ]
         },
@@ -133,7 +135,9 @@
                 "2026_05_21_000002_add_fulltext_index_to_search_database_table",
                 "2026_07_12_000001_encrypt_search_log_pii",
                 "2026_09_29_120000_remove_implicit_timestamp_updates_from_search",
-                "2026_11_11_000001_add_search_reference_to_search_logs"
+                "2026_11_11_000001_add_search_reference_to_search_logs",
+                "2026_11_23_000001_add_hash_key_id_to_search_logs",
+                "2026_11_23_000002_encrypt_plain_text_homepage_search_logs"
             ]
         }
     ],
@@ -150,6 +154,7 @@
         "index": "search:index",
         "flush": "search:flush",
         "purge": "search:purge",
+        "rehashLogs": "search:rehash-logs",
         "screenshotFixture": "capell:search:screenshot-fixture"
     },
     "actions": {
@@ -208,13 +213,16 @@
             ],
             "hashedTokenFields": [
                 "search_logs.clicked_result_hash",
+                "search_logs.hash_key_id",
                 "search_logs.ip_hash",
                 "search_logs.normalized_query_hash",
                 "search_logs.user_agent_hash"
             ],
             "redactedOutputClasses": [
+                "Capell\\Search\\Actions\\EncryptLegacySearchLogPiiAction",
                 "Capell\\Search\\Actions\\RecordSearchAction",
-                "Capell\\Search\\Actions\\RedactSearchQueryAction"
+                "Capell\\Search\\Actions\\RedactSearchQueryAction",
+                "Capell\\Search\\Actions\\RehashSearchLogsAction"
             ],
             "plaintextJustifications": []
         },

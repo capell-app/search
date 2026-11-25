@@ -7,6 +7,7 @@ namespace Capell\Search\Models;
 use Capell\Core\Support\TableName;
 use Capell\Search\Actions\HashSearchRetentionValueAction;
 use Capell\Search\Database\Factories\SearchLogFactory;
+use Capell\Search\Support\Hashing\SearchLogHashSecret;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,6 +24,7 @@ use Override;
  * @property string|null $clicked_result_url
  * @property string|null $ip_hash
  * @property string|null $user_agent_hash
+ * @property string|null $hash_key_id
  * @property CarbonImmutable $searched_at
  * @property int $searches
  */
@@ -47,7 +49,7 @@ final class SearchLog extends Model
         self::saving(static function (self $searchLog): void {
             $clickedResultUrl = $searchLog->clicked_result_url;
 
-            if (is_string($clickedResultUrl) && $clickedResultUrl !== '') {
+            if (is_string($clickedResultUrl) && $clickedResultUrl !== '' && SearchLogHashSecret::configured()) {
                 $searchLog->setAttribute(
                     'clicked_result_hash',
                     HashSearchRetentionValueAction::run($clickedResultUrl),

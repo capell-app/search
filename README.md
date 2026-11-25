@@ -28,7 +28,7 @@ The searchable-source registry and Search contract keep indexing backends replac
 
 - **Configuration files:** `config/capell-search.php`.
 - **Admin settings:** `Capell\Search\Settings\SearchSettings`.
-- **Commands:** `php artisan capell:search:screenshot-fixture`, `php artisan search:flush`, `php artisan search:index`, `php artisan search:purge`.
+- **Commands:** `php artisan capell:search:screenshot-fixture`, `php artisan search:flush`, `php artisan search:index`, `php artisan search:purge`, `php artisan search:rehash-logs`.
 
 ## Limits And Pitfalls
 
@@ -65,7 +65,7 @@ The searchable-source registry and Search contract keep indexing backends replac
 - Settings: `Capell\Search\Settings\SearchSettings`.
 - Queues or schedules: scheduled commands `search:purge (monthly; package registered)`.
 - Cache tags: `search`.
-- Commands: `capell:search:screenshot-fixture`, `search:flush`, `search:index`, `search:purge`.
+- Commands: `capell:search:screenshot-fixture`, `search:flush`, `search:index`, `search:purge`, `search:rehash-logs`.
 
 ## Troubleshooting
 

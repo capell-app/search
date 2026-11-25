@@ -47,6 +47,9 @@ abstract class SearchTestCase extends PackagesTestCase
     {
         parent::getEnvironmentSetUp($app);
 
+        // Search logs never fall back to APP_KEY; tests that need the secret missing unset it.
+        $app['config']->set('capell-search.logs.hash_secret', 'search-package-test-hash-secret');
+
         CapellCore::forcePackageInstalled(SearchServiceProvider::$packageName);
     }
 }

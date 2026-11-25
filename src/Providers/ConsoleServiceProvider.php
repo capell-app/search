@@ -8,6 +8,7 @@ use Capell\Core\Actions\Install\RegisterCommandsInCurrentProcessAction;
 use Capell\Search\Console\Commands\FlushSearchCommand;
 use Capell\Search\Console\Commands\IndexSearchCommand;
 use Capell\Search\Console\Commands\PurgeSearchLogsCommand;
+use Capell\Search\Console\Commands\RehashSearchLogsCommand;
 use Capell\Search\Console\Commands\SeedSearchScreenshotFixtureCommand;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
@@ -26,12 +27,13 @@ final class ConsoleServiceProvider extends ServiceProvider
             FlushSearchCommand::class,
             IndexSearchCommand::class,
             PurgeSearchLogsCommand::class,
+            RehashSearchLogsCommand::class,
             SeedSearchScreenshotFixtureCommand::class,
         ]);
 
         // Install providers can arrive after the installer's Artisan instance starts.
         if ($this->app instanceof Application && $this->app->isBooted()) {
-            RegisterCommandsInCurrentProcessAction::run([FlushSearchCommand::class, IndexSearchCommand::class, PurgeSearchLogsCommand::class, SeedSearchScreenshotFixtureCommand::class]);
+            RegisterCommandsInCurrentProcessAction::run([FlushSearchCommand::class, IndexSearchCommand::class, PurgeSearchLogsCommand::class, RehashSearchLogsCommand::class, SeedSearchScreenshotFixtureCommand::class]);
         }
     }
 }

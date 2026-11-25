@@ -9,8 +9,8 @@ use Capell\Search\Actions\RecordSearchResultClickAction;
 use Capell\Search\Data\SearchRequestData;
 use Capell\Search\Data\SearchVisitorIdentityData;
 use Capell\Search\Models\SearchLog;
+use Capell\Search\Tests\Support\SearchLogsTable;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -23,22 +23,7 @@ beforeEach(function (): void {
     config()->set('capell-search.record_search_logs', true);
     config()->set('capell-search.hash_visitor_data', true);
 
-    Schema::dropIfExists('search_logs');
-    Schema::create('search_logs', function (Blueprint $table): void {
-        $table->id();
-        $table->foreignId('site_id')->nullable()->index();
-        $table->foreignId('language_id')->nullable()->index();
-        $table->string('query');
-        $table->string('normalized_query')->index();
-        $table->string('normalized_query_hash', 64)->nullable()->index();
-        $table->unsignedInteger('results_count')->default(0);
-        $table->string('clicked_result_url')->nullable();
-        $table->string('clicked_result_hash', 64)->nullable()->index();
-        $table->string('ip_hash', 64)->nullable();
-        $table->string('user_agent_hash', 64)->nullable();
-        $table->timestamp('searched_at')->index();
-        $table->timestamps();
-    });
+    SearchLogsTable::recreate();
 });
 
 afterEach(function (): void {

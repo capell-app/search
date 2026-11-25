@@ -4,6 +4,9 @@ All notable changes to `capell-app/search` will be documented in this file.
 
 ## Unreleased
 
+- Search log hashes no longer fall back to `APP_KEY`. Query, clicked-result and visitor hashes are keyed by `CAPELL_SEARCH_LOG_HASH_SECRET` (visitor hashes may use `visitor_hash_secret`); while it is missing nothing is recorded and the health check says how to fix it. **Upgrade:** set `CAPELL_SEARCH_LOG_HASH_SECRET` before upgrading, or search logging stops until it is set.
+- Added `hash_key_id` to search logs, the `search:rehash-logs` command and an upgrade step that re-key retained hashes from their encrypted values after the secret is set or rotated.
+- Legacy plain-text search logs are now redacted (email addresses, long numbers) as well as encrypted, and the health probe writes through the encrypted model.
 - Added a configurable per-user/IP rate limiter to the full public search route, closing the expensive unthrottled search-and-log path.
 
 ### 2026-06-03

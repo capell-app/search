@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\Search\Actions;
 
 use Capell\Search\Models\SearchLog;
+use Capell\Search\Support\Hashing\SearchLogHashSecret;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -40,7 +41,7 @@ final class RecordSearchResultClickAction
 
         $normalizedQuery = NormalizeSearchQueryAction::run($query);
 
-        if ($normalizedQuery === '' || ! SchemaFacade::hasTable((new SearchLog)->getTable())) {
+        if ($normalizedQuery === '' || ! SearchLogHashSecret::configured() || ! SchemaFacade::hasTable((new SearchLog)->getTable())) {
             return null;
         }
 
@@ -71,7 +72,7 @@ final class RecordSearchResultClickAction
 
     private function recordClick(SearchLog $log, string $url): SearchLog
     {
-        if ($log->clicked_result_url !== null) {
+        if ($log->clicked_result_url !== null || ! SearchLogHashSecret::configured()) {
             return $log;
         }
 

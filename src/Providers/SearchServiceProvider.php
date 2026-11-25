@@ -39,7 +39,7 @@ use Capell\Search\Support\PublicSearchSwitch;
 use Capell\Search\Support\RenderHooks\RegisterHeaderSearchHook;
 use Capell\Search\Support\SearchableSourceRegistry;
 use Capell\Search\Upgrade\EncryptSearchLogPiiStep;
-use Capell\SiteDiscovery\Contracts\GeneratedOutputCoverageSource;
+use Capell\Search\Upgrade\RehashSearchLogsStep;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -86,6 +86,8 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
                 '2026_05_21_000002_add_fulltext_index_to_search_database_table',
                 '2026_09_29_120000_remove_implicit_timestamp_updates_from_search',
                 '2026_11_11_000001_add_search_reference_to_search_logs',
+                '2026_11_23_000001_add_hash_key_id_to_search_logs',
+                '2026_11_23_000002_encrypt_plain_text_homepage_search_logs',
             ]);
         }
 
@@ -112,7 +114,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
         });
 
         $this->app->scoped(PublicSearchSwitch::class);
-        $this->app->tag([EncryptSearchLogPiiStep::class], EncryptSearchLogPiiStep::TAG);
+        $this->app->tag([EncryptSearchLogPiiStep::class, RehashSearchLogsStep::class], EncryptSearchLogPiiStep::TAG);
 
         $this->registerSearchBinding();
     }
@@ -378,8 +380,7 @@ final class SearchServiceProvider extends AbstractPackageServiceProvider
             return $this;
         }
 
-        $this->app->singleton(SearchGeneratedOutputCoverageSource::class);
-        $this->app->tag([SearchGeneratedOutputCoverageSource::class], GeneratedOutputCoverageSource::TAG);
+        SearchGeneratedOutputCoverageSource::register($this->app);
 
         return $this;
     }

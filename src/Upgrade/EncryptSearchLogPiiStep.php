@@ -7,6 +7,7 @@ namespace Capell\Search\Upgrade;
 use Capell\Core\Data\UpgradeContext;
 use Capell\Core\Support\Upgrade\AbstractUpgradeStep;
 use Capell\Search\Actions\EncryptLegacySearchLogPiiAction;
+use Capell\Search\Support\Hashing\SearchLogHashSecret;
 use Illuminate\Support\Facades\Schema;
 use Override;
 
@@ -42,7 +43,9 @@ final class EncryptSearchLogPiiStep extends AbstractUpgradeStep
     {
         $table = EncryptLegacySearchLogPiiAction::table();
 
-        return Schema::hasTable($table)
+        // The hashes need the search log hash secret; the Search health check reports it while it is missing.
+        return SearchLogHashSecret::configured()
+            && Schema::hasTable($table)
             && Schema::hasColumns($table, ['normalized_query_hash', 'clicked_result_hash'])
             && EncryptLegacySearchLogPiiAction::make()->hasLegacyRows();
     }

@@ -6,6 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^1.0",
     "version": "1.0.0",
+    "launchStatus": "preview",
     "description": "Adds a header search button, matching pages as visitors type and a results page you can steer with synonyms, typo fixes and promoted results.",
     "product": {
         "group": "Capell Search & SEO",
